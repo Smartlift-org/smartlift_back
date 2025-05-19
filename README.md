@@ -1,29 +1,5 @@
-<<<<<<< HEAD
-# smartlift_api
-SmartLift API: Ruby on Rails backend service that leverages AI to generate personalized workout routines. Features user tracking and fitness analytics.
-=======
-# README
+This is the backend component of the mobile application for sports clubs and gyms. Implemented with Ruby on Rails, this backend manages the core business logic, including user administration (members and trainers), training routine management (creation, storage, AI integration), user progress tracking, and the infrastructure for the social feed and other services.
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+It acts as the main API serving data to the mobile application (built with React Native) and orchestrates integration with external services such as the AI routine generation API and the exercise video storage system.
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
->>>>>>> 222443a (Inicializar proyecto SmartLift API)
+Ongoing...

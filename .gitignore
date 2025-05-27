@@ -100,3 +100,4 @@ yarn-debug.log*
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 >>>>>>> 222443a (Inicializar proyecto SmartLift API)
+.env

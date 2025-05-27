@@ -13,3 +13,12 @@ module ActiveSupport
     # Add more helper methods to be used by all tests here...
   end
 end
+
+# Helper para tests de controladores
+module ActionDispatch
+  class IntegrationTest
+    def json_response
+      JSON.parse(response.body)
+    end
+  end
+end

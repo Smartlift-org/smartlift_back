@@ -23,6 +23,6 @@ Rails.application.routes.draw do
   get "/exercises/:id", to: "exercises#show"
   post "/exercises", to: "exercises#create"
   patch "/exercises/:id:", to: "exercises#update"
-  delte "/exercises/:id", to: "exercises#destroy"
+  delete "/exercises/:id", to: "exercises#destroy"
 
 end

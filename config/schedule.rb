@@ -19,7 +19,7 @@
 
 # Learn more: http://github.com/javan/whenever
 
-set :environment, ENV['RAILS_ENV'] || 'development'
+set :environment, ENV['RAILS_ENV'] || 'development' 
 
 set :output, "log/cron_log.log"
 

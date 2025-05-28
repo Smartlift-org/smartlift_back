@@ -5,7 +5,7 @@ class UsersController < ApplicationController
     
     # GET /profile
     def profile
-      render json: current_user, status: :ok
+      render json: current_user.as_json(only: [:id, :first_name, :last_name, :email, :role, :created_at]), status: :ok
     end
   
     # POST /users
@@ -44,11 +44,11 @@ class UsersController < ApplicationController
 
     def update_params
       params.except(:id, :user, :controller, :action)
-            .permit(:first_name, :last_name, :email, :password, :password_confirmation)
+            .permit(:first_name, :last_name, :email, :password, :password_confirmation, :role)
     end
 
     def user_params
-      params.permit(:first_name, :last_name, :email, :password, :password_confirmation)
+      params.permit(:first_name, :last_name, :email, :password, :password_confirmation, :role)
     end
 
     def valid_email_format?(email)

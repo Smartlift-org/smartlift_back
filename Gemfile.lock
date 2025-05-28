@@ -111,6 +111,9 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.1)
     ed25519 (1.4.0)
     erubi (1.13.1)
@@ -219,6 +222,8 @@ GEM
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.1.15)
+    rack-attack (6.7.0)
+      rack (>= 1.0, < 4)
     rack-cors (3.0.0)
       logger
       rack (>= 3.0.14)
@@ -379,6 +384,7 @@ DEPENDENCIES
   brakeman
   capybara
   debug
+  dotenv-rails
   importmap-rails
   jbuilder
   jwt (~> 2.10, >= 2.10.1)
@@ -386,6 +392,7 @@ DEPENDENCIES
   pg (~> 1.1)
   propshaft
   puma (>= 5.0)
+  rack-attack
   rack-cors (~> 3.0)
   rails (~> 8.0.2)
   rubocop-rails-omakase

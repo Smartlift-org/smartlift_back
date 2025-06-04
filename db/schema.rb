@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_28_135905) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_03_145139) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -44,6 +44,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_28_135905) do
     t.index ["mechanic"], name: "index_exercises_on_mechanic"
   end
 
+  create_table "user_stats", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.decimal "height", precision: 5, scale: 2
+    t.decimal "weight", precision: 5, scale: 2
+    t.integer "age"
+    t.string "gender", limit: 50
+    t.string "fitness_goal", limit: 100
+    t.string "experience_level", limit: 50
+    t.integer "available_days"
+    t.string "equipment_available", limit: 100
+    t.string "activity_level", limit: 50
+    t.string "physical_limitations", limit: 100
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_user_stats_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
@@ -56,4 +73,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_28_135905) do
 
   add_foreign_key "coach_users", "users"
   add_foreign_key "coach_users", "users", column: "coach_id"
+  add_foreign_key "user_stats", "users"
 end

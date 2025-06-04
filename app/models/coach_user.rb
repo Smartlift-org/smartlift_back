@@ -2,7 +2,7 @@ class CoachUser < ApplicationRecord
   belongs_to :coach, class_name: 'User'
   belongs_to :user, class_name: 'User'
   
-  validates :coach_id, uniqueness: { scope: :user_id, message: "ya está asignado a este usuario" }
+  validates :coach_id, uniqueness: { scope: :user_id, message: "Ya está asignado a este usuario" }
   validate :coach_must_be_coach
   validate :user_must_be_user
   
@@ -10,13 +10,13 @@ class CoachUser < ApplicationRecord
   
   def coach_must_be_coach
     unless coach.coach?
-      errors.add(:coach, "debe tener rol de coach")
+      errors.add(:coach, "Debe tener rol de coach")
     end
   end
   
   def user_must_be_user
     unless user.user?
-      errors.add(:user, "debe tener rol de usuario")
+      errors.add(:user, "Debe tener rol de usuario")
     end
   end
 end 

@@ -13,16 +13,12 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   # Users
-  post "/users", to: "users#create"
-  patch "/users/:id", to: "users#update"
-  post "/auth/login", to: "auth#login"
-  get "/profile", to: "users#profile"
+  resources :users, only: [:index, :show, :create, :update]
 
   # Exercises
-  get "/exercises", to: "exercises#index"
-  get "/exercises/:id", to: "exercises#show"
-  post "/exercises", to: "exercises#create"
-  patch "/exercises/:id:", to: "exercises#update"
-  delete "/exercises/:id", to: "exercises#destroy"
+  resources :exercises, only: [:index, :show, :create, :update, :destroy]
+
+  # User Stats
+  resources :user_stats, only: [:index, :create, :update]
 
 end

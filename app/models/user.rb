@@ -11,6 +11,8 @@ class User < ApplicationRecord
     has_many :user_coaches, class_name: 'CoachUser', foreign_key: :user_id, dependent: :destroy
     has_many :coaches, through: :user_coaches
     
+    has_one :user_stat, dependent: :destroy
+    
     validates :email, presence: true, 
               uniqueness: { message: "ya está en uso" },
               format: { with: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i, 

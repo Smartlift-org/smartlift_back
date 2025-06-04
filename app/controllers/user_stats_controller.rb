@@ -1,13 +1,20 @@
 class UserStatsController < ApplicationController
-  before_action :set_user_stat, only: [:update]
-
   def index
-    @user_stats = UserStat.all
-    render json: @user_stats
+    @user_stat = current_user.user_stat
+    if @user_stat
+      render json: @user_stat
+    else
+      render json: { error: "No user stats found" }, status: :not_found
+    end
   end
 
   def create
-    @user_stat = UserStat.new(user_stat_params)
+    if current_user.user_stat.present?
+      render json: { error: "User stats already exist" }, status: :unprocessable_entity
+      return
+    end
+
+    @user_stat = current_user.build_user_stat(user_stat_params)
     if @user_stat.save
       render json: @user_stat, status: :created
     else
@@ -16,6 +23,12 @@ class UserStatsController < ApplicationController
   end
 
   def update
+    @user_stat = current_user.user_stat
+    if @user_stat.nil?
+      render json: { error: "No user stats found" }, status: :not_found
+      return
+    end
+
     if @user_stat.update(user_stat_params)
       render json: @user_stat
     else
@@ -25,11 +38,7 @@ class UserStatsController < ApplicationController
 
   private
 
-  def set_user_stat
-    @user_stat = UserStat.find(params[:id])
-  end
-
   def user_stat_params
-    params.require(:user_stat).permit(:user_id, :height, :weight, :age, :gender, :fitness_goal, :experience_level, :available_days, :equipment_available, :activity_level, :physical_limitations)
+    params.require(:user_stat).permit(:height, :weight, :age, :gender, :fitness_goal, :experience_level, :available_days, :equipment_available, :activity_level, :physical_limitations)
   end
 end 

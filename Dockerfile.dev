@@ -1,0 +1,39 @@
+FROM ruby:3.4.3-slim
+
+# Install essential Linux packages
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    build-essential \
+    libpq-dev \
+    git \
+    curl \
+    libvips \
+    postgresql-client \
+    node-gyp \
+    pkg-config \
+    python-is-python3 \
+    libyaml-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /rails
+
+# Install bundler
+RUN gem install bundler
+
+# Copy Gemfile and Gemfile.lock
+COPY Gemfile Gemfile.lock ./
+
+# Install gems
+RUN bundle install
+
+# Copy the rest of the application
+COPY . .
+
+# Add a script to be executed every time the container starts
+COPY entrypoint.dev.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.dev.sh
+ENTRYPOINT ["entrypoint.dev.sh"]
+
+# Start the main process
+CMD ["rails", "server", "-b", "0.0.0.0"] 

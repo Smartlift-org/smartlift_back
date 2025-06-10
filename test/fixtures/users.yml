@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# Usuario de prueba para autenticación
+test_user:
+  first_name: Test
+  last_name: User
+  email: test@example.com
+  password_digest: <%= BCrypt::Password.create('password123') %>
+
+# Usuario de prueba para validaciones
+validation_user:
+  first_name: Validation
+  last_name: User
+  email: validation@example.com
+  password_digest: <%= BCrypt::Password.create('password123') %> 

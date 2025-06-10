@@ -11,4 +11,26 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  # API root endpoint
+  root "api_status#index"
+
+  # Users
+  post "/users", to: "users#create"
+  patch "/users/:id", to: "users#update"
+  post "/auth/login", to: "auth#login"
+  get "/profile", to: "users#profile"
+
+  # Exercises
+  get "/exercises", to: "exercises#index"
+  get "/exercises/:id", to: "exercises#show"
+  post "/exercises", to: "exercises#create"
+  patch "/exercises/:id:", to: "exercises#update"
+  delete "/exercises/:id", to: "exercises#destroy"
+
+  # User Stats
+  get "/user_stats", to: "user_stats#index"
+  post "/user_stats", to: "user_stats#create"
+  patch "/user_stats", to: "user_stats#update"
+
 end

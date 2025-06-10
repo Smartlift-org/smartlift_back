@@ -43,12 +43,26 @@ class UsersController < ApplicationController
     end
 
     def update_params
-      params.except(:id, :user, :controller, :action)
-            .permit(:first_name, :last_name, :email, :password, :password_confirmation, :role)
+      # Only allow updating specific fields
+      params.require(:user).permit(
+        :first_name,
+        :last_name,
+        :email,
+        :password,
+        :password_confirmation
+      )
     end
 
     def user_params
-      params.permit(:first_name, :last_name, :email, :password, :password_confirmation, :role)
+      # For new user creation, we can allow role assignment
+      params.require(:user).permit(
+        :first_name,
+        :last_name,
+        :email,
+        :password,
+        :password_confirmation,
+        :role
+      )
     end
 
     def valid_email_format?(email)

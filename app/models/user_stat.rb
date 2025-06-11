@@ -7,4 +7,4 @@ class UserStat < ApplicationRecord
   validates :experience_level, inclusion: { in: EXPERIENCE_LEVELS }
   validates :activity_level, inclusion: { in: ACTIVITY_LEVELS }
   validates :physical_limitations, presence: true
-end 
+end

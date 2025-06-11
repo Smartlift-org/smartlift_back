@@ -29,4 +29,4 @@ class ApiStatusController < ApplicationController
       }
     }
   end
-end 
+end

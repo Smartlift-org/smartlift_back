@@ -1,10 +1,10 @@
 class ExercisesController < ApplicationController
-  before_action :set_exercise, only: [:show, :update, :destroy]
+  before_action :set_exercise, only: [ :show, :update, :destroy ]
 
   # GET /exercises
   def index
     @exercises = Exercise.all
-    
+
     # Aplicar filtros si existen
     @exercises = @exercises.by_category(params[:category]) if params[:category].present?
     @exercises = @exercises.by_difficulty(params[:difficulty]) if params[:difficulty].present?
@@ -15,13 +15,13 @@ class ExercisesController < ApplicationController
 
     # Paginación
     render json: {
-      exercises: @exercises.as_json(methods: [:image_urls, :difficulty_level, :has_equipment?]),
+      exercises: @exercises.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment? ])
     }, status: :ok
   end
 
   # GET /exercises/:id
   def show
-    render json: @exercise.as_json(methods: [:image_urls, :difficulty_level, :has_equipment?]), status: :ok
+    render json: @exercise.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment? ]), status: :ok
   end
 
   # POST /exercises
@@ -29,7 +29,7 @@ class ExercisesController < ApplicationController
     @exercise = Exercise.new(exercise_params)
 
     if @exercise.save
-      render json: @exercise.as_json(methods: [:image_urls, :difficulty_level, :has_equipment?]), status: :created
+      render json: @exercise.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment? ]), status: :created
     else
       render json: { errors: @exercise.errors.full_messages }, status: :unprocessable_entity
     end
@@ -38,7 +38,7 @@ class ExercisesController < ApplicationController
   # PUT/PATCH /exercises/:id
   def update
     if @exercise.update(exercise_params)
-      render json: @exercise.as_json(methods: [:image_urls, :difficulty_level, :has_equipment?]), status: :ok
+      render json: @exercise.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment? ]), status: :ok
     else
       render json: { errors: @exercise.errors.full_messages }, status: :unprocessable_entity
     end
@@ -55,7 +55,7 @@ class ExercisesController < ApplicationController
   def set_exercise
     @exercise = Exercise.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Exercise not found' }, status: :not_found
+    render json: { error: "Exercise not found" }, status: :not_found
   end
 
   def exercise_params

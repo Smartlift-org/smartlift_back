@@ -108,10 +108,10 @@ RSpec.describe UserStatsController, type: :controller do
     context 'when updating other user stats' do
       let(:other_user_stat) { UserStat.create(user: other_user, height: 180.5, weight: 75.0, age: 30, gender: 'male', fitness_goal: 'lose weight', experience_level: 'beginner', available_days: 3, equipment_available: 'dumbbells', activity_level: 'moderate', physical_limitations: 'none') }
 
-      it 'returns unauthorized' do
+      it 'returns not found' do
         patch :update, params: { id: other_user_stat.id }.merge(new_attributes)
-        expect(response).to have_http_status(:unauthorized)
-        expect(JSON.parse(response.body)['error']).to eq('Not authorized')
+        expect(response).to have_http_status(:not_found)
+        expect(JSON.parse(response.body)['error']).to eq('No user stats found')
       end
     end
 
@@ -123,4 +123,4 @@ RSpec.describe UserStatsController, type: :controller do
       end
     end
   end
-end 
+end

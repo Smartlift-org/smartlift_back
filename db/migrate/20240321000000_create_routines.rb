@@ -1,4 +1,4 @@
-class CreateRoutines < ActiveRecord::Migration[7.0]
+class CreateRoutines < ActiveRecord::Migration[7.1]
   def change
     create_table :routines do |t|
       t.string :name, null: false

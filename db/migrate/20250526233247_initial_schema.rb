@@ -1,4 +1,4 @@
-class InitialSchema < ActiveRecord::Migration[8.0]
+class InitialSchema < ActiveRecord::Migration[7.1]
   def change
   end
 end

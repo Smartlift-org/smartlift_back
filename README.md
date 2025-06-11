@@ -2,4 +2,8 @@ This is the backend component of the mobile application for sports clubs and gym
 
 It acts as the main API serving data to the mobile application (built with React Native) and orchestrates integration with external services such as the AI routine generation API and the exercise video storage system.
 
+## Exercise IDs
+
+The exercise IDs in this system range from 98 to 970. This range is maintained to ensure compatibility with the external exercise database we integrate with. When working with exercises in the API, make sure to use IDs within this range.
+
 Ongoing...

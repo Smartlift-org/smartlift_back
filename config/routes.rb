@@ -29,5 +29,6 @@ Rails.application.routes.draw do
   get "/user_stats", to: "user_stats#index"
   post "/user_stats", to: "user_stats#create"
   patch "/user_stats", to: "user_stats#update"
+  put "/user_stats", to: "user_stats#update"
 
 end

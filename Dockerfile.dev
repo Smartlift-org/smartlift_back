@@ -1,4 +1,4 @@
-FROM ruby:3.4.3-slim
+FROM ruby:3.2.2-slim
 
 # Install essential Linux packages
 RUN apt-get update -qq && \
@@ -13,7 +13,13 @@ RUN apt-get update -qq && \
     pkg-config \
     python-is-python3 \
     libyaml-dev \
+    gnupg2 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js and Yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
 
 # Set working directory
 WORKDIR /rails
@@ -30,10 +36,17 @@ RUN bundle install
 # Copy the rest of the application
 COPY . .
 
-# Add a script to be executed every time the container starts
-COPY entrypoint.dev.sh /usr/bin/
+# Add scripts to be executed every time the container starts
+COPY entrypoint.dev.sh /usr/bin/entrypoint.dev.sh
+COPY entrypoint.dev.bat /usr/bin/entrypoint.dev.bat
 RUN chmod +x /usr/bin/entrypoint.dev.sh
-ENTRYPOINT ["entrypoint.dev.sh"]
+
+# Use the appropriate entrypoint based on the OS
+ENTRYPOINT ["/bin/sh", "-c", "if [ -f /usr/bin/entrypoint.dev.sh ]; then /usr/bin/entrypoint.dev.sh \"$@\"; else /usr/bin/entrypoint.dev.bat \"$@\"; fi"]
+
+# Configure permissions
+RUN chown -R root:root /rails && \
+    chmod -R 755 /rails
 
 # Start the main process
 CMD ["rails", "server", "-b", "0.0.0.0"] 

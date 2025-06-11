@@ -4,8 +4,13 @@ set -e
 # Remove a potentially pre-existing server.pid for Rails
 rm -f /rails/tmp/pids/server.pid
 
+# Install dependencies if they're missing
+if [ ! -d "node_modules" ]; then
+  yarn install
+fi
+
 # Wait for database to be ready
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h "db" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q'; do
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q'; do
   echo "Postgres is unavailable - sleeping"
   sleep 1
 done

@@ -30,8 +30,6 @@ class RoutineExercise < ApplicationRecord
     message: "must be unique within the routine. Please use the next available order number."
   }
 
-  validate :validate_exercise_belongs_to_user
-
   def as_json(options = {})
     super(options.merge(
       except: [:created_at, :updated_at],
@@ -60,12 +58,4 @@ class RoutineExercise < ApplicationRecord
     updated_at.strftime("%Y-%m-%d %H:%M:%S")
   end
 
-  private
-
-  def validate_exercise_belongs_to_user
-    return unless routine && exercise
-    unless exercise.user_id == routine.user_id
-      errors.add(:exercise, "must belong to the same user as the routine")
-    end
-  end
 end 

@@ -7,7 +7,7 @@ RSpec.describe ExercisesController, type: :controller do
     attributes_for(:exercise)
   end
   let(:invalid_attributes) do
-    { name: '', category: '', difficulty: '', instructions: '' }
+    { name: '', category: '', level: '', instructions: '' }
   end
 
   before { authenticate_user(user) }

@@ -12,20 +12,15 @@ class RoutinesController < ApplicationController
     @routines = @routines.by_muscle_group(params[:muscle_group]) if params[:muscle_group].present?
     @routines = @routines.search(params[:query]) if params[:query].present?
 
-    # Paginación
-    @routines = @routines.page(params[:page]).per(params[:per_page] || 10)
-
     render json: {
       routines: @routines.as_json,
-      total_pages: @routines.total_pages,
-      current_page: @routines.current_page,
-      total_count: @routines.total_count
-    }
+      total_count: @routines.count
+    }, status: :ok
   end
 
   # GET /routines/:id
   def show
-    render json: @routine.as_json
+    render json: @routine.as_json, status: :ok
   end
 
   # POST /routines
@@ -45,7 +40,7 @@ class RoutinesController < ApplicationController
       if @routine.update(routine_params)
         # Reload to get the updated associations
         @routine.reload
-        render json: @routine.as_json
+        render json: @routine.as_json, status: :ok
       else
         render json: { errors: @routine.errors.full_messages }, status: :unprocessable_entity
       end

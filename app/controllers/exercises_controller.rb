@@ -15,14 +15,14 @@ class ExercisesController < ApplicationController
     @exercises = @exercises.search(params[:query]) if params[:query].present?
 
     render json: {
-        exercises: @exercises.as_json(methods: [:predefined?]),
-        total_count: @exercises.count
-    }
+      exercises: @exercises.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment?, :predefined? ]),
+      total_count: @exercises.count
+    }, status: :ok
   end
 
   # GET /exercises/:id
   def show
-    render json: @exercise.as_json(methods: [:predefined?])
+    render json: @exercise.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment?, :predefined? ]), status: :ok
   end
 
   # POST /exercises
@@ -30,7 +30,7 @@ class ExercisesController < ApplicationController
     @exercise = current_user.exercises.build(exercise_params)
 
     if @exercise.save
-      render json: @exercise.as_json(methods: [:predefined?]), status: :created
+      render json: @exercise.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment?, :predefined? ]), status: :created
     else
       render json: { errors: @exercise.errors.full_messages }, status: :unprocessable_entity
     end
@@ -39,7 +39,7 @@ class ExercisesController < ApplicationController
   # PUT/PATCH /exercises/:id
   def update
     if @exercise.update(exercise_params)
-      render json: @exercise.as_json(methods: [:predefined?])
+      render json: @exercise.as_json(methods: [ :image_urls, :difficulty_level, :has_equipment?, :predefined? ]), status: :ok
     else
       render json: { errors: @exercise.errors.full_messages }, status: :unprocessable_entity
     end

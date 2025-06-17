@@ -12,7 +12,11 @@ RSpec.describe Routine, type: :model do
 
     it { should validate_presence_of(:name) }
     it { should validate_presence_of(:description) }
+<<<<<<< HEAD
     it { should validate_presence_of(:level) }
+=======
+    it { should validate_presence_of(:difficulty) }
+>>>>>>> develop
     it { should validate_presence_of(:duration) }
 
     it "validates name uniqueness scoped to user" do
@@ -23,8 +27,13 @@ RSpec.describe Routine, type: :model do
       should validate_length_of(:description).is_at_least(10).is_at_most(1000)
     end
 
+<<<<<<< HEAD
     it "validates level inclusion" do
       should validate_inclusion_of(:level).in_array(%w[beginner intermediate advanced])
+=======
+    it "validates difficulty inclusion" do
+      should validate_inclusion_of(:difficulty).in_array(%w[beginner intermediate advanced])
+>>>>>>> develop
     end
 
     it "validates duration is between 1 and 180 minutes" do
@@ -37,7 +46,11 @@ RSpec.describe Routine, type: :model do
 
   describe 'uniqueness' do
     subject { create(:routine) }
+<<<<<<< HEAD
     it { should validate_uniqueness_of(:name).scoped_to(:user_id).case_insensitive }
+=======
+    it { should validate_uniqueness_of(:name).scoped_to(:user_id) }
+>>>>>>> develop
   end
 
   describe 'nested attributes' do

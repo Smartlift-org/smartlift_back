@@ -3,6 +3,7 @@ FactoryBot.define do
     association :user
     sequence(:name) { |n| "Routine #{n}" }
     description { "A great workout routine" }
+<<<<<<< HEAD
     level { "beginner" }
     duration { 45 }
 
@@ -12,6 +13,17 @@ FactoryBot.define do
 
     trait :advanced do
       level { "advanced" }
+=======
+    difficulty { "beginner" }
+    duration { 45 }
+
+    trait :intermediate do
+      difficulty { "intermediate" }
+    end
+
+    trait :advanced do
+      difficulty { "advanced" }
+>>>>>>> develop
     end
 
     trait :with_exercises do

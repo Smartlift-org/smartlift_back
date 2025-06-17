@@ -32,6 +32,7 @@ Rails.application.routes.draw do
   get "/user_stats", to: "user_stats#index"
   post "/user_stats", to: "user_stats#create"
   patch "/user_stats", to: "user_stats#update"
+  put "/user_stats", to: "user_stats#update"
 
   resources :routines do
     resources :exercises, only: [:create, :destroy], controller: 'routine_exercises'

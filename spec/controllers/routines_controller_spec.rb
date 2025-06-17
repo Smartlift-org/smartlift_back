@@ -7,7 +7,11 @@ RSpec.describe RoutinesController, type: :controller do
     {
       name: 'Full Body Workout',
       description: 'Complete workout for all muscle groups',
+<<<<<<< HEAD
       level: 'intermediate',
+=======
+      difficulty: 'intermediate',
+>>>>>>> develop
       duration: 60,
       routine_exercises_attributes: [
         {
@@ -25,7 +29,11 @@ RSpec.describe RoutinesController, type: :controller do
     {
       name: '',
       description: '',
+<<<<<<< HEAD
       level: 'invalid',
+=======
+      difficulty: 'invalid',
+>>>>>>> develop
       duration: -1
     }
   end
@@ -40,11 +48,19 @@ RSpec.describe RoutinesController, type: :controller do
       expect(response).to be_successful
     end
 
+<<<<<<< HEAD
     it 'filters routines by level' do
       create(:routine, user: user, level: 'beginner')
       create(:routine, user: user, level: 'advanced')
 
       get :index, params: { level: 'beginner' }
+=======
+    it 'filters routines by difficulty' do
+      create(:routine, user: user, difficulty: 'beginner')
+      create(:routine, user: user, difficulty: 'advanced')
+
+      get :index, params: { difficulty: 'beginner' }
+>>>>>>> develop
       expect(assigns(:routines).count).to eq(1)
     end
 

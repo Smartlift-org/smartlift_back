@@ -7,7 +7,7 @@ class Routine < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :user_id, case_sensitive: false }
   validates :description, presence: true, length: { minimum: 10, maximum: 1000 }
-  validates :level, presence: true, inclusion: { in: %w[beginner intermediate advanced] }
+  validates :level, presence: true, inclusion: { in: %w[beginner intermediate expert] }
   validates :duration, presence: true, numericality: { 
     greater_than: 0,
     less_than_or_equal_to: 180,

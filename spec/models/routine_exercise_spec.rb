@@ -44,6 +44,10 @@ RSpec.describe RoutineExercise, type: :model do
 
   describe "uniqueness" do
     subject { build(:routine_exercise) }
+<<<<<<< HEAD
     it { should validate_uniqueness_of(:order).scoped_to(:routine_id).with_message("must be unique within the routine. Please use the next available order number.") }
+=======
+    it { should validate_uniqueness_of(:order).scoped_to(:routine_id) }
+>>>>>>> develop
   end
 end 

@@ -21,7 +21,7 @@ class Exercise < ApplicationRecord
 
     # Scopes para búsquedas comunes
     scope :by_category, ->(category) { where(category: category) }
-    scope :by_level, ->(level) { where(level: level) }
+    scope :by_difficulty, ->(difficulty) { where(difficulty: difficulty) }
     scope :by_equipment, ->(equipment) { where(equipment: equipment) }
     scope :by_force, ->(force) { where(force: force) }
     scope :by_mechanic, ->(mechanic) { where(mechanic: mechanic) }
@@ -45,12 +45,12 @@ class Exercise < ApplicationRecord
         )
     end
 
+
     def level_value
         case level
         when "beginner" then 1
         when "intermediate" then 2
-        when "advanced" then 3
-        end
+        when "expert" then 3
     end
 
     def has_equipment?

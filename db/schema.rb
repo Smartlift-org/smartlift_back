@@ -52,7 +52,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_12_040014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["exercise_id"], name: "index_routine_exercises_on_exercise_id"
-    t.index ["routine_id", "exercise_id", "order"], name: "idx_on_routine_id_exercise_id_order_1c41fc2bb3", unique: true
+    t.index ["routine_id", "exercise_id", "order"], name: "index_routine_exercises_on_routine_id_and_exercise_id_and_order", unique: true
     t.index ["routine_id"], name: "index_routine_exercises_on_routine_id"
   end
 

@@ -1,7 +1,4 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
-  
   before_action :authorize_request
 
   private
@@ -30,5 +27,4 @@ class ApplicationController < ActionController::Base
   def authorize_request
     render json: { error: "No Autorizado" }, status: :unauthorized unless current_user
   end
-  
 end

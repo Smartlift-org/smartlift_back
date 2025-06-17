@@ -13,16 +13,12 @@ class User < ApplicationRecord
 
     has_one :user_stat, dependent: :destroy
     has_many :routines, dependent: :destroy
-
-    validates :email, presence: true,
-              uniqueness: { message: "ya está en uso" },
-              format: { with: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i,
-                       message: "debe tener un formato válido" }
+    has_many :exercises, dependent: :destroy
+    validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i }
     validates :first_name, presence: true
     validates :last_name, presence: true
     validates :role, presence: true
     validate :role_must_be_valid
-
     before_validation :set_default_role, on: :create
 
     private

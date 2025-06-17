@@ -1,11 +1,11 @@
 class AuthController < ApplicationController
-    #POST /auth/login
+    # POST /auth/login
     skip_before_action :authorize_request
 
     def login
         # sanitize email and valid email
         email = sanitize_email(params[:email])
-        
+
         unless valid_email_format?(email)
             return render json: { error: "Formato de email inválido" }, status: :unprocessable_entity
         end
@@ -15,9 +15,9 @@ class AuthController < ApplicationController
         end
 
         user = User.find_by(email: email)
-        
+
         if user&.authenticate(params[:password])
-            token = encode_token({ user_id: user.id})
+            token = encode_token({ user_id: user.id })
             render json: { token: token }, status: :ok
         else
             render json: { error: "Credenciales inválidas" }, status: :unauthorized

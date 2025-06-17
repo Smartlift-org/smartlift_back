@@ -41,4 +41,4 @@ class UserStatsController < ApplicationController
   def user_stat_params
     params.require(:user_stat).permit(:height, :weight, :age, :gender, :fitness_goal, :experience_level, :available_days, :equipment_available, :activity_level, :physical_limitations)
   end
-end 
+end

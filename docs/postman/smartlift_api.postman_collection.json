@@ -1,0 +1,777 @@
+{
+	"info": {
+		"_postman_id": "f39deff2-2639-4186-9846-7759f8822ed9",
+		"name": "Proyecto Integrador",
+		"description": "# 🚀 SmartLift API Collection\n\nThis collection contains all the endpoints for the SmartLift API, including user management, exercises, routines, and user stats.\n\n## 🔖 **How to use this collection**\n\n1. Set up your environment variables:\n   - `base_url`: Your API base URL (default: http://127.0.0.1:3000)\n\n2. Start with the authentication flow:\n   - Register a new user\n   - Login to get your JWT token\n\n3. The token will be automatically set and used for all subsequent requests\n\n## 💪 Features\n\n- JWT Authentication\n- User Management\n- Exercise Management\n- Routine Management\n- User Stats Tracking\n\n## 📋 Response Formats\n\n### Routine Response Format\n\nWhen fetching or creating a routine, the response will include the following structure:\n\n```json\n{\n    \"id\": 187,                    // Routine ID\n    \"name\": \"Test workout\",      // Routine name\n    \"description\": \"...\",        // Routine description\n    \"level\": \"intermediate\", // Level\n    \"duration\": 60,               // Duration in minutes\n    \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n    \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n    \"routine_exercises\": [        // Array of exercises in the routine\n        {\n            \"id\": 58,            // RoutineExercise ID (for CRUD operations)\n            \"routine_id\": 187,    // Reference to the routine\n            \"exercise_id\": 98,    // Reference to the exercise\n            \"sets\": 3,           // Number of sets\n            \"reps\": 12,          // Number of repetitions\n            \"rest_time\": 60,     // Rest time in seconds\n            \"order\": 1,          // Exercise order in the routine\n            \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n            \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n            \"exercise\": {        // Full exercise details\n                \"id\": 98,\n                \"name\": \"3/4 Sit-Up\",\n                \"equipment\": \"body only\",\n                \"category\": \"strength\",\n                \"level\": \"beginner\",\n                \"primary_muscles\": [\"abdominals\"],\n                \"secondary_muscles\": [],\n                \"image_urls\": [\"...\"],\n                \"level_value\": 1,    // Computed property\n                \"has_equipment\": false    // Computed property\n            }\n        }\n    ]\n}\n```\n\nNotes:\n- The `routine_exercise.id` is used for updating/deleting specific exercises in a routine\n- The `exercise_id` is kept for reference and validation\n- Full exercise details are included to avoid additional API calls\n- Timestamps are formatted for better readability\n- Computed properties (`level_value` and `has_equipment`) are included for frontend logic",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "27249468"
+	},
+	"item": [
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "register user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful registration\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('token');",
+									"    pm.expect(response).to.have.property('user');",
+									"    pm.expect(response.user).to.have.property('id');",
+									"    pm.expect(response.user).to.have.property('email');",
+									"    // Set token for immediate use",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set('token', 'Bearer ' + response.token);",
+									"        console.log('Token set from registration:', pm.collectionVariables.get('token'));",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Son\",\n  \"last_name\": \"Goku\",\n  \"email\": \"email@email.com\",\n  \"password\": \"123123\",\n  \"password_confirmation\": \"123123\"\n}"
+						},
+						"url": "{{base_url}}/users"
+					}
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Successful login\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('token');",
+									"    pm.expect(response).to.have.property('user');",
+									"    pm.expect(response.user).to.have.property('id');",
+									"    pm.expect(response.user).to.have.property('email');",
+									"    // Set token in collection variable",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set('token', 'Bearer ' + response.token);",
+									"        console.log('Token set from login:', pm.collectionVariables.get('token'));",
+									"    } else {",
+									"        console.error('No token in response');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"email@email.com\",\n  \"password\": \"123123\"\n}"
+						},
+						"url": "{{base_url}}/auth/login"
+					}
+				},
+				{
+					"name": "get current_user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get current user\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('email');",
+									"    pm.expect(response).to.have.property('first_name');",
+									"    pm.expect(response).to.have.property('last_name');",
+									"    console.log('Using token:', pm.collectionVariables.get('token'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/profile"
+					}
+				},
+				{
+					"name": "update user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update user\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('first_name', 'Son');",
+									"    pm.expect(response).to.have.property('last_name', 'Goku');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Son\",\n    \"last_name\": \"Goku\"\n}"
+						},
+						"url": "{{base_url}}/users/1"
+					}
+				}
+			]
+		},
+		{
+			"name": "exercises",
+			"item": [
+				{
+					"name": "get exercises list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get exercises list\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    if (response.length > 0) {",
+									"        pm.expect(response[0]).to.have.property('id');",
+									"        pm.expect(response[0]).to.have.property('name');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/exercises"
+					}
+				},
+				{
+					"name": "get exercise by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get exercise by id\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('name');",
+									"    pm.expect(response).to.have.property('level');",
+									"    pm.expect(response).to.have.property('force');",
+									"    pm.expect(response).to.have.property('mechanic');",
+									"    pm.expect(response).to.have.property('equipment');",
+									"    pm.expect(response).to.have.property('category');",
+									"    pm.expect(response).to.have.property('instructions');",
+									"    pm.expect(response).to.have.property('primary_muscles');",
+									"    pm.expect(response).to.have.property('secondary_muscles');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/exercises/98"
+					}
+				},
+				{
+					"name": "create exercise",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create exercise\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('name', 'Exercise Name');",
+									"    pm.expect(response).to.have.property('level', 'beginner');",
+									"    pm.expect(response).to.have.property('force', 'push');",
+									"    pm.expect(response).to.have.property('mechanic', 'compound');",
+									"    pm.expect(response).to.have.property('equipment', 'barbell');",
+									"    pm.expect(response).to.have.property('category', 'strength');",
+									"    pm.expect(response).to.have.property('instructions');",
+									"    pm.expect(response).to.have.property('primary_muscles');",
+									"    pm.expect(response).to.have.property('secondary_muscles');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"exercise\": {\n    \"name\": \"Exercise Name\",\n    \"level\": \"beginner\",\n    \"force\": \"push\",\n    \"mechanic\": \"compound\",\n    \"equipment\": \"barbell\",\n    \"category\": \"strength\",\n    \"instructions\": [\"Step 1\", \"Step 2\"],\n    \"primary_muscles\": [\"chest\", \"triceps\"],\n    \"secondary_muscles\": [\"shoulders\"],\n    \"images\": []\n  }\n}"
+						},
+						"url": "{{base_url}}/exercises"
+					}
+				}
+			]
+		},
+		{
+			"name": "user_stats",
+			"item": [
+				{
+					"name": "get user stats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get user stats\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('height');",
+									"    pm.expect(response).to.have.property('weight');",
+									"    pm.expect(response).to.have.property('age');",
+									"    pm.expect(response).to.have.property('gender');",
+									"    pm.expect(response).to.have.property('fitness_goal');",
+									"    pm.expect(response).to.have.property('experience_level');",
+									"    pm.expect(response).to.have.property('available_days');",
+									"    pm.expect(response).to.have.property('equipment_available');",
+									"    pm.expect(response).to.have.property('activity_level');",
+									"    pm.expect(response).to.have.property('physical_limitations');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/user_stats"
+					}
+				},
+				{
+					"name": "create user stats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create user stats\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('height', 180.5);",
+									"    pm.expect(response).to.have.property('weight', 75.0);",
+									"    pm.expect(response).to.have.property('age', 30);",
+									"    pm.expect(response).to.have.property('gender', 'male');",
+									"    pm.expect(response).to.have.property('fitness_goal', 'lose weight');",
+									"    pm.expect(response).to.have.property('experience_level', 'beginner');",
+									"    pm.expect(response).to.have.property('available_days', 3);",
+									"    pm.expect(response).to.have.property('equipment_available', 'dumbbells');",
+									"    pm.expect(response).to.have.property('activity_level', 'moderate');",
+									"    pm.expect(response).to.have.property('physical_limitations', 'none');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_stat\": {\n    \"height\": 180.5,\n    \"weight\": 75.0,\n    \"age\": 30,\n    \"gender\": \"male\",\n    \"fitness_goal\": \"lose weight\",\n    \"experience_level\": \"beginner\",\n    \"available_days\": 3,\n    \"equipment_available\": \"dumbbells\",\n    \"activity_level\": \"moderate\",\n    \"physical_limitations\": \"none\"\n  }\n}"
+						},
+						"url": "{{base_url}}/user_stats"
+					}
+				},
+				{
+					"name": "update user stats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update user stats\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('height', 185.0);",
+									"    pm.expect(response).to.have.property('weight', 78.0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_stat\": {\n    \"height\": 185.0,\n    \"weight\": 78.0\n  }\n}"
+						},
+						"url": "{{base_url}}/user_stats"
+					}
+				}
+			]
+		},
+		{
+			"name": "routines",
+			"item": [
+				{
+					"name": "get routines list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get routines list\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    if (response.length > 0) {",
+									"        pm.expect(response[0]).to.have.property('id');",
+									"        pm.expect(response[0]).to.have.property('name');",
+									"        pm.expect(response[0]).to.have.property('description');",
+									"        pm.expect(response[0]).to.have.property('level');",
+									"        pm.expect(response[0]).to.have.property('duration');",
+									"        pm.expect(response[0]).to.have.property('formatted_created_at');",
+									"        pm.expect(response[0]).to.have.property('formatted_updated_at');",
+									"        pm.expect(response[0]).to.have.property('routine_exercises');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/routines?level=beginner&max_duration=60",
+							"host": ["{{base_url}}"],
+							"path": ["routines"],
+							"query": [
+								{
+									"key": "level",
+									"value": "beginner"
+								},
+								{
+									"key": "max_duration",
+									"value": "60"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "get routine by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get routine by id\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('name');",
+									"    pm.expect(response).to.have.property('description');",
+									"    pm.expect(response).to.have.property('level');",
+									"    pm.expect(response).to.have.property('duration');",
+									"    pm.expect(response).to.have.property('formatted_created_at');",
+									"    pm.expect(response).to.have.property('formatted_updated_at');",
+									"    pm.expect(response).to.have.property('routine_exercises');",
+									"    pm.expect(response.routine_exercises).to.be.an('array');",
+									"    if (response.routine_exercises.length > 0) {",
+									"        const exercise = response.routine_exercises[0];",
+									"        pm.expect(exercise).to.have.property('id');",
+									"        pm.expect(exercise).to.have.property('routine_id');",
+									"        pm.expect(exercise).to.have.property('exercise_id');",
+									"        pm.expect(exercise).to.have.property('sets');",
+									"        pm.expect(exercise).to.have.property('reps');",
+									"        pm.expect(exercise).to.have.property('rest_time');",
+									"        pm.expect(exercise).to.have.property('order');",
+									"        pm.expect(exercise).to.have.property('formatted_created_at');",
+									"        pm.expect(exercise).to.have.property('formatted_updated_at');",
+									"        pm.expect(exercise).to.have.property('exercise');",
+									"        pm.expect(exercise.exercise).to.have.property('id');",
+									"        pm.expect(exercise.exercise).to.have.property('name');",
+									"        pm.expect(exercise.exercise).to.have.property('equipment');",
+									"        pm.expect(exercise.exercise).to.have.property('category');",
+									"        pm.expect(exercise.exercise).to.have.property('level');",
+									"        pm.expect(exercise.exercise).to.have.property('primary_muscles');",
+									"        pm.expect(exercise.exercise).to.have.property('secondary_muscles');",
+									"        pm.expect(exercise.exercise).to.have.property('image_urls');",
+									"        pm.expect(exercise.exercise).to.have.property('level_value');",
+									"        pm.expect(exercise.exercise).to.have.property('has_equipment');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/routines/1"
+					}
+				},
+				{
+					"name": "create routine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create routine\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('name', 'Full Body Workout');",
+									"    pm.expect(response).to.have.property('description', 'Complete workout for all muscle groups');",
+									"    pm.expect(response).to.have.property('level', 'intermediate');",
+									"    pm.expect(response).to.have.property('duration', 60);",
+									"    pm.expect(response).to.have.property('formatted_created_at');",
+									"    pm.expect(response).to.have.property('formatted_updated_at');",
+									"    pm.expect(response).to.have.property('routine_exercises');",
+									"    pm.expect(response.routine_exercises).to.be.an('array');",
+									"    if (response.routine_exercises.length > 0) {",
+									"        const exercise = response.routine_exercises[0];",
+									"        pm.expect(exercise).to.have.property('id');",
+									"        pm.expect(exercise).to.have.property('routine_id');",
+									"        pm.expect(exercise).to.have.property('exercise_id', 98);",
+									"        pm.expect(exercise).to.have.property('sets', 3);",
+									"        pm.expect(exercise).to.have.property('reps', 12);",
+									"        pm.expect(exercise).to.have.property('rest_time', 60);",
+									"        pm.expect(exercise).to.have.property('order', 1);",
+									"        pm.expect(exercise).to.have.property('formatted_created_at');",
+									"        pm.expect(exercise).to.have.property('formatted_updated_at');",
+									"        pm.expect(exercise).to.have.property('exercise');",
+									"        pm.expect(exercise.exercise).to.have.property('id', 98);",
+									"        pm.expect(exercise.exercise).to.have.property('name');",
+									"        pm.expect(exercise.exercise).to.have.property('equipment');",
+									"        pm.expect(exercise.exercise).to.have.property('category');",
+									"        pm.expect(exercise.exercise).to.have.property('level');",
+									"        pm.expect(exercise.exercise).to.have.property('primary_muscles');",
+									"        pm.expect(exercise.exercise).to.have.property('secondary_muscles');",
+									"        pm.expect(exercise.exercise).to.have.property('image_urls');",
+									"        pm.expect(exercise.exercise).to.have.property('level_value');",
+									"        pm.expect(exercise.exercise).to.have.property('has_equipment');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"routine\": {\n    \"name\": \"Full Body Workout\",\n    \"description\": \"Complete workout for all muscle groups\",\n    \"level\": \"intermediate\",\n    \"duration\": 60,\n    \"routine_exercises_attributes\": [\n      {\n        \"exercise_id\": 98,\n        \"sets\": 3,\n        \"reps\": 12,\n        \"rest_time\": 60,\n        \"order\": 1\n      }\n    ]\n  }\n}"
+						},
+						"url": "{{base_url}}/routines"
+					}
+				},
+				{
+					"name": "update routine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update routine\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('name', 'Updated Full Body Workout');",
+									"    pm.expect(response).to.have.property('duration', 45);",
+									"    pm.expect(response).to.have.property('routine_exercises');",
+									"    pm.expect(response.routine_exercises).to.be.an('array');",
+									"    pm.expect(response.routine_exercises[0]).to.have.property('exercise_id', 99);",
+									"    pm.expect(response.routine_exercises[0]).to.have.property('sets', 4);",
+									"    pm.expect(response.routine_exercises[0]).to.have.property('reps', 10);",
+									"    pm.expect(response.routine_exercises[0]).to.have.property('rest_time', 45);",
+									"    pm.expect(response.routine_exercises[0]).to.have.property('order', 1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"routine\": {\n    \"name\": \"Updated Full Body Workout\",\n    \"duration\": 45,\n    \"routine_exercises_attributes\": [\n      {\n        \"id\": 1,\n        \"_destroy\": true\n      },\n      {\n        \"exercise_id\": 99,\n        \"sets\": 4,\n        \"reps\": 10,\n        \"rest_time\": 45,\n        \"order\": 1\n      }\n    ]\n  }\n}"
+						},
+						"url": "{{base_url}}/routines/1"
+					}
+				},
+				{
+					"name": "delete routine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Delete routine\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/routines/1"
+					}
+				},
+				{
+					"name": "add exercise to routine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Add exercise to routine\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('routine_id');",
+									"    pm.expect(response).to.have.property('exercise_id', 98);",
+									"    pm.expect(response).to.have.property('sets', 3);",
+									"    pm.expect(response).to.have.property('reps', 12);",
+									"    pm.expect(response).to.have.property('rest_time', 60);",
+									"    pm.expect(response).to.have.property('order', 1);",
+									"    pm.expect(response).to.have.property('formatted_created_at');",
+									"    pm.expect(response).to.have.property('formatted_updated_at');",
+									"    pm.expect(response).to.have.property('exercise');",
+									"    pm.expect(response.exercise).to.have.property('id', 98);",
+									"    pm.expect(response.exercise).to.have.property('name');",
+									"    pm.expect(response.exercise).to.have.property('equipment');",
+									"    pm.expect(response.exercise).to.have.property('category');",
+									"    pm.expect(response.exercise).to.have.property('level');",
+									"    pm.expect(response.exercise).to.have.property('primary_muscles');",
+									"    pm.expect(response.exercise).to.have.property('secondary_muscles');",
+									"    pm.expect(response.exercise).to.have.property('image_urls');",
+									"    pm.expect(response.exercise).to.have.property('level_value');",
+									"    pm.expect(response.exercise).to.have.property('has_equipment');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"routine_exercise\": {\n    \"exercise_id\": 98,\n    \"sets\": 3,\n    \"reps\": 12,\n    \"rest_time\": 60,\n    \"order\": 1\n  }\n}"
+						},
+						"url": "{{base_url}}/routines/1/exercises"
+					}
+				},
+				{
+					"name": "remove exercise from routine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Remove exercise from routine\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/routines/1/exercises/1"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:3000"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

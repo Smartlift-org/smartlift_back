@@ -12,7 +12,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "create user with valid data" do
-    assert_difference('User.count') do
+    assert_difference("User.count") do
       post "/users", params: {
         first_name: "Test",
         last_name: "User",
@@ -56,13 +56,13 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "update user with valid data" do
-    patch "/users/#{@test_user.id}", 
+    patch "/users/#{@test_user.id}",
       params: {
         first_name: "Updated",
         last_name: "User",
         email: "updated@example.com"
       },
-      headers: { 'Authorization' => "Bearer #{@auth_token}" }
+      headers: { "Authorization" => "Bearer #{@auth_token}" }
 
     assert_response :ok
     assert_equal "Updated", json_response["first_name"]
@@ -71,23 +71,23 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "update user with invalid email" do
-    patch "/users/#{@test_user.id}", 
+    patch "/users/#{@test_user.id}",
       params: {
         email: "invalid-email"
       },
-      headers: { 'Authorization' => "Bearer #{@auth_token}" }
+      headers: { "Authorization" => "Bearer #{@auth_token}" }
 
     assert_response :unprocessable_entity
     assert_includes json_response["errors"], "Email debe tener un formato válido"
   end
 
   test "update non-existent user" do
-    patch "/users/999", 
+    patch "/users/999",
       params: {
         first_name: "Updated",
         last_name: "User"
       },
-      headers: { 'Authorization' => "Bearer #{@auth_token}" }
+      headers: { "Authorization" => "Bearer #{@auth_token}" }
 
     assert_response :not_found
     assert_equal "Usuario no encontrado", json_response["error"]

@@ -10,9 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_03_145139) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_12_040014) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_catalog.plpgsql"
+  enable_extension "plpgsql"
 
   create_table "coach_users", force: :cascade do |t|
     t.bigint "coach_id", null: false
@@ -26,22 +26,46 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_03_145139) do
 
   create_table "exercises", force: :cascade do |t|
     t.string "name"
-    t.string "equipment"
-    t.string "category"
-    t.string "difficulty"
-    t.text "instructions"
-    t.string "primary_muscles", default: [], array: true
-    t.string "secondary_muscles", default: [], array: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string "level"
     t.string "force"
     t.string "mechanic"
-    t.string "level"
+    t.string "equipment"
+    t.string "category"
+    t.string "instructions", default: [], array: true
+    t.string "primary_muscles", default: [], array: true
+    t.string "secondary_muscles", default: [], array: true
+    t.text "description"
     t.string "images", default: [], array: true
-    t.index ["force"], name: "index_exercises_on_force"
-    t.index ["images"], name: "index_exercises_on_images", using: :gin
-    t.index ["level"], name: "index_exercises_on_level"
-    t.index ["mechanic"], name: "index_exercises_on_mechanic"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_exercises_on_user_id"
+  end
+
+  create_table "routine_exercises", force: :cascade do |t|
+    t.bigint "routine_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "sets", null: false
+    t.integer "reps", null: false
+    t.integer "rest_time", default: 0, null: false
+    t.integer "order", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_routine_exercises_on_exercise_id"
+    t.index ["routine_id", "exercise_id", "order"], name: "idx_on_routine_id_exercise_id_order_1c41fc2bb3", unique: true
+    t.index ["routine_id"], name: "index_routine_exercises_on_routine_id"
+  end
+
+  create_table "routines", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description", null: false
+    t.string "level", null: false
+    t.integer "duration", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "name"], name: "index_routines_on_user_id_and_name", unique: true
+    t.index ["user_id"], name: "index_routines_on_user_id"
   end
 
   create_table "user_stats", force: :cascade do |t|
@@ -62,16 +86,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_03_145139) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "first_name"
-    t.string "last_name"
     t.string "email"
     t.string "password_digest"
+    t.string "name"
+    t.integer "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "role"
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   add_foreign_key "coach_users", "users"
   add_foreign_key "coach_users", "users", column: "coach_id"
+  add_foreign_key "exercises", "users"
+  add_foreign_key "routine_exercises", "exercises"
+  add_foreign_key "routine_exercises", "routines"
+  add_foreign_key "routines", "users"
   add_foreign_key "user_stats", "users"
 end

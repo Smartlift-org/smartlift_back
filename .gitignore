@@ -4,9 +4,16 @@
 # belong in git's global ignore instead:
 # `$XDG_CONFIG_HOME/git/ignore` or `~/.config/git/ignore`
 
-# Ignore bundler config
+# Ignore bundler config and gem files
 /.bundle
 /vendor/bundle
+/gems/
+/specifications/
+/plugins/
+/extensions/
+
+# Ignore cache directories
+/cache/
 
 # Ignore all environment files
 /.env*
@@ -25,6 +32,7 @@ config/initializers/secret_token.rb
 config/master.key
 config/credentials/*.key
 config/database.yml
+config/secrets.yml
 
 # Ignore storage and uploads
 /storage/*
@@ -34,17 +42,21 @@ config/database.yml
 !/tmp/storage/.keep
 /public/uploads
 /public/assets
+/public/system
 
 # Ignore node modules and yarn
 node_modules/
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+npm-debug.log*
 
 # Ignore precompiled assets
 /public/packs
 /public/packs-test
 /public/assets
+/app/assets/builds/*
+/app/assets/config/manifest.js
 
 # Ignore Byebug command history
 .byebug_history
@@ -54,6 +66,11 @@ yarn-debug.log*
 
 # Ignore RVM files
 .rvmrc
+.ruby-version
+.ruby-gemset
+
+# Ignore rbenv files
+.rbenv-version
 
 # Ignore IDE and editor files
 .idea/
@@ -61,3 +78,48 @@ yarn-debug.log*
 *.swp
 *.swo
 .DS_Store
+*~
+.project
+.settings/
+
+# Ignore test coverage reports
+/coverage/
+
+# Ignore database files
+*.sqlite3
+*.sqlite3-*
+*.db
+
+# Ignore Rails specific files
+/config/application.yml
+/config/local_env.yml
+/capybara-*.html
+
+# Ignore Spring files
+/spring/*.pid
+
+# Ignore bootsnap cache
+/tmp/bootsnap*
+
+# Ignore Kamal deploy files
+.kamal/
+/config/deploy.yml
+
+# Ignore documentation
+/doc/
+/rdoc/
+
+# Ignore OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Ignore backup files
+*.bak
+*.backup
+*.orig
+
+# Ignore SSL certificates
+*.pem
+*.key
+*.crt

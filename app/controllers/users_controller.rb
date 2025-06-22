@@ -11,13 +11,14 @@ class UsersController < ApplicationController
     # POST /users
     def create
       # Sanitize and validate email
-      email = sanitize_email(params[:email])
+      email = sanitize_email(params[:user][:email])
 
       unless valid_email_format?(email)
         return render json: { error: "Formato de email inválido" }, status: :unprocessable_entity
       end
 
-      params[:email] = email
+      # Update the email in the nested params
+      params[:user][:email] = email
 
       user = User.new(user_params)
       if user.save

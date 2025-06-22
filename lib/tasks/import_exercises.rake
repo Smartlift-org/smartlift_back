@@ -42,11 +42,10 @@ namespace :exercises do
                 level: exercise_data["level"],
                 mechanic: exercise_data["mechanic"],
                 equipment: exercise_data["equipment"],
-                instructions: exercise_data["instructions"],
+                instructions: exercise_data["instructions"] || [],
                 primary_muscles: exercise_data["primaryMuscles"] || [],
                 secondary_muscles: exercise_data["secondaryMuscles"] || [],
                 category: exercise_data["category"],
-                instructions: exercise_data["instructions"] || [],
                 images: exercise_data["images"] || []
               )
 

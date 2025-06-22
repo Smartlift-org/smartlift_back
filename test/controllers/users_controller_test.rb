@@ -3,7 +3,7 @@ require "test_helper"
 class UsersControllerTest < ActionDispatch::IntegrationTest
   setup do
     @test_user = users(:test_user)
-    # Obtener token de autenticación
+    # Obtener token de autenticación - Login usa parámetros a nivel raíz (excepción documentada)
     post "/auth/login", params: {
       email: @test_user.email,
       password: "password123"
@@ -14,11 +14,13 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   test "create user with valid data" do
     assert_difference("User.count") do
       post "/users", params: {
-        first_name: "Test",
-        last_name: "User",
-        email: "new@example.com",
-        password: "password123",
-        password_confirmation: "password123"
+        user: {
+          first_name: "Test",
+          last_name: "User",
+          email: "new@example.com",
+          password: "password123",
+          password_confirmation: "password123"
+        }
       }
     end
 
@@ -30,11 +32,13 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "create user with invalid email" do
     post "/users", params: {
-      first_name: "Test",
-      last_name: "User",
-      email: "invalid-email",
-      password: "password123",
-      password_confirmation: "password123"
+      user: {
+        first_name: "Test",
+        last_name: "User",
+        email: "invalid-email",
+        password: "password123",
+        password_confirmation: "password123"
+      }
     }
 
     assert_response :unprocessable_entity
@@ -44,11 +48,13 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   test "create user with duplicate email" do
     # Intentar crear usuario con el mismo email
     post "/users", params: {
-      first_name: "Test",
-      last_name: "User",
-      email: "test@example.com",
-      password: "password123",
-      password_confirmation: "password123"
+      user: {
+        first_name: "Test",
+        last_name: "User",
+        email: "test@example.com",
+        password: "password123",
+        password_confirmation: "password123"
+      }
     }
 
     assert_response :unprocessable_entity
@@ -58,9 +64,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   test "update user with valid data" do
     patch "/users/#{@test_user.id}",
       params: {
-        first_name: "Updated",
-        last_name: "User",
-        email: "updated@example.com"
+        user: {
+          first_name: "Updated",
+          last_name: "User",
+          email: "updated@example.com"
+        }
       },
       headers: { "Authorization" => "Bearer #{@auth_token}" }
 
@@ -73,7 +81,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   test "update user with invalid email" do
     patch "/users/#{@test_user.id}",
       params: {
-        email: "invalid-email"
+        user: {
+          email: "invalid-email"
+        }
       },
       headers: { "Authorization" => "Bearer #{@auth_token}" }
 
@@ -84,8 +94,10 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   test "update non-existent user" do
     patch "/users/999",
       params: {
-        first_name: "Updated",
-        last_name: "User"
+        user: {
+          first_name: "Updated",
+          last_name: "User"
+        }
       },
       headers: { "Authorization" => "Bearer #{@auth_token}" }
 

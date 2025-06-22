@@ -5,7 +5,7 @@ class Routine < ApplicationRecord
 
   accepts_nested_attributes_for :routine_exercises, allow_destroy: true
 
-  validates :name, presence: true, uniqueness: { scope: :user_id, case_sensitive: true }
+  validates :name, presence: true, uniqueness: { scope: :user_id, case_sensitive: false }
   validates :description, presence: true, length: { minimum: 10, maximum: 1000 }
   validates :difficulty, presence: true, inclusion: { in: %w[beginner intermediate advanced] }
   validates :duration, presence: true, numericality: { 

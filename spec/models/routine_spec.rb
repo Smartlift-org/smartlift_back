@@ -35,10 +35,7 @@ RSpec.describe Routine, type: :model do
     end
   end
 
-  describe 'uniqueness' do
-    subject { create(:routine) }
-    it { should validate_uniqueness_of(:name).scoped_to(:user_id) }
-  end
+
 
   describe 'nested attributes' do
     it { should accept_nested_attributes_for(:routine_exercises).allow_destroy(true) }

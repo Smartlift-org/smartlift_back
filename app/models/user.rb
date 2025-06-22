@@ -13,6 +13,7 @@ class User < ApplicationRecord
 
     has_one :user_stat, dependent: :destroy
     has_many :routines, dependent: :destroy
+    has_many :workouts, dependent: :destroy
 
     validates :email, presence: true,
               uniqueness: { message: "ya está en uso" },

@@ -1,20 +1,15 @@
 class Exercise < ApplicationRecord
-    # Validaciones
+    # Validaciones actualizadas para el import de free-exercise-db
     validates :name, presence: true, uniqueness: true
-    validates :difficulty, inclusion: { in: %w[beginner intermediate advanced] }
+    validates :level, inclusion: { in: %w[beginner intermediate expert] }, allow_nil: true
     validates :force, inclusion: { in: %w[pull push static] }, allow_nil: true
     validates :mechanic, inclusion: { in: %w[compound isolation] }, allow_nil: true
     validates :category, presence: true
-    validates :id, numericality: { 
-        only_integer: true,
-        greater_than_or_equal_to: 98,
-        less_than_or_equal_to: 970,
-        message: "must be between 98 and 970"
-    }
+    # Removemos la validación de id numérico ya que el JSON usa strings como identificadores
 
     # Scopes para búsquedas comunes
     scope :by_category, ->(category) { where(category: category) }
-    scope :by_difficulty, ->(difficulty) { where(difficulty: difficulty) }
+    scope :by_level, ->(level) { where(level: level) }
     scope :by_equipment, ->(equipment) { where(equipment: equipment) }
     scope :by_force, ->(force) { where(force: force) }
     scope :by_mechanic, ->(mechanic) { where(mechanic: mechanic) }
@@ -36,10 +31,10 @@ class Exercise < ApplicationRecord
     end
 
     def difficulty_level
-        case difficulty
+        case level
         when "beginner" then 1
         when "intermediate" then 2
-        when "advanced" then 3
+        when "expert" then 3
         end
     end
 

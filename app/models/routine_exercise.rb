@@ -2,6 +2,12 @@ class RoutineExercise < ApplicationRecord
   belongs_to :routine
   belongs_to :exercise
 
+  EXERCISE_GROUPS = {
+    'regular' => 'Single exercise',
+    'superset' => 'Two exercises performed back-to-back',
+    'circuit' => 'Multiple exercises in sequence'
+  }.freeze
+
   validates :sets, presence: true, 
     numericality: { 
       greater_than: 0,
@@ -29,6 +35,17 @@ class RoutineExercise < ApplicationRecord
     scope: :routine_id,
     message: "must be unique within the routine. Please use the next available order number."
   }
+  validates :group_type, inclusion: { in: EXERCISE_GROUPS.keys }
+  validates :group_order, numericality: { only_integer: true, greater_than: 0 }, if: -> { group_type != 'regular' }
+  validates :weight, numericality: { greater_than: 0 }, allow_nil: true
+
+  before_validation :set_default_group_type, on: :create
+  before_validation :set_default_group_order, on: :create
+
+  scope :ordered, -> { order(:order) }
+  scope :by_group, -> { order(:group_type, :group_order, :order) }
+  scope :supersets, -> { where(group_type: 'superset') }
+  scope :circuits, -> { where(group_type: 'circuit') }
 
   def as_json(options = {})
     super(options.merge(
@@ -56,6 +73,33 @@ class RoutineExercise < ApplicationRecord
 
   def formatted_updated_at
     updated_at.strftime("%Y-%m-%d %H:%M:%S")
+  end
+
+  def regular?
+    group_type == 'regular'
+  end
+
+  def superset?
+    group_type == 'superset'
+  end
+
+  def circuit?
+    group_type == 'circuit'
+  end
+
+  private
+
+  def set_default_group_type
+    self.group_type ||= 'regular'
+  end
+
+  def set_default_group_order
+    return if group_type == 'regular' || group_order.present?
+    
+    last_group_order = routine.routine_exercises
+      .where(group_type: group_type)
+      .maximum(:group_order) || 0
+    self.group_order = last_group_order + 1
   end
 
 end 

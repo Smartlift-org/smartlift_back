@@ -37,4 +37,53 @@ Rails.application.routes.draw do
   resources :routines do
     resources :exercises, only: [:create, :destroy], controller: 'routine_exercises'
   end
+
+  # Workout tracking - Better structured
+  resources :workouts do
+    collection do
+      post :free, to: 'workouts#create_free'
+    end
+    member do
+      put :pause
+      put :resume
+      put :complete
+      put :abandon
+    end
+  end
+
+  # Nested workout resources with proper namespace
+  namespace :workout do
+    resources :exercises do
+      member do
+        post :record_set
+        put :complete
+        put :finalize
+      end
+      resources :sets do
+        member do
+          put :start
+          put :complete
+          put :mark_as_completed
+        end
+      end
+    end
+    resources :pauses do
+      collection do
+        get :current
+      end
+      member do
+        put :resume
+      end
+    end
+  end
+
+  # Performance tracking
+  resources :personal_records, only: [:index, :show] do
+    collection do
+      get 'by_exercise/:exercise_id', to: 'personal_records#by_exercise'
+      get 'recent'
+      get 'latest'
+      get 'statistics'
+    end
+  end
 end

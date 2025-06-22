@@ -27,4 +27,7 @@ class ApplicationController < ActionController::Base
   def authorize_request
     render json: { error: "No Autorizado" }, status: :unauthorized unless current_user
   end
+
+  # Alias para compatibilidad con Devise y tests
+  alias_method :authenticate_user!, :authorize_request
 end

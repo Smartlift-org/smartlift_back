@@ -10,7 +10,7 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Wait for database to be ready
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q'; do
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h "db" -U "postgres" -d "smartlift_development" -c '\q'; do
   echo "Postgres is unavailable - sleeping"
   sleep 1
 done
@@ -21,4 +21,4 @@ echo "Postgres is up - executing command"
 bundle exec rails db:migrate 2>/dev/null || bundle exec rails db:create db:migrate
 
 # Then exec the container's main process (what's set as CMD in the Dockerfile)
-exec "$@" 
+exec bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'" 

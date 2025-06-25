@@ -19,27 +19,29 @@ cd smartlift_api
 # Start services
 docker-compose up -d
 
-# Setup database
-docker-compose run --rm web rails db:create db:migrate
+# Setup database (runs automatically now)
+# Import exercises
+docker-compose exec web rails exercises:import
 
 # Test API
-curl http://localhost:3000/
+curl http://localhost:3002/
 ```
 
 ### Ports Configuration
 
 - **PostgreSQL**: localhost:5433
 - **Redis**: localhost:6380
-- **Rails API**: localhost:3000
+- **Rails API**: localhost:3002
 
 ## 📚 Documentation
 
 All documentation is available in the [`docs/`](docs/) folder:
 
-- **[Setup Guides](docs/)** (Spanish & English)
-- **[API Documentation](docs/postman/)**
-- **[Workout Types](docs/workout_types.md)**
-- **Troubleshooting & Architecture**
+- **[🐳 Docker Setup Guide (Spanish)](docs/SETUP_GUIA_ES.md)** - Recommended for most users
+- **[🐳 Docker Setup Guide (English)](docs/SETUP_GUIDE_EN.md)** - Recommended for most users  
+- **[🔧 Local Setup Guide](docs/SETUP_LOCAL.md)** - For advanced users/local development
+- **[📡 API Documentation](docs/postman/)** - Postman collection
+- **[🏋️ Workout Types](docs/workout_types.md)** - Exercise system documentation
 
 ## Exercise IDs
 

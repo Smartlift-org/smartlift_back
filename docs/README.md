@@ -4,15 +4,19 @@ Welcome to the SmartLift API documentation folder. Here you'll find all the guid
 
 ## 🚀 Setup Guides
 
-Choose your preferred language:
+Choose your preferred setup method:
 
-- **[🇪🇸 Guía de Configuración en Español](SETUP_GUIA_ES.md)**
-- **[🇺🇸 Setup Guide in English](SETUP_GUIDE_EN.md)**
+### Docker Setup (Recommended)
+- **[🐳🇪🇸 Docker Setup - Spanish](SETUP_GUIA_ES.md)** - Complete Docker guide in Spanish
+- **[🐳🇺🇸 Docker Setup - English](SETUP_GUIDE_EN.md)** - Complete Docker guide in English
 
-Both guides cover:
+### Local Development Setup  
+- **[🔧 Local Setup Guide](SETUP_LOCAL.md)** - For advanced users who prefer local PostgreSQL
+
+All guides include:
 - ✅ Prerequisites and installation
-- ✅ Docker configuration
-- ✅ Database setup and migrations
+- ✅ Database setup and migrations  
+- ✅ Exercise database import
 - ✅ Development commands
 - ✅ Troubleshooting common issues
 - ✅ Project structure overview
@@ -34,9 +38,9 @@ The SmartLift API is built with:
 ## 🔗 Quick Links
 
 - **Database**: localhost:5433
-- **Redis**: localhost:6380
-- **API**: localhost:3000
-- **Health Check**: `curl http://localhost:3000/`
+- **Redis**: localhost:6380  
+- **API**: localhost:3002
+- **Health Check**: `curl http://localhost:3002/`
 
 ## 🆘 Need Help?
 

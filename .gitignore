@@ -31,7 +31,6 @@
 config/initializers/secret_token.rb
 config/master.key
 config/credentials/*.key
-config/database.yml
 config/secrets.yml
 
 # Ignore storage and uploads

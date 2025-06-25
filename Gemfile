@@ -41,7 +41,7 @@ gem "thruster", require: false
 # gem "image_processing", "~> 1.2"
 
 gem "rack-cors", "~> 3.0"
-gem "jwt", "~> 2.10", ">= 2.10.1"
+gem "jwt", "~> 3.1"
 gem "active_model_serializers", "~> 0.10.12"
 gem "whenever", require: false
 

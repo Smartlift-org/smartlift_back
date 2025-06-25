@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -32,12 +32,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.text "instructions"
     t.string "primary_muscles", default: [], array: true
     t.string "secondary_muscles", default: [], array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.string "force"
     t.string "mechanic"
     t.string "level"
     t.string "images", default: [], array: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["force"], name: "index_exercises_on_force"
     t.index ["images"], name: "index_exercises_on_images", using: :gin
     t.index ["level"], name: "index_exercises_on_level"
@@ -51,11 +51,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.integer "reps", null: false
     t.integer "rest_time", default: 0, null: false
     t.integer "order", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.string "group_type", default: "regular"
     t.integer "group_order"
     t.decimal "weight", precision: 8, scale: 2
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["exercise_id"], name: "index_routine_exercises_on_exercise_id"
     t.index ["routine_id", "exercise_id", "order"], name: "index_routine_exercises_on_routine_id_and_exercise_id_and_order", unique: true
     t.index ["routine_id", "group_type", "group_order"], name: "idx_on_routine_id_group_type_group_order_6af3f864b1"

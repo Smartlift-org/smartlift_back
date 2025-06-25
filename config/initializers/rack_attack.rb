@@ -37,4 +37,15 @@ class Rack::Attack
       [ { error: "Rate limit exceeded. Please try again later." }.to_json ] # body
     ]
   end
+
+  # Rate limiting configuration
+  # Throttle requests to public endpoints
+  throttle('exercises/ip', limit: 100, period: 1.hour) do |req|
+    req.ip if req.path.start_with?('/exercises')
+  end
+
+  # More aggressive limiting for unauthenticated requests
+  throttle('unauthenticated/ip', limit: 50, period: 1.hour) do |req|
+    req.ip unless req.env['HTTP_AUTHORIZATION']
+  end
 end

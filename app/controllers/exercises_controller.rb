@@ -1,4 +1,7 @@
 class ExercisesController < ApplicationController
+  # Allow public access to read exercises (for AI agents and public consumption)
+  skip_before_action :authorize_request, only: [:index, :show]
+  
   before_action :set_exercise, only: [ :show, :update, :destroy ]
 
   # GET /exercises

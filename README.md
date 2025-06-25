@@ -2,67 +2,44 @@ This is the backend component of the mobile application for sports clubs and gym
 
 It acts as the main API serving data to the mobile application (built with React Native) and orchestrates integration with external services such as the AI routine generation API and the exercise video storage system.
 
-## Development Setup
+## 🚀 Quick Start
 
-### Prerequisites
-- Docker and Docker Compose
-- Ruby 3.2.2
-- Node.js 18.x
-- Yarn
-- PostgreSQL
+For detailed setup instructions, check our comprehensive guides:
 
-### Windows Users
-We provide two options for Windows users:
+- **[🇪🇸 Guía de Configuración en Español](docs/SETUP_GUIA_ES.md)**
+- **[🇺🇸 Setup Guide in English](docs/SETUP_GUIDE_EN.md)**
 
-#### Option 1: Using WSL2 (Recommended)
-For the best development experience, we recommend using WSL2:
+### TL;DR Setup
 
-1. Install WSL2:
-   ```powershell
-   wsl --install
-   ```
+```bash
+# Clone the repository
+git clone [repository-url]
+cd smartlift_api
 
-2. Install Docker Desktop for Windows:
-   - Download from [Docker's official website](https://www.docker.com/products/docker-desktop)
-   - Enable WSL2 integration in Docker Desktop settings
+# Start services
+docker-compose up -d
 
-3. Install VS Code with Remote - WSL extension:
-   - Install [VS Code](https://code.visualstudio.com/)
-   - Install the "Remote - WSL" extension
-   - Open your project folder through WSL
+# Setup database
+docker-compose run --rm web rails db:create db:migrate
 
-#### Option 2: Native Windows Setup
-If you prefer not to use WSL2, you can use Docker Desktop for Windows directly:
+# Test API
+curl http://localhost:3000/
+```
 
-1. Install Docker Desktop for Windows:
-   - Download from [Docker's official website](https://www.docker.com/products/docker-desktop)
-   - Make sure to enable the "Use the WSL 2 based engine" option in Docker Desktop settings
+### Ports Configuration
 
-2. Install Git for Windows:
-   - Download from [Git's official website](https://git-scm.com/download/win)
-   - During installation, select "Use Git from Git Bash only"
+- **PostgreSQL**: localhost:5433
+- **Redis**: localhost:6380
+- **Rails API**: localhost:3000
 
-3. Install VS Code:
-   - Download from [VS Code's official website](https://code.visualstudio.com/)
-   - Install the "Docker" extension
+## 📚 Documentation
 
-### Getting Started
+All documentation is available in the [`docs/`](docs/) folder:
 
-1. Clone the repository
-2. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-3. Start the development environment:
-   ```bash
-   docker-compose up
-   ```
-4. In a new terminal, run the database setup:
-   ```bash
-   docker-compose exec web bundle exec rails db:create db:migrate
-   ```
-
-The API will be available at `http://localhost:3000`
+- **[Setup Guides](docs/)** (Spanish & English)
+- **[API Documentation](docs/postman/)**
+- **[Workout Types](docs/workout_types.md)**
+- **Troubleshooting & Architecture**
 
 ## Exercise IDs
 

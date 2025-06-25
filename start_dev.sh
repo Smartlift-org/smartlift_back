@@ -48,14 +48,14 @@ if bundle exec rails runner "ActiveRecord::Base.connection.execute('SELECT 1')" 
     
     echo ""
     echo "🌐 URLs disponibles:"
-    echo "   - API: http://localhost:3000"
-    echo "   - Health Check: http://localhost:3000/up"
+    echo "   - API: http://localhost:3002"
+    echo "   - Health Check: http://localhost:3002/up"
     echo ""
     echo "🚀 Iniciando servidor Rails..."
     echo "   Presiona Ctrl+C para detener el servidor"
     echo ""
     
-    bundle exec rails server
+    bundle exec rails server -p 3002
 else
     echo "❌ Error conectando a la base de datos"
     echo ""

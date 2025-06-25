@@ -11,6 +11,6 @@ class AddPerformanceIndexes < ActiveRecord::Migration[7.1]
     
     # Índices adicionales para Personal Records queries
     add_index :workout_sets, [:created_at], name: 'idx_workout_sets_created_at'
-    add_index :workout_sets, [:weight, :exercise_id], name: 'idx_workout_sets_weight_exercise', where: 'completed = true AND set_type = \'normal\''
+    add_index :workout_sets, [:weight, :workout_exercise_id], name: 'idx_workout_sets_weight_exercise', where: 'completed = true AND set_type = \'normal\''
   end
 end 

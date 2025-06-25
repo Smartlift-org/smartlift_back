@@ -78,7 +78,7 @@ bundle exec rails db:seed
 bundle exec rails server
 
 # O usar el puerto específico
-bundle exec rails server -p 3000
+bundle exec rails server -p 3002
 ```
 
 ## 🛠️ Comandos Útiles

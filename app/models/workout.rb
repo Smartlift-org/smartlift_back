@@ -12,12 +12,10 @@ class Workout < ApplicationRecord
   enum workout_type: { routine_based: 0, free_style: 1 }
 
   STATUSES = %w[in_progress paused completed abandoned].freeze
-  INTENSITY_RANGE = (1..10).freeze
-  ENERGY_RANGE = (1..10).freeze
+  RATING_RANGE = (1..10).freeze
 
   validates :status, inclusion: { in: STATUSES }
-  validates :perceived_intensity, inclusion: { in: INTENSITY_RANGE }, allow_nil: true
-  validates :energy_level, inclusion: { in: ENERGY_RANGE }, allow_nil: true
+  validates :workout_rating, inclusion: { in: RATING_RANGE }, allow_nil: true
   validates :routine, presence: true, if: :routine_based?
   validates :name, presence: true, if: :free_style?
   validate :validate_one_active_workout_per_user, on: :create, unless: :skip_active_workout_validation
@@ -34,6 +32,12 @@ class Workout < ApplicationRecord
   scope :free_workouts, -> { free_style }
   scope :active, -> { where(status: ['in_progress', 'paused']) }
   scope :completed, -> { where(status: 'completed') }
+  
+  # Rating-based scopes for analytics
+  scope :rated, -> { where.not(workout_rating: nil) }
+  scope :highly_rated, -> { where(workout_rating: 7..10) }
+  scope :poorly_rated, -> { where(workout_rating: 1..3) }
+  scope :average_rated, -> { where(workout_rating: 4..6) }
 
   def pause!(reason)
     return false unless active? && !paused?
@@ -118,6 +122,32 @@ class Workout < ApplicationRecord
 
   def has_exercises?
     exercises.exists?
+  end
+
+  # Workout rating interpretation helpers
+  def rating_description
+    return 'Not rated' unless workout_rating
+
+    case workout_rating
+    when 1..3
+      'Poor workout'
+    when 4..6
+      'Average workout'
+    when 7..8
+      'Good workout'
+    when 9..10
+      'Excellent workout'
+    else
+      'Invalid rating'
+    end
+  end
+
+  def positive_workout?
+    workout_rating && workout_rating >= 7
+  end
+
+  def negative_workout?
+    workout_rating && workout_rating <= 3
   end
 
   private

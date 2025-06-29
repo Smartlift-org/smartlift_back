@@ -17,6 +17,7 @@ class WorkoutSet < ApplicationRecord
   before_validation :set_set_number, on: :create
   before_validation :set_default_set_type, on: :create
   before_save :set_completed_at, if: :completed_changed?
+  after_update :check_for_personal_records, if: :saved_change_to_completed?
 
   # Scopes
   scope :ordered, -> { order(:set_number) }

@@ -12,7 +12,6 @@ class WorkoutExerciseSerializer < ActiveModel::Serializer
              :notes,
              :started_at,
              :completed_at,
-             :completed_as_prescribed,
              :created_at,
              :updated_at
 

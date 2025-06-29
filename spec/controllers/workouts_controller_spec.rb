@@ -190,9 +190,8 @@ RSpec.describe WorkoutsController, type: :controller do
       it 'completes the workout' do
         put :complete, params: { 
           id: workout.id,
-          perceived_intensity: 8,
-          energy_level: 7,
-          mood: 'great'
+          workout_rating: 8,
+          notes: 'Great workout!'
         }
         expect(response).to have_http_status(:success)
         expect(workout.reload.status).to eq('completed')
@@ -201,16 +200,12 @@ RSpec.describe WorkoutsController, type: :controller do
       it 'updates completion parameters' do
         put :complete, params: { 
           id: workout.id,
-          perceived_intensity: 8,
-          energy_level: 7,
-          mood: 'great',
+          workout_rating: 8,
           notes: 'Excellent workout!'
         }
         
         workout.reload
-        expect(workout.perceived_intensity).to eq(8)
-        expect(workout.energy_level).to eq(7)
-        expect(workout.mood).to eq('great')
+        expect(workout.workout_rating).to eq(8)
         expect(workout.notes).to eq('Excellent workout!')
       end
 

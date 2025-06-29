@@ -27,7 +27,6 @@ FactoryBot.define do
 
     trait :completed do
       completed_at { Time.current }
-      completed_as_prescribed { true }
     end
 
     trait :with_sets do

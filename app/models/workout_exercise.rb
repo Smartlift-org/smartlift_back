@@ -116,8 +116,9 @@ class WorkoutExercise < ApplicationRecord
 
   # Mark exercise as completed and set final status
   def finalize!
-    self.completed_as_prescribed = completed_as_prescribed?
-    save!
+    return false unless completed?
+    
+    update!(completed_at: Time.current)
   end
 
   # Calculate suggested weight based on user's history

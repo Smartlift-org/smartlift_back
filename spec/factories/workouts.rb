@@ -5,9 +5,7 @@ FactoryBot.define do
     workout_type { 'routine_based' }
     status { 'in_progress' }
     started_at { Time.current }
-    perceived_intensity { rand(1..10) }
-    energy_level { rand(1..10) }
-    mood { 'good' }
+    workout_rating { rand(1..10) }
     notes { 'Test workout notes' }
     skip_active_workout_validation { true }
 
@@ -30,7 +28,6 @@ FactoryBot.define do
       total_sets_completed { 12 }
       total_exercises_completed { 4 }
       average_rpe { 7.5 }
-      followed_routine { true }
     end
 
     trait :paused do

@@ -22,8 +22,7 @@ RSpec.describe Workout, type: :model do
 
       it { should validate_presence_of(:routine) }
       it { should validate_inclusion_of(:status).in_array(Workout::STATUSES) }
-      it { should validate_inclusion_of(:perceived_intensity).in_range(1..10).allow_nil }
-      it { should validate_inclusion_of(:energy_level).in_range(1..10).allow_nil }
+      it { should validate_inclusion_of(:workout_rating).in_range(1..10).allow_nil }
     end
 
     context 'for free-style workouts' do

@@ -44,7 +44,7 @@ class Exercise < ApplicationRecord
 
     def image_urls
         images.map do |image|
-            "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/images/#{image}"
+            "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/#{image}"
         end
     end
 end

@@ -1,8 +1,7 @@
 require 'rails_helper'
 
-# TODO: AI functionality is not 100% complete yet
-# Skipping these tests until AI implementation is finished
-RSpec.describe AiWorkoutRoutineService, skip: true do
+# AI functionality tests
+RSpec.describe AiWorkoutRoutineService do
   let(:valid_params) do
     {
       age: 30,

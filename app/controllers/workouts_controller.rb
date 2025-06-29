@@ -59,8 +59,14 @@ class WorkoutsController < ApplicationController
 
   # PUT /workouts/:id/complete
   def complete
-    if @workout.complete!
-      @workout.update!(completion_params) if completion_params.present?
+    # Extract duration from completion params
+    duration_seconds = completion_params[:total_duration_seconds]
+    
+    # Complete the workout with the duration from frontend
+    if @workout.complete!(duration_seconds)
+      # Update other completion attributes (rating, notes)
+      completion_attrs = completion_params.except(:total_duration_seconds)
+      @workout.update!(completion_attrs) if completion_attrs.present?
       render json: @workout
     else
       error_messages = @workout.errors.full_messages.presence || ["Could not complete workout"]
@@ -101,6 +107,6 @@ class WorkoutsController < ApplicationController
 
 
   def completion_params
-    params.permit(:workout_rating, :notes)
+    params.permit(:workout_rating, :notes, :total_duration_seconds)
   end
 end 

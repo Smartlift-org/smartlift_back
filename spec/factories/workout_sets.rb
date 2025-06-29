@@ -42,6 +42,29 @@ FactoryBot.define do
       started_at { 1.minute.ago }
     end
 
+    # Personal records traits removed - functionality simplified
+    # Use completed trait for basic completed sets
+    
+    trait :heavy_weight do
+      weight { 100.0 }
+      completed { true }
+      completed_at { Time.current }
+    end
+
+    trait :high_reps do
+      reps { 15 }
+      completed { true }
+      completed_at { Time.current }
+    end
+
+    trait :high_volume do
+      weight { 80.0 }
+      reps { 12 }
+      completed { true }
+      completed_at { Time.current }
+    end
+
+    # Personal records traits
     trait :personal_record do
       is_personal_record { true }
       pr_type { 'weight' }
@@ -52,7 +75,6 @@ FactoryBot.define do
     trait :weight_pr do
       is_personal_record { true }
       pr_type { 'weight' }
-      weight { 100.0 }
       completed { true }
       completed_at { Time.current }
     end
@@ -60,7 +82,6 @@ FactoryBot.define do
     trait :reps_pr do
       is_personal_record { true }
       pr_type { 'reps' }
-      reps { 15 }
       completed { true }
       completed_at { Time.current }
     end
@@ -68,8 +89,6 @@ FactoryBot.define do
     trait :volume_pr do
       is_personal_record { true }
       pr_type { 'volume' }
-      weight { 80.0 }
-      reps { 12 }
       completed { true }
       completed_at { Time.current }
     end

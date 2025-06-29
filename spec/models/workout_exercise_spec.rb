@@ -222,12 +222,11 @@ RSpec.describe WorkoutExercise, type: :model do
     end
 
     describe '#finalize!' do
-      it 'sets completed_as_prescribed flag' do
+      it 'successfully finalizes the exercise' do
         workout_exercise = create(:workout_exercise, :with_completed_sets, workout: workout)
-        allow(workout_exercise).to receive(:completed_as_prescribed?).and_return(true)
         
-        workout_exercise.finalize!
-        expect(workout_exercise.completed_as_prescribed).to be_truthy
+        result = workout_exercise.finalize!
+        expect(result).to be_truthy
       end
     end
   end

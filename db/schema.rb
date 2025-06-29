@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_29_181150) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -114,7 +114,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.text "notes"
     t.datetime "started_at"
     t.datetime "completed_at"
-    t.boolean "completed_as_prescribed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["exercise_id"], name: "index_workout_exercises_on_exercise_id"
@@ -125,19 +124,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.index ["workout_id", "order"], name: "idx_workout_exercises_order"
     t.index ["workout_id", "order"], name: "index_workout_exercises_on_workout_id_and_order", unique: true
     t.index ["workout_id"], name: "index_workout_exercises_on_workout_id"
-  end
-
-  create_table "workout_pauses", force: :cascade do |t|
-    t.bigint "workout_id", null: false
-    t.datetime "paused_at", null: false
-    t.datetime "resumed_at"
-    t.string "reason", null: false
-    t.integer "duration_seconds"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["paused_at"], name: "index_workout_pauses_on_paused_at"
-    t.index ["workout_id", "paused_at"], name: "index_workout_pauses_on_workout_id_and_paused_at"
-    t.index ["workout_id"], name: "index_workout_pauses_on_workout_id"
   end
 
   create_table "workout_sets", force: :cascade do |t|
@@ -154,13 +140,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.text "notes"
     t.decimal "drop_set_weight", precision: 8, scale: 2
     t.integer "drop_set_reps"
-    t.boolean "is_personal_record", default: false
-    t.string "pr_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_personal_record", default: false
+    t.string "pr_type"
     t.index ["completed"], name: "index_workout_sets_on_completed"
     t.index ["created_at"], name: "idx_workout_sets_created_at"
-    t.index ["is_personal_record", "pr_type"], name: "idx_workout_sets_pr"
+    t.index ["is_personal_record", "pr_type"], name: "index_workout_sets_on_is_personal_record_and_pr_type", where: "(is_personal_record = true)"
     t.index ["is_personal_record"], name: "index_workout_sets_on_is_personal_record"
     t.index ["set_type", "completed"], name: "idx_workout_sets_type_completed"
     t.index ["weight", "workout_exercise_id"], name: "idx_workout_sets_weight_exercise", where: "((completed = true) AND ((set_type)::text = 'normal'::text))"
@@ -175,20 +161,17 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.string "status", default: "in_progress", null: false
     t.datetime "started_at", null: false
     t.datetime "completed_at"
-    t.integer "perceived_intensity"
-    t.integer "energy_level"
-    t.string "mood"
     t.text "notes"
     t.decimal "total_volume", precision: 10, scale: 2
     t.integer "total_sets_completed"
     t.integer "total_exercises_completed"
     t.decimal "average_rpe", precision: 3, scale: 1
-    t.boolean "followed_routine"
     t.integer "total_duration_seconds"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "workout_type", default: 0, null: false
     t.string "name"
+    t.integer "workout_rating"
     t.index ["completed_at"], name: "index_workouts_on_completed_at"
     t.index ["routine_id"], name: "index_workouts_on_routine_id"
     t.index ["started_at"], name: "index_workouts_on_started_at"
@@ -196,6 +179,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
     t.index ["user_id", "workout_type"], name: "index_workouts_on_user_id_and_workout_type"
     t.index ["user_id"], name: "index_workouts_on_user_id"
     t.index ["workout_type"], name: "index_workouts_on_workout_type"
+    t.check_constraint "workout_rating >= 1 AND workout_rating <= 10", name: "workout_rating_range"
   end
 
   add_foreign_key "coach_users", "users"
@@ -207,7 +191,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_24_120015) do
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "routine_exercises"
   add_foreign_key "workout_exercises", "workouts"
-  add_foreign_key "workout_pauses", "workouts"
   add_foreign_key "workout_sets", "workout_exercises"
   add_foreign_key "workouts", "routines"
   add_foreign_key "workouts", "users"

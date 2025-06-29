@@ -59,12 +59,8 @@ class Workout < ApplicationRecord
       
       update!(
         status: 'completed',
-        completed_at: Time.current,
-        followed_routine: exercises.all?(&:completed_as_prescribed?)
+        completed_at: Time.current
       )
-      
-      # Check for personal records after workout completion
-      check_personal_records!
     end
   rescue ActiveRecord::RecordInvalid => e
     errors.add(:base, e.message)

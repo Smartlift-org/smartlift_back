@@ -11,11 +11,8 @@ class WorkoutSerializer < ActiveModel::Serializer
              :total_sets_completed,
              :total_exercises_completed,
              :average_rpe,
-             :perceived_intensity,
-             :energy_level,
-             :mood,
+             :workout_rating,
              :notes,
-             :followed_routine,
              :created_at,
              :updated_at
 

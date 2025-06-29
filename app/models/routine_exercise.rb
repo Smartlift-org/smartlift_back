@@ -1,6 +1,7 @@
 class RoutineExercise < ApplicationRecord
   belongs_to :routine
   belongs_to :exercise
+  has_many :workout_exercises, dependent: :destroy
 
   EXERCISE_GROUPS = {
     'regular' => 'Single exercise',

@@ -81,6 +81,16 @@ docker-compose up -d web
 docker-compose ps
 ```
 
+### 6. Importar Ejercicios (Nuevo - Opcional)
+
+```bash
+# Importar base de ejercicios desde free-exercise-db
+docker-compose exec web rails exercises:import
+
+# Verificar la importación
+docker-compose exec web rails runner "puts Exercise.count"
+```
+
 ## ✅ Verificación
 
 ### Comprobar que la API funciona:
@@ -90,6 +100,7 @@ docker-compose ps
 curl http://localhost:3002/
 
 # Deberías ver una respuesta JSON con los endpoints disponibles
+# {"status":"online","version":"1.0.0","endpoints":{...}}
 ```
 
 ### Probar la conexión a la base de datos:
@@ -184,6 +195,22 @@ docker-compose logs [nombre_servicio]
 
 # Reconstruir contenedores
 docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Error: "connection to server on socket failed"
+
+**Problema**: Error de conexión a PostgreSQL en el entrypoint.
+**Solución**: Este problema ha sido corregido en la versión actual del proyecto.
+
+Si encuentras este error:
+```bash
+# Verificar que los servicios estén healthy
+docker-compose ps
+
+# Si persiste, reconstruir completamente
+docker-compose down -v
 docker-compose build --no-cache
 docker-compose up -d
 ```

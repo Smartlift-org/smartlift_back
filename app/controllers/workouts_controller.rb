@@ -101,6 +101,6 @@ class WorkoutsController < ApplicationController
 
 
   def completion_params
-    params.permit(:perceived_intensity, :energy_level, :mood, :notes)
+    params.permit(:workout_rating, :notes)
   end
 end 

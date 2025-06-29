@@ -67,14 +67,6 @@ Rails.application.routes.draw do
         end
       end
     end
-    resources :pauses do
-      collection do
-        get :current
-      end
-      member do
-        put :resume
-      end
-    end
   end
 
   # Performance tracking

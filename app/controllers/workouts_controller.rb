@@ -30,7 +30,7 @@ class WorkoutsController < ApplicationController
 
   # GET /workouts
   def index
-    @workouts = current_user.workouts.includes(:exercises, :pauses).recent
+    @workouts = current_user.workouts.includes(:exercises).recent
     render json: @workouts
   end
 
@@ -41,7 +41,7 @@ class WorkoutsController < ApplicationController
 
   # PUT /workouts/:id/pause
   def pause
-    if @workout.pause!(pause_params[:reason])
+    if @workout.pause!
       render json: @workout
     else
       render json: { error: "Could not pause workout" }, status: :unprocessable_entity
@@ -99,9 +99,6 @@ class WorkoutsController < ApplicationController
     params.require(:workout).permit(:name)
   end
 
-  def pause_params
-    params.permit(:reason)
-  end
 
   def completion_params
     params.permit(:perceived_intensity, :energy_level, :mood, :notes)

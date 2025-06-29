@@ -22,7 +22,6 @@ class WorkoutSerializer < ActiveModel::Serializer
   belongs_to :user
   belongs_to :routine
   has_many :exercises, serializer: WorkoutExerciseSerializer
-  has_many :pauses, serializer: WorkoutPauseSerializer
 
   def total_duration_seconds
     object.total_duration_seconds || object.actual_duration.to_i

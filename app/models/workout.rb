@@ -6,7 +6,6 @@ class Workout < ApplicationRecord
   belongs_to :user
   belongs_to :routine, optional: true
   has_many :exercises, class_name: 'WorkoutExercise', dependent: :destroy
-  has_many :pauses, class_name: 'WorkoutPause', dependent: :destroy
   has_many :performed_exercises, through: :exercises, source: :exercise
 
   enum workout_type: { routine_based: 0, free_style: 1 }
@@ -35,27 +34,14 @@ class Workout < ApplicationRecord
   scope :active, -> { where(status: ['in_progress', 'paused']) }
   scope :completed, -> { where(status: 'completed') }
 
-  def pause!(reason)
+  def pause!
     return false unless active? && !paused?
-    
-    transaction do
-      pauses.create!(paused_at: Time.current, reason: reason)
-      update!(status: 'paused')
-    end
+    update!(status: 'paused')
   end
 
   def resume!
     return false unless paused?
-    
-    transaction do
-      if current_pause = pauses.find_by(resumed_at: nil)
-        current_pause.update!(
-          resumed_at: Time.current,
-          duration_seconds: (Time.current - current_pause.paused_at).to_i
-        )
-      end
-      update!(status: 'in_progress')
-    end
+    update!(status: 'in_progress')
   end
 
   def complete!
@@ -93,17 +79,13 @@ class Workout < ApplicationRecord
     update!(status: 'abandoned', completed_at: Time.current)
   end
 
-  def total_pause_duration
-    pauses.sum { |pause| pause.duration_seconds || 0 }
-  end
 
   def actual_duration
     return 0 unless started_at
-    return 0 if started_at > Time.current # Validación adicional
+    return 0 if started_at > Time.current
     
     end_time = completed_at || Time.current
-    base_duration = [end_time - started_at, 0].max # Evitar negativos
-    [base_duration - total_pause_duration, 0].max
+    [end_time - started_at, 0].max
   end
 
   def display_name

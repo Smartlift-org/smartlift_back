@@ -13,7 +13,6 @@ RSpec.describe Workout, type: :model do
     end
 
     it { should have_many(:exercises).class_name('WorkoutExercise').dependent(:destroy) }
-    it { should have_many(:pauses).class_name('WorkoutPause').dependent(:destroy) }
     it { should have_many(:performed_exercises).through(:exercises).source(:exercise) }
   end
 
@@ -125,29 +124,27 @@ RSpec.describe Workout, type: :model do
 
     describe '#pause!' do
       it 'pauses an active workout' do
-        expect(workout.pause!('Rest break')).to be_truthy
+        expect(workout.pause!).to be_truthy
         expect(workout.reload.status).to eq('paused')
-        expect(workout.pauses.last.reason).to eq('Rest break')
       end
 
       it 'returns false if workout is not active' do
         workout.update!(status: 'completed')
-        expect(workout.pause!('Rest break')).to be_falsey
+        expect(workout.pause!).to be_falsey
       end
 
       it 'returns false if workout is already paused' do
         workout.update!(status: 'paused')
-        expect(workout.pause!('Rest break')).to be_falsey
+        expect(workout.pause!).to be_falsey
       end
     end
 
     describe '#resume!' do
-      before { workout.pause!('Rest break') }
+      before { workout.pause! }
 
       it 'resumes a paused workout' do
         expect(workout.resume!).to be_truthy
         expect(workout.reload.status).to eq('in_progress')
-        expect(workout.pauses.last.resumed_at).to be_present
       end
 
       it 'returns false if workout is not paused' do
@@ -189,21 +186,9 @@ RSpec.describe Workout, type: :model do
   describe 'duration methods' do
     let(:workout) { create(:workout, user: user, routine: routine, started_at: 1.hour.ago) }
 
-    describe '#total_pause_duration' do
-      it 'calculates total pause duration' do
-        pause1 = create(:workout_pause, workout: workout, resumed_at: Time.current + 5.minutes)
-        pause1.update!(duration_seconds: 300)
-        pause2 = create(:workout_pause, workout: workout, resumed_at: Time.current + 3.minutes)
-        pause2.update!(duration_seconds: 180)
-        expect(workout.total_pause_duration).to eq(480)
-      end
-    end
-
     describe '#actual_duration' do
-      it 'calculates duration excluding pauses' do
-        pause = create(:workout_pause, workout: workout, resumed_at: Time.current + 10.minutes)
-        pause.update!(duration_seconds: 600)
-        expected_duration = 1.hour - 10.minutes
+      it 'calculates duration from start to end' do
+        expected_duration = 1.hour
         expect(workout.actual_duration).to be_within(5.seconds).of(expected_duration)
       end
     end

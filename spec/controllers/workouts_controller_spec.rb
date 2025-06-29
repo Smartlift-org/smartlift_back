@@ -111,8 +111,8 @@ RSpec.describe WorkoutsController, type: :controller do
       expect(ordered_workouts.first).to eq(@new_workout)
     end
 
-    it 'includes exercises and pauses' do
-      workout_with_data = create(:workout, :with_exercises, :with_pauses, user: user)
+    it 'includes exercises data' do
+      workout_with_data = create(:workout, :with_exercises, user: user)
       get :index
       expect(assigns(:workouts)).to include(workout_with_data)
     end
@@ -137,15 +137,9 @@ RSpec.describe WorkoutsController, type: :controller do
       let(:workout) { create(:workout, user: user, status: 'in_progress') }
 
       it 'pauses the workout' do
-        put :pause, params: { id: workout.id, reason: 'Rest break' }
+        put :pause, params: { id: workout.id }
         expect(response).to have_http_status(:success)
         expect(workout.reload.status).to eq('paused')
-      end
-
-      it 'creates a pause record' do
-        expect {
-          put :pause, params: { id: workout.id, reason: 'Rest break' }
-        }.to change(WorkoutPause, :count).by(1)
       end
     end
 
@@ -153,7 +147,7 @@ RSpec.describe WorkoutsController, type: :controller do
       let(:workout) { create(:workout, user: user, status: 'completed') }
 
       it 'returns bad request' do
-        put :pause, params: { id: workout.id, reason: 'Rest break' }
+        put :pause, params: { id: workout.id }
         expect(response).to have_http_status(:bad_request)
       end
     end
@@ -162,7 +156,7 @@ RSpec.describe WorkoutsController, type: :controller do
       let(:workout) { create(:workout, user: user, status: 'paused') }
 
       it 'returns unprocessable entity' do
-        put :pause, params: { id: workout.id, reason: 'Rest break' }
+        put :pause, params: { id: workout.id }
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -172,20 +166,10 @@ RSpec.describe WorkoutsController, type: :controller do
     context 'with paused workout' do
       let(:workout) { create(:workout, user: user, status: 'paused') }
 
-      before do
-        create(:workout_pause, workout: workout, resumed_at: nil)
-      end
-
       it 'resumes the workout' do
         put :resume, params: { id: workout.id }
         expect(response).to have_http_status(:success)
         expect(workout.reload.status).to eq('in_progress')
-      end
-
-      it 'sets resumed_at on pause record' do
-        pause = workout.pauses.first
-        put :resume, params: { id: workout.id }
-        expect(pause.reload.resumed_at).to be_present
       end
     end
 

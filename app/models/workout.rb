@@ -86,10 +86,10 @@ class Workout < ApplicationRecord
 
   def actual_duration
     return 0 unless started_at
-    return 0 if started_at > Time.current # Validación adicional
+    return 0 if started_at > Time.current
     
     end_time = completed_at || Time.current
-    [end_time - started_at, 0].max # Simple: total time from start to end
+    [end_time - started_at, 0].max
   end
 
   def display_name

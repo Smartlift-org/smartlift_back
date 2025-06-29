@@ -52,11 +52,6 @@ FactoryBot.define do
       end
     end
 
-    trait :with_pauses do
-      after(:create) do |workout|
-        create_list(:workout_pause, 2, workout: workout)
-      end
-    end
 
     trait :skip_validation do
       skip_active_workout_validation { true }

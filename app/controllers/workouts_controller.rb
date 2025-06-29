@@ -30,7 +30,7 @@ class WorkoutsController < ApplicationController
 
   # GET /workouts
   def index
-    @workouts = current_user.workouts.includes(:exercises, :pauses).recent
+    @workouts = current_user.workouts.includes(:exercises).recent
     render json: @workouts
   end
 

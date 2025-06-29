@@ -213,6 +213,21 @@ RSpec.describe WorkoutsController, type: :controller do
         put :complete, params: { id: workout.id }
         expect(workout.reload.completed_at).to be_present
       end
+
+      it 'accepts and sets total_duration_seconds from frontend' do
+        duration_seconds = 3600 # 1 hour
+        put :complete, params: { 
+          id: workout.id,
+          total_duration_seconds: duration_seconds,
+          workout_rating: 8,
+          notes: 'Great workout!'
+        }
+        
+        expect(response).to have_http_status(:success)
+        workout.reload
+        expect(workout.total_duration_seconds).to eq(duration_seconds)
+        expect(workout.status).to eq('completed')
+      end
     end
 
     context 'with inactive workout' do

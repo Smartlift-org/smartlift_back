@@ -139,11 +139,8 @@ Individual workout sessions.
 | total_sets_completed | integer | | Completed sets count |
 | total_exercises_completed | integer | | Completed exercises count |
 | average_rpe | float | | Average rate of perceived exertion |
-| perceived_intensity | integer | | User's intensity rating (1-10) |
-| energy_level | integer | | User's energy rating (1-10) |
-| mood | string | | Post-workout mood |
+| workout_rating | integer | | User's overall workout rating (1-10) |
 | notes | text | | Workout notes |
-| followed_routine | boolean | | Whether routine was followed exactly |
 | created_at | datetime | NOT NULL | Record creation timestamp |
 | updated_at | datetime | NOT NULL | Record update timestamp |
 

@@ -48,6 +48,8 @@ class AiWorkoutRoutineService
   private
 
   def build_prompt
+    # Build the exercise catalog based on user's available equipment
+    exercise_catalog = build_exercise_catalog
 
     # Build the prompt according to the new specification
     prompt = <<~PROMPT
@@ -64,6 +66,11 @@ class AiWorkoutRoutineService
       - Time per session: #{@params[:time_per_session]} minutes
       - Training goal: #{@params[:goal]}
 
+      EXERCISE CATALOG (available exercises for this user):
+      #{exercise_catalog}
+
+      IMPORTANT: You MUST only use exercise IDs from the catalog above. Do not create new exercise IDs.
+
     PROMPT
 
     Rails.logger.info "Generated AI prompt for user profile: #{@params[:age]}yo #{@params[:gender]}, #{@params[:experience_level]} level"
@@ -72,30 +79,33 @@ class AiWorkoutRoutineService
     prompt
   end
 
-  # def build_exercise_catalog
-  #   # Get exercises that match the user's available equipment
-  #   available_exercises = Exercise.where(equipment: @params[:equipment])
-  #                                .or(Exercise.where(equipment: 'body only'))
-  #                                .limit(100) # Limit to avoid too long prompts
-  #                                .select(:id, :name, :equipment, :category, :primary_muscles, :level)
+  def build_exercise_catalog
+    # Get exercises that match the user's available equipment
+    available_exercises = Exercise.where(equipment: @params[:equipment])
+                                 .or(Exercise.where(equipment: 'body only'))
+                                 .limit(100) # Limit to avoid too long prompts
+                                 .select(:id, :name, :equipment, :category, :primary_muscles, :level)
     
-  #   catalog = available_exercises.map do |exercise|
-  #     "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{exercise.primary_muscles.join(', ')}"
-  #   end.join("\n")
+    catalog = available_exercises.map do |exercise|
+      primary_muscles = exercise.primary_muscles.is_a?(Array) ? exercise.primary_muscles.join(', ') : exercise.primary_muscles
+      "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
+    end.join("\n")
     
-  #   if catalog.blank?
-  #     # Fallback to bodyweight exercises if no equipment matches
-  #     fallback_exercises = Exercise.where(equipment: 'body only')
-  #                                 .limit(50)
-  #                                 .select(:id, :name, :equipment, :category, :primary_muscles, :level)
+    if catalog.blank?
+      # Fallback to bodyweight exercises if no equipment matches
+      fallback_exercises = Exercise.where(equipment: 'body only')
+                                  .limit(50)
+                                  .select(:id, :name, :equipment, :category, :primary_muscles, :level)
       
-  #     catalog = fallback_exercises.map do |exercise|
-  #       "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{exercise.primary_muscles.join(', ')}"
-  #     end.join("\n")
-  #   end
+      catalog = fallback_exercises.map do |exercise|
+        primary_muscles = exercise.primary_muscles.is_a?(Array) ? exercise.primary_muscles.join(', ') : exercise.primary_muscles
+        "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
+      end.join("\n")
+    end
     
-  #   catalog
-  # end
+    Rails.logger.info "Built exercise catalog with #{available_exercises.count} exercises for equipment: #{@params[:equipment].join(', ')}"
+    catalog
+  end
 
   def parse_ai_response(response)
     Rails.logger.debug "Raw AI response: #{response.inspect}" if Rails.env.development?

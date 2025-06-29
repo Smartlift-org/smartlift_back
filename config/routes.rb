@@ -78,4 +78,12 @@ Rails.application.routes.draw do
       get 'statistics'
     end
   end
+
+  # API v1 namespace for versioned endpoints
+  namespace :api do
+    namespace :v1 do
+      # AI-powered workout routine generation
+      resources :ai_workout_routines, only: [:create], path: 'ai/workout_routines'
+    end
+  end
 end

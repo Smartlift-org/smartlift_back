@@ -48,4 +48,31 @@ class Rack::Attack
   throttle('unauthenticated/ip', limit: 50, period: 1.hour) do |req|
     req.ip unless req.env['HTTP_AUTHORIZATION']
   end
+
+  # AI workout routine generation - more restrictive due to resource usage
+  throttle('ai_workout_routines/ip', limit: 5, period: 1.hour) do |req|
+    req.ip if req.path.start_with?('/api/v1/ai/workout_routines')
+  end
+
+  # Additional throttling for AI endpoints by user ID (if authenticated)
+  throttle('ai_workout_routines/user', limit: 8, period: 1.hour) do |req|
+    if req.path.start_with?('/api/v1/ai/workout_routines')
+      user_id = extract_user_id_from_token(req.env['HTTP_AUTHORIZATION'])
+      user_id if user_id
+    end
+  end
+
+  private
+
+  def self.extract_user_id_from_token(auth_header)
+    return nil unless auth_header&.start_with?('Bearer ')
+    
+    token = auth_header.split(' ').last
+    begin
+      decoded = JsonWebToken.decode(token)
+      decoded[:user_id] if decoded
+    rescue StandardError
+      nil
+    end
+  end
 end

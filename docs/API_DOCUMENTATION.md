@@ -377,12 +377,16 @@ Complete workout with feedback.
 **Request Body:**
 ```json
 {
-  "perceived_intensity": 8,
-  "energy_level": 7,
-  "mood": "energized",
-  "notes": "Great workout, increased weight on bench press"
+  "workout_rating": 8,
+  "notes": "Great workout, increased weight on bench press",
+  "total_duration_seconds": 3600
 }
 ```
+
+**Parameters:**
+- `workout_rating` (integer, optional): Rating from 1-10
+- `notes` (string, optional): Workout feedback notes
+- `total_duration_seconds` (integer, required): Total workout duration in seconds as measured by frontend timer
 
 ### Workout Exercises
 

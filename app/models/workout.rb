@@ -17,11 +17,11 @@ class Workout < ApplicationRecord
   validates :workout_rating, inclusion: { in: RATING_RANGE }, allow_nil: true
   validates :routine, presence: true, if: :routine_based?
   validates :name, presence: true, if: :free_style?
+  validates :total_duration_seconds, presence: true, numericality: { greater_than: 0, less_than: 86400 }, if: :completed?
   validate :validate_one_active_workout_per_user, on: :create, unless: :skip_active_workout_validation
 
   before_validation :set_default_status, on: :create
   before_validation :set_default_workout_type, on: :create
-  before_save :update_duration, if: :completed_at_changed?
   after_create :copy_routine_exercises, if: :routine_based?
 
   scope :recent, -> { order(created_at: :desc) }
@@ -48,7 +48,7 @@ class Workout < ApplicationRecord
     update!(status: 'in_progress')
   end
 
-  def complete!
+  def complete!(duration_seconds = nil)
     return false unless active?
     
     transaction do
@@ -56,6 +56,9 @@ class Workout < ApplicationRecord
       
       exercises.each(&:finalize!)
       calculate_totals
+      
+      # Set the duration from frontend if provided
+      self.total_duration_seconds = duration_seconds if duration_seconds.present?
       
       update!(
         status: 'completed',
@@ -81,6 +84,10 @@ class Workout < ApplicationRecord
 
 
   def actual_duration
+    # If we have the duration from frontend, use that (more accurate)
+    return total_duration_seconds if total_duration_seconds.present?
+    
+    # Fallback to calculated duration (for backwards compatibility)
     return 0 unless started_at
     return 0 if started_at > Time.current
     
@@ -151,9 +158,6 @@ class Workout < ApplicationRecord
     end
   end
 
-  def update_duration
-    self.total_duration_seconds = actual_duration.to_i if completed_at
-  end
 
   def copy_routine_exercises
     routine.routine_exercises.ordered.each do |routine_exercise|

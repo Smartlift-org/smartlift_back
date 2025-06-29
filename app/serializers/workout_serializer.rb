@@ -21,6 +21,7 @@ class WorkoutSerializer < ActiveModel::Serializer
   has_many :exercises, serializer: WorkoutExerciseSerializer
 
   def total_duration_seconds
+    # Prioritize frontend-provided duration, fallback to calculated duration
     object.total_duration_seconds || object.actual_duration.to_i
   end
 

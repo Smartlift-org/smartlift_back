@@ -1,8 +1,7 @@
 require 'rails_helper'
 
-# TODO: AI functionality is not 100% complete yet
-# Skipping these tests until AI implementation is finished
-RSpec.describe AiApiClient, skip: true do
+# AI API client tests
+RSpec.describe AiApiClient do
   let(:client) { described_class.new }
   let(:test_prompt) { "Test prompt for AI service" }
   let(:mock_response_body) do

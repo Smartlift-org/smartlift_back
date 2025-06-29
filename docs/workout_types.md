@@ -126,12 +126,13 @@ POST /workout/exercises/1/record_set
 ```bash
 PUT /workouts/1/complete
 {
-  "perceived_intensity": 8,
-  "energy_level": 7,
-  "mood": "great",
-  "notes": "Excellent pump today!"
+  "workout_rating": 8,
+  "notes": "Excellent pump today!",
+  "total_duration_seconds": 3600
 }
 ```
+
+**Importante:** El frontend debe manejar su propio timer y enviar la duración total (`total_duration_seconds`) al completar el workout. Esto proporciona mayor precisión que el cálculo automático del backend.
 
 ---
 
@@ -173,7 +174,6 @@ PUT /workout/exercises/1
 | Característica | Routine-Based | Free-Style |
 |---------------|---------------|------------|
 | **Ejercicios Iniciales** | ✅ Copiados automáticamente | ❌ Se agregan manualmente |
-| **Followed Routine** | ✅ Se calcula automáticamente | ❌ N/A |
 | **Flexibilidad** | 🟡 Media (puede agregar extras) | ✅ Total |
 | **Estructura** | ✅ Predefinida | 🔧 Definida por usuario |
 | **Progresión** | ✅ Basada en historial de rutina | 🔧 Basada en ejercicios individuales |

@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
+  
+  # Alternative health check endpoint for compatibility
+  get "health" => "rails/health#show", as: :health_check
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
@@ -19,6 +22,8 @@ Rails.application.routes.draw do
   post "/users", to: "users#create"
   patch "/users/:id", to: "users#update"
   post "/auth/login", to: "auth#login"
+  post "/auth/forgot-password", to: "auth#forgot_password"
+  post "/auth/reset-password", to: "auth#reset_password"
   get "/profile", to: "users#profile"
 
   # Exercises
@@ -84,6 +89,16 @@ Rails.application.routes.draw do
     namespace :v1 do
       # AI-powered workout routine generation
       resources :ai_workout_routines, only: [:create], path: 'ai/workout_routines'
+      
+      # Trainer endpoints
+      resources :trainers, only: [:show] do
+        member do
+          get :members
+          get :dashboard
+          post :assign_member, path: 'members'
+          delete :unassign_member, path: 'members/:user_id'
+        end
+      end
     end
   end
 end

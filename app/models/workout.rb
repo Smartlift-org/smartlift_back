@@ -6,6 +6,7 @@ class Workout < ApplicationRecord
   belongs_to :user
   belongs_to :routine, optional: true
   has_many :exercises, class_name: 'WorkoutExercise', dependent: :destroy
+  has_many :workout_exercises, class_name: 'WorkoutExercise', dependent: :destroy
   has_many :performed_exercises, through: :exercises, source: :exercise
 
   enum workout_type: { routine_based: 0, free_style: 1 }

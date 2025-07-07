@@ -53,5 +53,11 @@ FactoryBot.define do
     trait :skip_validation do
       skip_active_workout_validation { true }
     end
+
+    after(:build) do |workout|
+      if workout.status == 'completed' && workout.total_duration_seconds.blank?
+        workout.total_duration_seconds = 60
+      end
+    end
   end
 end 

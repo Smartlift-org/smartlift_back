@@ -128,7 +128,7 @@ RSpec.describe Workout, type: :model do
       end
 
       it 'returns false if workout is not active' do
-        workout.update!(status: 'completed')
+        workout.update!(status: 'completed', total_duration_seconds: 1)
         expect(workout.pause!).to be_falsey
       end
 
@@ -157,7 +157,7 @@ RSpec.describe Workout, type: :model do
 
       it 'completes an active workout' do
         allow(workout_with_exercises).to receive(:calculate_totals)
-        expect(workout_with_exercises.complete!).to be_truthy
+        expect(workout_with_exercises.complete!(60)).to be_truthy
         expect(workout_with_exercises.reload.status).to eq('completed')
         expect(workout_with_exercises.completed_at).to be_present
       end
@@ -176,7 +176,7 @@ RSpec.describe Workout, type: :model do
       end
 
       it 'returns false if workout is already completed' do
-        workout.update!(status: 'completed')
+        workout.update!(status: 'completed', total_duration_seconds: 1)
         expect(workout.abandon!).to be_falsey
       end
     end

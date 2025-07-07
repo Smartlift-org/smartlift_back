@@ -3,6 +3,8 @@ class WorkoutExercise < ApplicationRecord
   belongs_to :exercise
   belongs_to :routine_exercise, optional: true
   has_many :sets, class_name: 'WorkoutSet', foreign_key: 'workout_exercise_id', dependent: :destroy
+  # Alias for backwards compatibility in serializers/tests
+  has_many :workout_sets, class_name: 'WorkoutSet', foreign_key: 'workout_exercise_id', dependent: :destroy
 
   EXERCISE_GROUPS = {
     'regular' => 'Single exercise',

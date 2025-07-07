@@ -1,6 +1,5 @@
 FactoryBot.define do
   factory :exercise do
-    sequence(:id) { |n| (98 + (n % 873)) } # Ensures IDs are between 98 and 970
     sequence(:name) { |n| "Exercise #{n}" }
     equipment { ["barbell", "dumbbell", "kettlebell", "bodyweight", "machine", "cable"].sample }
     category { ["strength", "cardio", "flexibility", "balance"].sample }

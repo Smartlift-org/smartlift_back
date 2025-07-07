@@ -8,6 +8,13 @@ class Rack::Attack
     req.ip
   end
 
+  # Specific rate limit for public exercises endpoint
+  throttle('exercises/ip', limit: 100, period: 1.minute) do |req|
+    if req.path.start_with?('/exercises') && req.get?
+      req.ip
+    end
+  end
+
   # Limit login attempts
   throttle("logins/ip", limit: 5, period: 1.minutes) do |req|
     if req.path == "/api/v1/auth/login" && req.post?
@@ -30,8 +37,8 @@ class Rack::Attack
     end
   end
 
-  # Customize response when a request is blocked
-  self.throttled_response = lambda do |env|
+  # Updated to new Rack::Attack API (throttled_responder)
+  self.throttled_responder = lambda do |request|
     [ 429, # status
       { "Content-Type" => "application/json" }, # headers
       [ { error: "Rate limit exceeded. Please try again later." }.to_json ] # body

@@ -107,6 +107,7 @@ npm-debug.log*
 # Ignore documentation
 /doc/
 /rdoc/
+/docs/
 
 # Ignore OS generated files
 Thumbs.db

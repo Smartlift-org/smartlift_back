@@ -48,6 +48,9 @@ gem "whenever", require: false
 # Rate limiting and security
 gem "rack-attack"
 
+# Pagination
+gem "kaminari"
+
 # Use Redis adapter to run Action Cable in production
 gem "redis", ">= 4.0.1"
 

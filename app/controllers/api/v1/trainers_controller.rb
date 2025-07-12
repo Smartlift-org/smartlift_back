@@ -1,7 +1,7 @@
 class Api::V1::TrainersController < ApplicationController
   before_action :authorize_request
   before_action :ensure_trainer_role
-  before_action :set_trainer, only: [:show, :members, :assign_member, :unassign_member, :dashboard]
+  before_action :set_trainer, only: [:show, :members, :assign_member, :unassign_member, :dashboard, :available_users]
 
   def show
     render json: {
@@ -164,6 +164,57 @@ class Api::V1::TrainersController < ApplicationController
   end
 
   # GET /api/v1/trainers/:id/dashboard
+  # GET /api/v1/trainers/:id/available_users
+  def available_users
+    # Authorize that current user can access this trainer's data
+    authorize_trainer_access!(@trainer.id)
+    return if performed?
+    
+    # Get all users with role 'user' who are not already assigned to this trainer
+    assigned_user_ids = @trainer.users.pluck(:id)
+    available_users = User.where(role: 'user')
+                          .where.not(id: assigned_user_ids)
+    
+    # Apply search filter if provided
+    if params[:search].present?
+      search_term = "%#{params[:search].downcase}%"
+      available_users = available_users.where(
+        "LOWER(first_name) LIKE ? OR LOWER(last_name) LIKE ? OR LOWER(email) LIKE ?",
+        search_term, search_term, search_term
+      )
+    end
+
+    # Order by most recent
+    available_users = available_users.order(created_at: :desc)
+    
+    # Paginate results (default 20 per page)
+    page = params[:page] || 1
+    per_page = [params[:per_page]&.to_i || 20, 100].min # Max 100 per page
+    
+    paginated_users = available_users.page(page).per(per_page)
+    
+    # Serialize response
+    users_data = paginated_users.map do |user|
+      {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        created_at: user.created_at
+      }
+    end
+    
+    render json: {
+      available_users: users_data,
+      pagination: {
+        current_page: paginated_users.current_page,
+        total_pages: paginated_users.total_pages,
+        total_count: paginated_users.total_count,
+        per_page: paginated_users.limit_value
+      }
+    }
+  end
+
   def dashboard
     # Authorize trainer access
     authorize_trainer_access!(@trainer.id)

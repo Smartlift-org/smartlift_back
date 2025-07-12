@@ -95,6 +95,7 @@ Rails.application.routes.draw do
         member do
           get :members
           get :dashboard
+          get :available_users
           post :assign_member, path: 'members'
           delete :unassign_member, path: 'members/:user_id'
         end

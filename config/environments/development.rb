@@ -39,11 +39,11 @@ Rails.application.configure do
   # SMTP Configuration for development (using Gmail as default)
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: ENV.fetch('SMTP_ADDRESS', 'smtp.gmail.com'),
-    port: ENV.fetch('SMTP_PORT', 587).to_i,
-    domain: ENV.fetch('SMTP_DOMAIN', 'localhost'),
-    user_name: ENV['SMTP_USERNAME'],
-    password: ENV['SMTP_PASSWORD'],
+    address: 'smtp.gmail.com',
+    port: 587,
+    domain: 'localhost',
+    user_name: 'fefo0611@gmail.com',
+    password: '',
     authentication: 'plain',
     enable_starttls_auto: true,
     open_timeout: 5,

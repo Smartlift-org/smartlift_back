@@ -37,16 +37,16 @@ namespace :exercises do
             begin
               exercise = Exercise.find_or_initialize_by(name: exercise_data["name"])
 
+              # Transformamos los nombres de imágenes a URLs completas
+              full_image_urls = (exercise_data["images"] || []).map do |image|
+                "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/#{image}"
+              end
+              
               exercise.assign_attributes(
-                force: exercise_data["force"],
                 level: exercise_data["level"],
-                mechanic: exercise_data["mechanic"],
-                equipment: exercise_data["equipment"],
                 instructions: exercise_data["instructions"] || [],
                 primary_muscles: exercise_data["primaryMuscles"] || [],
-                secondary_muscles: exercise_data["secondaryMuscles"] || [],
-                category: exercise_data["category"],
-                images: exercise_data["images"] || []
+                images: full_image_urls
               )
 
               if exercise.save

@@ -66,7 +66,26 @@ class AuthController < ApplicationController
         end
     end
 
-    # POST /auth/reset-password
+    # GET /auth/validate-token
+  def validate_token
+    token = params[:token]
+    
+    if token.blank?
+      return render json: { error: "Token requerido" }, status: :unprocessable_entity
+    end
+    
+    # Use the existing method to find user by token
+    user = find_user_by_reset_token(token)
+    
+    if user.nil?
+      return render json: { valid: false, error: "Token inválido o expirado" }, status: :ok
+    end
+    
+    # Token is valid
+    render json: { valid: true, message: "Token válido" }, status: :ok
+  end
+
+  # POST /auth/reset-password
     def reset_password
         token = params[:token]
         new_password = params[:password]

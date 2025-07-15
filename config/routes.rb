@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   post "/auth/login", to: "auth#login"
   post "/auth/forgot-password", to: "auth#forgot_password"
   post "/auth/reset-password", to: "auth#reset_password"
+  get "/auth/validate-token", to: "auth#validate_token"
   get "/profile", to: "users#profile"
 
   # Exercises

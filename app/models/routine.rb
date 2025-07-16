@@ -14,6 +14,22 @@ class Routine < ApplicationRecord
     message: "must be between 1 and 180 minutes"
   }
 
+  # Crea una copia profunda de la rutina, incluyendo ejercicios si se especifica
+  # @param include [Symbol, nil] Si es :routine_exercises, clona también los ejercicios asociados
+  # @return [Routine] Una nueva instancia de Routine que es copia del original
+  def deep_clone(include: nil)
+    clone = self.dup
+    
+    if include == :routine_exercises
+      self.routine_exercises.each do |exercise|
+        clone_exercise = exercise.dup
+        clone.routine_exercises << clone_exercise
+      end
+    end
+    
+    clone
+  end
+
   # Serialization
   def as_json(options = {})
     super(options.merge(

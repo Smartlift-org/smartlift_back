@@ -91,14 +91,27 @@ Rails.application.routes.draw do
       # AI-powered workout routine generation
       resources :ai_workout_routines, only: [:create], path: 'ai/workout_routines'
       
+      # New TrainerMembers controller (solución a problemas de reconocimiento de acciones)
+      resources :trainers, only: [] do
+        resources :members, only: [:show], controller: 'trainer_members' do
+          member do
+            get :routines
+          end
+        end
+      end
+      
       # Trainer endpoints
       resources :trainers, only: [:show] do
         member do
           get :members
           get :dashboard
           get :available_users
+          get :list_routines, path: 'routines'
           post :assign_member, path: 'members'
           delete :unassign_member, path: 'members/:user_id'
+          # Rutas eliminadas: member_profile y member_routines ahora son manejadas por TrainerMembersController
+          post :assign_routine, path: 'members/:user_id/assign_routine'
+          put :update_member_routine, path: 'members/:user_id/routines/:routine_id'
         end
       end
     end

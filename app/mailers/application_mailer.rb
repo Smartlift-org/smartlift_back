@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: ENV.fetch('SMTP_FROM_EMAIL', 'noreply@smartlift.com')
+  default from: ENV['SMTP_FROM_EMAIL'] || 'noreply@smartlift.com'
   layout "mailer"
 end

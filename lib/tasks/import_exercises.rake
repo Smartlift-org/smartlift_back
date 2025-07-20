@@ -30,8 +30,9 @@ namespace :exercises do
         puts "Found #{exercises_data.size} exercises in JSON file"
 
         ActiveRecord::Base.transaction do
-          Exercise.delete_all
-          puts "Deleted existing exercises from database"
+          # Use TRUNCATE to delete all records AND reset the primary key sequence
+          ActiveRecord::Base.connection.execute("TRUNCATE TABLE exercises RESTART IDENTITY CASCADE")
+          puts "Deleted existing exercises from database and reset ID sequence"
 
           exercises_data.each do |exercise_data|
             begin

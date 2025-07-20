@@ -36,16 +36,16 @@ FROM base
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
+# Copy entrypoint script and set permissions (before USER change)
+COPY bin/docker-entrypoint /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint
+
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
     chown -R rails:rails db log storage tmp
 USER 1000:1000
 
 EXPOSE 80
-
-# Copy entrypoint script
-COPY bin/docker-entrypoint /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint
 
 # Use entrypoint to handle DB setup and server startup
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]

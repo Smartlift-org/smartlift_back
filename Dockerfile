@@ -43,6 +43,11 @@ USER 1000:1000
 
 EXPOSE 80
 
-# Default command for Railway web process
+# Copy entrypoint script
+COPY bin/docker-entrypoint /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint
+
+# Use entrypoint to handle DB setup and server startup
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
 

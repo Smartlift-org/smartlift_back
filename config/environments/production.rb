@@ -35,10 +35,10 @@ Rails.application.configure do
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
-  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+  config.logger   = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!)
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.log_level = ENV["RAILS_LOG_LEVEL"] || "info"
 
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
@@ -56,22 +56,22 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options = { 
-    host: ENV.fetch('APP_HOST', 'smartlift-api.com'),
+    host: ENV['APP_HOST'] || 'smartlift-api.com',
     protocol: 'https'
   }
 
   # SMTP Configuration for production
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: ENV.fetch('SMTP_ADDRESS'),
-    port: ENV.fetch('SMTP_PORT', 587).to_i,
-    domain: ENV.fetch('SMTP_DOMAIN'),
-    user_name: ENV.fetch('SMTP_USERNAME'),
-    password: ENV.fetch('SMTP_PASSWORD'),
-    authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain'),
-    enable_starttls_auto: ENV.fetch('SMTP_ENABLE_STARTTLS_AUTO', true),
-    open_timeout: ENV.fetch('SMTP_OPEN_TIMEOUT', 5).to_i,
-    read_timeout: ENV.fetch('SMTP_READ_TIMEOUT', 5).to_i
+    address: ENV['SMTP_ADDRESS'],
+    port: (ENV['SMTP_PORT'] || 587).to_i,
+    domain: ENV['SMTP_DOMAIN'],
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: ENV['SMTP_AUTHENTICATION'] || 'plain',
+    enable_starttls_auto: ENV['SMTP_ENABLE_STARTTLS_AUTO'] != 'false',
+    open_timeout: (ENV['SMTP_OPEN_TIMEOUT'] || 5).to_i,
+    read_timeout: (ENV['SMTP_READ_TIMEOUT'] || 5).to_i
   }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
@@ -80,9 +80,6 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
-
-  # Only use :id for inspections in production.
-  config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [

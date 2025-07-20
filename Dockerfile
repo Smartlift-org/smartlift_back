@@ -43,3 +43,6 @@ USER 1000:1000
 
 EXPOSE 80
 
+# Default command for Railway web process
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+

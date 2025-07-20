@@ -1,7 +1,7 @@
 class User < ApplicationRecord
     has_secure_password
 
-    enum :role, { user: 0, coach: 1 }
+    enum :role, { user: 0, coach: 1, admin: 2 }
 
     # Relationships for coaches
     has_many :coach_users, foreign_key: :coach_id, dependent: :destroy
@@ -29,7 +29,7 @@ class User < ApplicationRecord
     private
     def role_must_be_valid
       if role.present? && !User.roles.keys.include?(role)
-        errors.add(:role, "Debe ser 'Usuario' o 'Entrenador'")
+        errors.add(:role, "Debe ser 'Usuario', 'Entrenador' o 'Administrador'")
       end
     end
 

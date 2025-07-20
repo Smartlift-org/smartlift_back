@@ -27,6 +27,13 @@ Rails.application.routes.draw do
   get "/auth/validate-token", to: "auth#validate_token"
   get "/profile", to: "users#profile"
 
+  # Admin routes - Admin only endpoints
+  namespace :admin do
+    get "/coaches", to: "users#index_coaches"
+    get "/users", to: "users#index_users"
+    post "/users", to: "users#create_by_admin"
+  end
+
   # Exercises
   get "/exercises", to: "exercises#index"
   get "/exercises/:id", to: "exercises#show"

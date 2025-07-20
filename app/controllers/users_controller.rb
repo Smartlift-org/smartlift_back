@@ -1,6 +1,7 @@
 class UsersController < ApplicationController
     skip_before_action :authorize_request, only: [ :create ]
     before_action :set_user, only: [ :update ]
+    before_action :ensure_admin, only: [ :index_coaches, :index_users, :create_by_admin ]
     rescue_from ActiveRecord::RecordNotFound, with: :not_found
 
     # GET /profile
@@ -34,6 +35,38 @@ class UsersController < ApplicationController
         render json: @user, status: :ok
       else
         render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    # GET /admin/coaches - Admin only: list all coaches
+    def index_coaches
+      coaches = User.coach.select(:id, :first_name, :last_name, :email, :created_at)
+      render json: coaches, status: :ok
+    end
+
+    # GET /admin/users - Admin only: list all basic users
+    def index_users
+      users = User.user.select(:id, :first_name, :last_name, :email, :created_at)
+      render json: users, status: :ok
+    end
+
+    # POST /admin/users - Admin only: create user with specific role
+    def create_by_admin
+      # Sanitize and validate email
+      email = sanitize_email(params[:user][:email])
+
+      unless valid_email_format?(email)
+        return render json: { error: "Formato de email inválido" }, status: :unprocessable_entity
+      end
+
+      # Update the email in the nested params
+      params[:user][:email] = email
+
+      user = User.new(admin_user_params)
+      if user.save
+        render json: user.as_json(only: [:id, :first_name, :last_name, :email, :role, :created_at]), status: :created
+      else
+        render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
       end
     end
 
@@ -78,5 +111,23 @@ class UsersController < ApplicationController
 
     def not_found
       render json: { error: "Usuario no encontrado" }, status: :not_found
+    end
+
+    def ensure_admin
+      unless current_user&.admin?
+        render json: { error: "Acceso denegado. Solo administradores." }, status: :forbidden
+      end
+    end
+
+    def admin_user_params
+      # Admin can set any role when creating users
+      params.require(:user).permit(
+        :first_name,
+        :last_name,
+        :email,
+        :password,
+        :password_confirmation,
+        :role
+      )
     end
 end

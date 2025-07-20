@@ -4,17 +4,16 @@
 
 puts "🌱 Starting database seeding..."
 
-# Create default trainer user
-trainer = User.find_or_create_by!(email: "trainer@smartlift.com") do |user|
+# Create default coach user
+coach = User.find_or_create_by!(email: "coach@smartlift.com") do |user|
   user.password = "password123"
   user.password_confirmation = "password123"
   user.first_name = "Demo"
-  user.last_name = "Trainer"
-  user.role = "trainer"
-  user.confirmed_at = Time.current
+  user.last_name = "Coach"
+  user.role = "coach"
 end
 
-puts "✅ Created trainer: #{trainer.email}"
+puts "✅ Created coach: #{coach.email}"
 
 # Create default basic user
 basic_user = User.find_or_create_by!(email: "user@smartlift.com") do |user|
@@ -23,9 +22,19 @@ basic_user = User.find_or_create_by!(email: "user@smartlift.com") do |user|
   user.first_name = "Demo"
   user.last_name = "User"
   user.role = "user"
-  user.confirmed_at = Time.current
 end
 
 puts "✅ Created basic user: #{basic_user.email}"
+
+# Create default admin user
+admin = User.find_or_create_by!(email: "admin@smartlift.com") do |user|
+  user.password = "password123"
+  user.password_confirmation = "password123"
+  user.first_name = "Demo"
+  user.last_name = "Admin"
+  user.role = "admin"
+end
+
+puts "✅ Created admin: #{admin.email}"
 
 puts "🎉 Database seeding completed!"

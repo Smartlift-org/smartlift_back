@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Remove a potentially pre-existing server.pid for Rails
 rm -f /rails/tmp/pids/server.pid
 
 # Install dependencies if they're missing

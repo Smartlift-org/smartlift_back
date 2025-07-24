@@ -30,7 +30,9 @@ Rails.application.routes.draw do
   # Admin routes - Admin only endpoints
   scope :admin do
     get "/coaches", to: "users#index_coaches"
+    get "/coaches/:id", to: "users#show_coach"
     get "/users", to: "users#index_users"
+    get "/users/:id", to: "users#show_user"
     post "/users", to: "users#create_by_admin"
   end
 

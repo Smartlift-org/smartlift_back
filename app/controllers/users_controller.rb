@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
     skip_before_action :authorize_request, only: [ :create ]
     before_action :set_user, only: [ :update ]
-    before_action :ensure_admin, only: [ :index_coaches, :index_users, :create_by_admin ]
+    before_action :ensure_admin, only: [ :index_coaches, :index_users, :create_by_admin, :show_coach, :show_user ]
     rescue_from ActiveRecord::RecordNotFound, with: :not_found
 
     # GET /profile
@@ -68,6 +68,28 @@ class UsersController < ApplicationController
       else
         render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
       end
+    end
+
+    # GET /admin/coaches/:id - Admin only: get coach details with assigned users
+    def show_coach
+      coach = User.coach.find(params[:id])
+      assigned_users = coach.users.select(:id, :first_name, :last_name, :email, :created_at)
+      
+      render json: {
+        coach: coach.as_json(only: [:id, :first_name, :last_name, :email, :role, :created_at]),
+        assigned_users: assigned_users
+      }, status: :ok
+    end
+
+    # GET /admin/users/:id - Admin only: get user details
+    def show_user
+      user = User.user.find(params[:id])
+      assigned_coach = user.coaches.first
+      
+      render json: {
+        **user.as_json(only: [:id, :first_name, :last_name, :email, :role, :created_at]),
+        assigned_coach: assigned_coach&.as_json(only: [:id, :first_name, :last_name, :email])
+      }, status: :ok
     end
 
     private

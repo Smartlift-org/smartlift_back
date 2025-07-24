@@ -96,6 +96,11 @@ class UsersController < ApplicationController
     def update_coach
       coach = User.coach.find(params[:id])
       
+      # Validate that user params are present
+      unless params[:user].present?
+        return render json: { error: "Datos de usuario requeridos" }, status: :bad_request
+      end
+      
       # Sanitize email if provided
       if params[:user][:email].present?
         email = sanitize_email(params[:user][:email])
@@ -103,6 +108,16 @@ class UsersController < ApplicationController
           return render json: { error: "Formato de email inválido" }, status: :unprocessable_entity
         end
         params[:user][:email] = email
+      end
+      
+      # Handle password validation
+      if params[:user][:password].present?
+        if params[:user][:password].length < 6
+          return render json: { error: "La contraseña debe tener al menos 6 caracteres" }, status: :unprocessable_entity
+        end
+        if params[:user][:password] != params[:user][:password_confirmation]
+          return render json: { error: "La confirmación de contraseña no coincide" }, status: :unprocessable_entity
+        end
       end
       
       if coach.update(admin_update_params)

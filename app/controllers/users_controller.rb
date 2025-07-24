@@ -295,4 +295,15 @@ class UsersController < ApplicationController
         :role
       )
     end
+
+    def sanitize_email(email)
+      # Remove whitespace and convert to lowercase
+      email.to_s.strip.downcase
+    end
+
+    def valid_email_format?(email)
+      # Basic email format validation
+      email_regex = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
+      email_regex.match?(email)
+    end
 end

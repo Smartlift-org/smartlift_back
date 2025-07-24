@@ -31,8 +31,14 @@ Rails.application.routes.draw do
   scope :admin do
     get "/coaches", to: "users#index_coaches"
     get "/coaches/:id", to: "users#show_coach"
+    patch "/coaches/:id", to: "users#update_coach"
+    delete "/coaches/:id", to: "users#deactivate_coach"
+    post "/coaches/:id/assign-users", to: "users#assign_users"
+    delete "/coaches/:id/users/:user_id", to: "users#unassign_user"
     get "/users", to: "users#index_users"
     get "/users/:id", to: "users#show_user"
+    patch "/users/:id", to: "users#update_user"
+    get "/available-users", to: "users#available_users"
     post "/users", to: "users#create_by_admin"
   end
 

@@ -28,7 +28,7 @@ Rails.application.routes.draw do
   get "/profile", to: "users#profile"
 
   # Admin routes - Admin only endpoints
-  namespace :admin do
+  scope :admin do
     get "/coaches", to: "users#index_coaches"
     get "/users", to: "users#index_users"
     post "/users", to: "users#create_by_admin"

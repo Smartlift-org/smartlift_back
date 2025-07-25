@@ -1,6 +1,5 @@
 class ExercisesController < ApplicationController
-  # Skip authentication for read-only operations (index, show)
-  skip_before_action :authorize_request, only: [:index, :show]
+  # Authentication required for all operations for security
   before_action :set_exercise, only: [ :show, :update, :destroy ]
 
   # GET /exercises

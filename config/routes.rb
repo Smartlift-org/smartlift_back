@@ -15,8 +15,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  # API root endpoint
-  root "api_status#index"
+  # API root endpoint - removed for security (use /up for health checks)
 
   # Users
   post "/users", to: "users#create"

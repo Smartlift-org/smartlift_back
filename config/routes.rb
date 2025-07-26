@@ -25,6 +25,8 @@ Rails.application.routes.draw do
   post "/auth/reset-password", to: "auth#reset_password"
   get "/auth/validate-token", to: "auth#validate_token"
   get "/profile", to: "users#profile"
+  post "/users/profile-picture", to: "users#update_profile_picture"
+  get "/users/:id/profile-picture", to: "users#get_profile_picture"
 
   # Admin routes - Admin only endpoints
   scope :admin do

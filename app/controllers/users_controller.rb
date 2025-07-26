@@ -2,6 +2,7 @@ class UsersController < ApplicationController
     skip_before_action :authorize_request, only: [ :create ]
     before_action :set_user, only: [ :update ]
     before_action :ensure_admin, only: [ :index_coaches, :index_users, :create_by_admin, :show_coach, :show_user, :update_coach, :update_user, :available_users, :assign_users, :unassign_user, :deactivate_coach ]
+    before_action :check_registration_rate_limit, only: [ :create ]
     rescue_from ActiveRecord::RecordNotFound, with: :not_found
 
     # GET /profile
@@ -13,6 +14,9 @@ class UsersController < ApplicationController
 
     # POST /users
     def create
+      # Additional security validations
+      return unless validate_registration_security
+      
       # Sanitize and validate email
       email = sanitize_email(params[:user][:email])
 
@@ -20,13 +24,21 @@ class UsersController < ApplicationController
         return render json: { error: "Formato de email inválido" }, status: :unprocessable_entity
       end
 
+      # Check if email already exists
+      if User.exists?(email: email)
+        Rails.logger.warn "[REGISTRATION_SECURITY] Attempt to register existing email: #{email} from IP: #{request.remote_ip}"
+        return render json: { error: "Este email ya está registrado" }, status: :unprocessable_entity
+      end
+
       # Update the email in the nested params
       params[:user][:email] = email
 
       user = User.new(user_params)
       if user.save
+        Rails.logger.info "[REGISTRATION_SUCCESS] New user registered: #{user.email} from IP: #{request.remote_ip}"
         render json: user, status: :created
       else
+        Rails.logger.warn "[REGISTRATION_FAILED] Failed to create user: #{user.errors.full_messages.join(', ')} from IP: #{request.remote_ip}"
         render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
       end
     end
@@ -331,6 +343,126 @@ class UsersController < ApplicationController
       render json: { error: "Usuario no encontrado" }, status: :not_found
     end
 
+    # Additional security validations to prevent bot attacks
+    def validate_registration_security
+      # Check for suspicious patterns in request
+      user_agent = request.headers['User-Agent']
+      
+      # Block requests without User-Agent (common bot behavior)
+      if user_agent.blank?
+        Rails.logger.warn "[REGISTRATION_SECURITY] Registration attempt without User-Agent from IP: #{request.remote_ip}"
+        render json: { error: "Solicitud inválida" }, status: :bad_request
+        return false
+      end
+      
+      # Block known bot patterns in User-Agent
+      bot_patterns = [
+        /bot/i, /crawler/i, /spider/i, /scraper/i, 
+        /curl/i, /wget/i, /python/i, /postman/i,
+        /insomnia/i, /httpie/i
+      ]
+      
+      if bot_patterns.any? { |pattern| user_agent.match?(pattern) }
+        Rails.logger.warn "[REGISTRATION_SECURITY] Bot-like User-Agent detected: #{user_agent} from IP: #{request.remote_ip}"
+        render json: { error: "Solicitud inválida" }, status: :bad_request
+        return false
+      end
+      
+      # Check request timing (too fast requests are suspicious)
+      request_time_key = "last_registration_time:#{request.remote_ip}"
+      last_request_time = Rails.cache.read(request_time_key)
+      current_time = Time.current
+      
+      if last_request_time && (current_time - last_request_time) < 5.seconds
+        Rails.logger.warn "[REGISTRATION_SECURITY] Too fast registration attempt from IP: #{request.remote_ip}"
+        render json: { error: "Solicitud demasiado rápida. Espera unos segundos." }, status: :too_many_requests
+        return false
+      end
+      
+      # Store current request time
+      Rails.cache.write(request_time_key, current_time, expires_in: 1.minute)
+      
+      # Validate required parameters
+      required_params = [:first_name, :last_name, :email, :password]
+      missing_params = required_params.select { |param| params[:user][param].blank? }
+      
+      if missing_params.any?
+        Rails.logger.warn "[REGISTRATION_SECURITY] Missing required parameters: #{missing_params.join(', ')} from IP: #{request.remote_ip}"
+        render json: { error: "Faltan parámetros requeridos: #{missing_params.join(', ')}" }, status: :bad_request
+        return false
+      end
+      
+      # Check for suspicious email patterns
+      email = params[:user][:email].to_s.downcase
+      suspicious_patterns = [
+        /test.*@/i, /@test/i, /fake.*@/i, /@fake/i,
+        /spam.*@/i, /@spam/i, /bot.*@/i, /@bot/i,
+        /temp.*@/i, /@temp/i, /disposable.*@/i
+      ]
+      
+      if suspicious_patterns.any? { |pattern| email.match?(pattern) }
+        Rails.logger.warn "[REGISTRATION_SECURITY] Suspicious email pattern detected: #{email} from IP: #{request.remote_ip}"
+        render json: { error: "Email no válido" }, status: :unprocessable_entity
+        return false
+      end
+      
+      true
+    end
+
+    # Rate limiting for user registration to prevent spam and bot attacks
+    def check_registration_rate_limit
+      client_ip = request.remote_ip
+      
+      # Rate limit by IP: max 3 registrations per hour
+      ip_cache_key = "user_registration_ip:#{client_ip}"
+      ip_attempts = Rails.cache.read(ip_cache_key) || 0
+      
+      if ip_attempts >= 3
+        Rails.logger.warn "[REGISTRATION_RATE_LIMIT] IP #{client_ip} exceeded registration limit (#{ip_attempts} attempts)"
+        return render json: { 
+          error: "Demasiados intentos de registro desde esta IP. Intenta nuevamente en una hora.",
+          retry_after: 3600
+        }, status: :too_many_requests
+      end
+      
+      # Rate limit by email: max 1 registration attempt per email per day
+      if params[:user] && params[:user][:email].present?
+        email = sanitize_email(params[:user][:email])
+        email_cache_key = "user_registration_email:#{email}"
+        
+        if Rails.cache.exist?(email_cache_key)
+          Rails.logger.warn "[REGISTRATION_RATE_LIMIT] Email #{email} attempted duplicate registration from IP #{client_ip}"
+          return render json: { 
+            error: "Este email ya fue usado para registro recientemente. Intenta nuevamente mañana o usa otro email.",
+            retry_after: 86400
+          }, status: :too_many_requests
+        end
+        
+        # Set email rate limit (24 hours)
+        Rails.cache.write(email_cache_key, true, expires_in: 24.hours)
+      end
+      
+      # Increment IP attempt count (1 hour expiration)
+      Rails.cache.write(ip_cache_key, ip_attempts + 1, expires_in: 1.hour)
+      
+      # Global rate limit: max 50 registrations per hour across all IPs
+      global_cache_key = "user_registration_global"
+      global_attempts = Rails.cache.read(global_cache_key) || 0
+      
+      if global_attempts >= 50
+        Rails.logger.error "[REGISTRATION_RATE_LIMIT] Global registration limit exceeded (#{global_attempts} attempts this hour)"
+        return render json: { 
+          error: "El sistema está experimentando mucha actividad. Intenta registrarte nuevamente en unos minutos.",
+          retry_after: 300
+        }, status: :service_unavailable
+      end
+      
+      # Increment global attempt count (1 hour expiration)
+      Rails.cache.write(global_cache_key, global_attempts + 1, expires_in: 1.hour)
+      
+      true
+    end
+
     def admin_user_params
       # Admin can set any role when creating users
       params.require(:user).permit(
@@ -353,16 +485,5 @@ class UsersController < ApplicationController
         :password_confirmation,
         :role
       )
-    end
-
-    def sanitize_email(email)
-      # Remove whitespace and convert to lowercase
-      email.to_s.strip.downcase
-    end
-
-    def valid_email_format?(email)
-      # Basic email format validation
-      email_regex = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
-      email_regex.match?(email)
     end
 end

@@ -331,12 +331,6 @@ class UsersController < ApplicationController
       render json: { error: "Usuario no encontrado" }, status: :not_found
     end
 
-    def ensure_admin
-      unless current_user&.admin?
-        render json: { error: "Acceso denegado. Solo administradores." }, status: :forbidden
-      end
-    end
-
     def admin_user_params
       # Admin can set any role when creating users
       params.require(:user).permit(

@@ -60,6 +60,13 @@ Rails.application.configure do
     protocol: 'https'
   }
 
+  # Configure Active Storage for production URLs
+  # This ensures that Active Storage generates correct URLs for uploaded files
+  Rails.application.routes.default_url_options = {
+    host: ENV['APP_HOST'] || 'smartlift-api.com',
+    protocol: 'https'
+  }
+
   # SMTP Configuration for production
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {

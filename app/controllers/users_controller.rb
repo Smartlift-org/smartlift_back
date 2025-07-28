@@ -117,8 +117,34 @@ class UsersController < ApplicationController
 
     # GET /admin/coaches - Admin only: list all coaches
     def index_coaches
-      coaches = User.coach.select(:id, :first_name, :last_name, :email, :profile_picture_url, :created_at)
-      render json: coaches, status: :ok
+      begin
+        coaches = User.coach.select(:id, :first_name, :last_name, :email, :profile_picture_url, :created_at, :role)
+        
+        # Map coaches to include proper profile picture URL
+        coaches_with_profile_urls = coaches.map do |coach|
+          begin
+            profile_url = coach.profile_picture_url_with_fallback
+          rescue => e
+            Rails.logger.error "Error generating profile picture URL for coach #{coach.id}: #{e.message}"
+            profile_url = nil
+          end
+          
+          {
+            id: coach.id,
+            first_name: coach.first_name,
+            last_name: coach.last_name,
+            email: coach.email,
+            profile_picture_url: profile_url,
+            created_at: coach.created_at,
+            role: coach.role
+          }
+        end
+        
+        render json: coaches_with_profile_urls, status: :ok
+      rescue => e
+        Rails.logger.error "Error in index_coaches: #{e.message}"
+        render json: { error: "Error al obtener la lista de entrenadores" }, status: :internal_server_error
+      end
     end
 
     # GET /admin/users - Admin only: list all basic users

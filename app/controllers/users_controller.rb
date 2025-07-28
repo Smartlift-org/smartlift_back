@@ -111,12 +111,20 @@ class UsersController < ApplicationController
 
     # GET /admin/users - Admin only: list all basic users
     def index_users
-      users = User.user.select(:id, :first_name, :last_name, :email, :created_at)
+      users = User.user.select(:id, :first_name, :last_name, :email, :profile_picture_url, :created_at)
       
       # Ensure profile_picture_url is always included in response, even if null
       users_with_profile_urls = users.map do |user|
+        profile_url = nil
+        begin
+          profile_url = user.profile_picture_url_with_fallback if user.respond_to?(:profile_picture_url_with_fallback)
+        rescue => e
+          Rails.logger.warn "Error getting profile picture URL for user #{user.id}: #{e.message}"
+          profile_url = user.profile_picture_url # Fallback to basic field
+        end
+        
         user.as_json.merge(
-          'profile_picture_url' => user.profile_picture_url_with_fallback
+          'profile_picture_url' => profile_url
         )
       end
       

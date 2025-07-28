@@ -191,24 +191,106 @@ class UsersController < ApplicationController
 
     # GET /admin/coaches/:id - Admin only: get coach details with assigned users
     def show_coach
-      coach = User.coach.find(params[:id])
-      assigned_users = coach.users.select(:id, :first_name, :last_name, :email, :profile_picture_url, :created_at)
-      
-      render json: {
-        coach: coach.as_json(only: [:id, :first_name, :last_name, :email, :role, :profile_picture_url, :created_at]),
-        assigned_users: assigned_users
-      }, status: :ok
+      begin
+        coach = User.coach.find(params[:id])
+        assigned_users = coach.users.select(:id, :first_name, :last_name, :email, :profile_picture_url, :created_at)
+        
+        # Generate proper profile picture URL for coach
+        coach_profile_url = nil
+        begin
+          coach_profile_url = coach.profile_picture_url_with_fallback
+        rescue => e
+          Rails.logger.error "Error generating profile picture URL for coach #{coach.id}: #{e.message}"
+          coach_profile_url = coach.profile_picture_url
+        end
+        
+        # Generate proper profile picture URLs for assigned users
+        users_with_profile_urls = assigned_users.map do |user|
+          user_profile_url = nil
+          begin
+            user_profile_url = user.profile_picture_url_with_fallback
+          rescue => e
+            Rails.logger.error "Error generating profile picture URL for user #{user.id}: #{e.message}"
+            user_profile_url = user.profile_picture_url
+          end
+          
+          {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            profile_picture_url: user_profile_url,
+            created_at: user.created_at
+          }
+        end
+        
+        render json: {
+          coach: {
+            id: coach.id,
+            first_name: coach.first_name,
+            last_name: coach.last_name,
+            email: coach.email,
+            role: coach.role,
+            profile_picture_url: coach_profile_url,
+            created_at: coach.created_at
+          },
+          assigned_users: users_with_profile_urls
+        }, status: :ok
+      rescue => e
+        Rails.logger.error "Error in show_coach: #{e.message}"
+        render json: { error: "Error al obtener los detalles del entrenador" }, status: :internal_server_error
+      end
     end
 
     # GET /admin/users/:id - Admin only: get user details
     def show_user
-      user = User.user.find(params[:id])
-      assigned_coach = user.coaches.first
-      
-      render json: {
-        **user.as_json(only: [:id, :first_name, :last_name, :email, :role, :profile_picture_url, :created_at]),
-        assigned_coach: assigned_coach&.as_json(only: [:id, :first_name, :last_name, :email, :profile_picture_url])
-      }, status: :ok
+      begin
+        user = User.user.find(params[:id])
+        assigned_coach = user.coaches.first
+        
+        # Generate proper profile picture URL for user
+        user_profile_url = nil
+        begin
+          user_profile_url = user.profile_picture_url_with_fallback
+        rescue => e
+          Rails.logger.error "Error generating profile picture URL for user #{user.id}: #{e.message}"
+          user_profile_url = user.profile_picture_url
+        end
+        
+        # Generate proper profile picture URL for assigned coach (if any)
+        coach_data = nil
+        if assigned_coach
+          coach_profile_url = nil
+          begin
+            coach_profile_url = assigned_coach.profile_picture_url_with_fallback
+          rescue => e
+            Rails.logger.error "Error generating profile picture URL for coach #{assigned_coach.id}: #{e.message}"
+            coach_profile_url = assigned_coach.profile_picture_url
+          end
+          
+          coach_data = {
+            id: assigned_coach.id,
+            first_name: assigned_coach.first_name,
+            last_name: assigned_coach.last_name,
+            email: assigned_coach.email,
+            profile_picture_url: coach_profile_url
+          }
+        end
+        
+        render json: {
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email,
+          role: user.role,
+          profile_picture_url: user_profile_url,
+          created_at: user.created_at,
+          assigned_coach: coach_data
+        }, status: :ok
+      rescue => e
+        Rails.logger.error "Error in show_user: #{e.message}"
+        render json: { error: "Error al obtener los detalles del usuario" }, status: :internal_server_error
+      end
     end
 
     # PATCH /admin/coaches/:id - Admin only: update coach information

@@ -45,6 +45,19 @@ class ApplicationController < ActionController::Base
     render json: { error: "No Autorizado" }, status: :unauthorized unless current_user
   end
 
+  # Role-based authorization methods
+  def ensure_admin
+    render json: { error: "Acceso denegado. Se requiere rol de administrador." }, status: :forbidden unless current_user&.admin?
+  end
+
+  def ensure_coach_or_admin
+    render json: { error: "Acceso denegado. Se requiere rol de entrenador o administrador." }, status: :forbidden unless current_user&.coach? || current_user&.admin?
+  end
+
+  def ensure_user_or_coach_or_admin
+    render json: { error: "Acceso denegado. Se requiere cuenta de usuario." }, status: :forbidden unless current_user&.user? || current_user&.coach? || current_user&.admin?
+  end
+
   # Alias para compatibilidad con Devise y tests
   alias_method :authenticate_user!, :authorize_request
 end

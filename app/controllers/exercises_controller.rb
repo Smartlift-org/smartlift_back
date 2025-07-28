@@ -1,6 +1,7 @@
 class ExercisesController < ApplicationController
   # Authentication required for all operations for security
   before_action :set_exercise, only: [ :show, :update, :destroy ]
+  before_action :ensure_coach_or_admin, only: [ :create, :update, :destroy ]
 
   # GET /exercises
   def index

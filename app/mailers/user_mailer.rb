@@ -1,5 +1,5 @@
 class UserMailer < ApplicationMailer
-  default from: ENV['SMTP_FROM_EMAIL'] || 'noreply@smartlift.com'
+  default from: -> { ENV['SMTP_FROM_EMAIL'] || 'noreply@smartlift.com' }
 
   def reset_password_email(user, token)
     @user = user

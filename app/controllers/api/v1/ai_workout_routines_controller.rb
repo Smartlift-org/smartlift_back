@@ -24,11 +24,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       # Return successful response
       render json: {
         success: true,
-        data: {
-          explanation: result[:explanation],
-          routine: result[:routine],
-          generated_at: Time.current.iso8601
-        }
+        data: result[:routine].merge(generated_at: Time.current.iso8601)
       }, status: :ok
 
     rescue AiWorkoutRoutineService::InvalidExerciseIdError => e

@@ -45,6 +45,7 @@ namespace :exercises do
               
               exercise.assign_attributes(
                 level: exercise_data["level"],
+                equipment: exercise_data["equipment"],
                 instructions: exercise_data["instructions"] || [],
                 primary_muscles: exercise_data["primaryMuscles"] || [],
                 images: full_image_urls

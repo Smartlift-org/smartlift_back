@@ -57,7 +57,7 @@ class RoutineExercise < ApplicationRecord
         id: exercise.id,
         name: exercise.name,
         primary_muscles: exercise.primary_muscles,
-        image: exercise.image,
+        images: exercise.images,
         difficulty_level: exercise.difficulty_level,
       }
     )

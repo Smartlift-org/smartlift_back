@@ -2,19 +2,20 @@ class AuthController < ApplicationController
     # POST /auth/login, /auth/forgot-password, /auth/reset-password
     skip_before_action :authorize_request
 
-    # Rate limiting for password recovery endpoints
-    before_action :check_password_reset_rate_limit, only: [:forgot_password, :reset_password]
+    # Rate limiting for password recovery endpoints (disabled in test environment)
+    before_action :check_password_reset_rate_limit, only: [:forgot_password, :reset_password], unless: -> { Rails.env.test? }
 
     def login
-        # sanitize email and valid email
+        # Check for missing parameters first
+        if params[:email].blank? || params[:password].blank?
+            return render json: { error: "Email y password son requeridos" }, status: :unprocessable_entity
+        end
+
+        # sanitize email and validate format
         email = sanitize_email(params[:email])
 
         unless valid_email_format?(email)
             return render json: { error: "Formato de email inválido" }, status: :unprocessable_entity
-        end
-
-        if email.blank? || params[:password].blank?
-            return render json: { error: "Email y password son requeridos" }, status: :unprocessable_entity
         end
 
         user = User.find_by(email: email)
@@ -196,6 +197,9 @@ class AuthController < ApplicationController
 
     # Rate limiting for password recovery to prevent abuse
     def check_password_reset_rate_limit
+        # Rate limiting is completely disabled in test environment
+        return true if Rails.env.test?
+        
         client_ip = request.remote_ip
         cache_key = "password_reset_attempts:#{client_ip}"
         

@@ -26,7 +26,6 @@ class AiWorkoutRoutineService
       
       # Return the structured response
       {
-        explanation: parsed_response[:explanation],
         routine: parsed_response[:routine]
       }
       
@@ -54,22 +53,17 @@ class AiWorkoutRoutineService
     # Build the prompt according to the new specification
     prompt = <<~PROMPT
 
-      User fitness data:
-      - Age: #{@params[:age]}
+      User Profile:
+      - Age: #{@params[:age]} years
       - Gender: #{@params[:gender]}
-      - Weight: #{@params[:weight]}kg
-      - Height: #{@params[:height]}cm
-      - Experience level: #{@params[:experience_level]} (beginner, intermediate, or expert)
-      - Available equipment: #{@params[:equipment].join(', ')} (from: barbell, dumbbell, kettlebell, bodyweight, machine, cable)
-      - Preferences: #{@params[:preferences] || 'None specified'}
-      - Training frequency: #{@params[:frequency_per_week]} sessions per week
-      - Time per session: #{@params[:time_per_session]} minutes
-      - Training goal: #{@params[:goal]}
-
-      EXERCISE CATALOG (available exercises for this user):
-      #{exercise_catalog}
-
-      IMPORTANT: You MUST only use exercise IDs from the catalog above. Do not create new exercise IDs.
+      - Weight: #{@params[:weight]} kg
+      - Height: #{@params[:height]} cm
+      - Experience level: #{@params[:experience_level]}
+      - Goal: #{@params[:goal]}
+      - Weekly frequency: #{@params[:frequency_per_week]} sessions per week
+      - Duration per session: #{@params[:time_per_session]} minutes
+      - Available equipment: #{@params[:equipment].join(', ')}
+      - Preferences: #{@params[:preferences] || 'No specific preferences'}
 
     PROMPT
 
@@ -83,28 +77,89 @@ class AiWorkoutRoutineService
     # Get exercises that match the user's available equipment
     available_exercises = Exercise.where(equipment: @params[:equipment])
                                  .or(Exercise.where(equipment: 'body only'))
-                                 .limit(100) # Limit to avoid too long prompts
+                                 .limit(200) # Increased limit to provide more variety
                                  .select(:id, :name, :equipment, :category, :primary_muscles, :level)
+                                 .order(:id)
     
+    if available_exercises.count < 10
+      # If we have very few exercises, include more bodyweight exercises
+      additional_exercises = Exercise.where(equipment: 'body only')
+                                    .where.not(id: available_exercises.pluck(:id))
+                                    .limit(50)
+                                    .select(:id, :name, :equipment, :category, :primary_muscles, :level)
+      
+      available_exercises = available_exercises + additional_exercises.to_a
+    end
+    
+    # Build simple format catalog for the AI prompt
     catalog = available_exercises.map do |exercise|
-      primary_muscles = exercise.primary_muscles.is_a?(Array) ? exercise.primary_muscles.join(', ') : exercise.primary_muscles
-      "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
+      "ID: #{exercise.id}, Nombre: #{exercise.name}"
     end.join("\n")
     
     if catalog.blank?
-      # Fallback to bodyweight exercises if no equipment matches
+      # Final fallback to any bodyweight exercises
       fallback_exercises = Exercise.where(equipment: 'body only')
                                   .limit(50)
                                   .select(:id, :name, :equipment, :category, :primary_muscles, :level)
       
       catalog = fallback_exercises.map do |exercise|
-        primary_muscles = exercise.primary_muscles.is_a?(Array) ? exercise.primary_muscles.join(', ') : exercise.primary_muscles
-        "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
+        "ID: #{exercise.id}, Nombre: #{exercise.name}"
       end.join("\n")
     end
     
     Rails.logger.info "Built exercise catalog with #{available_exercises.count} exercises for equipment: #{@params[:equipment].join(', ')}"
+    Rails.logger.debug "Exercise catalog sample: #{catalog.split("\n").first(5).join(", ")}" if Rails.env.development?
     catalog
+  end
+
+  def generate_routine_templates
+    templates = []
+    
+    (2..@params[:frequency_per_week]).each do |day|
+      templates << ",
+          {
+            \"routine\": {
+              \"day\": #{day},
+              \"name\": \"Rutina de #{@params[:goal].downcase} - Día #{day}\",
+              \"description\": \"Rutina enfocada en #{@params[:goal].downcase} para nivel #{@params[:experience_level]}\",
+              \"difficulty\": \"#{@params[:experience_level]}\",
+              \"duration\": #{@params[:time_per_session]},
+              \"routine_exercises_attributes\": [
+                {
+                  \"exercise_id\": #{day + 5},
+                  \"name\": \"Ejercicio #{day}\",
+                  \"sets\": 3,
+                  \"reps\": 10,
+                  \"rest_time\": 60,
+                  \"order\": 1
+                }
+              ]
+            }
+          }"
+    end
+    
+    templates.join
+  end
+
+  def generate_weekly_distribution_example
+    case @params[:frequency_per_week]
+    when 1
+      "- Rutina 1: Entrenamiento de cuerpo completo"
+    when 2
+      "- Rutina 1: Tren superior (pecho, espalda, hombros, brazos)\n      - Rutina 2: Tren inferior (piernas, glúteos, core)"
+    when 3
+      "- Rutina 1: Pecho, tríceps y hombros\n      - Rutina 2: Espalda, bíceps y core\n      - Rutina 3: Piernas y glúteos"
+    when 4
+      "- Rutina 1: Pecho y tríceps\n      - Rutina 2: Espalda y bíceps\n      - Rutina 3: Piernas y glúteos\n      - Rutina 4: Hombros y core"
+    when 5
+      "- Rutina 1: Pecho\n      - Rutina 2: Espalda\n      - Rutina 3: Piernas\n      - Rutina 4: Hombros y brazos\n      - Rutina 5: Core y cardio"
+    when 6
+      "- Rutina 1: Pecho y tríceps\n      - Rutina 2: Espalda y bíceps\n      - Rutina 3: Piernas\n      - Rutina 4: Hombros\n      - Rutina 5: Core\n      - Rutina 6: Cardio y flexibilidad"
+    when 7
+      "- Rutina 1: Pecho\n      - Rutina 2: Espalda\n      - Rutina 3: Piernas\n      - Rutina 4: Hombros\n      - Rutina 5: Brazos\n      - Rutina 6: Core\n      - Rutina 7: Cardio y recuperación"
+    else
+      "- Rutina 1: Entrenamiento general"
+    end
   end
 
   def parse_ai_response(response)
@@ -115,17 +170,29 @@ class AiWorkoutRoutineService
     
     # Parse the JSON directly since we expect only JSON
     begin
-      routine_data = JSON.parse(json_content, symbolize_names: true)
+      parsed_response = JSON.parse(json_content, symbolize_names: true)
     rescue JSON::ParserError => e
       Rails.logger.error "JSON parsing failed. Content: #{json_content[0..500]}..."
       raise InvalidResponseError, "Invalid JSON in AI response: #{e.message}. Response must be valid JSON only."
+    end
+    
+    # Handle different response structures from AI service
+    routine_data = if parsed_response[:json].present?
+      # AI service wrapped the response in a 'json' key
+      parsed_response[:json]
+    elsif parsed_response[:routines].present?
+      # Direct response with routines array
+      parsed_response
+    else
+      # Try to find routines in the response
+      Rails.logger.error "AI response structure: #{parsed_response.keys}"
+      raise InvalidResponseError, "AI response does not contain 'routines' array or 'json' wrapper"
     end
     
     # Validate the JSON structure
     validate_routine_structure(routine_data)
     
     {
-      explanation: nil, # No explanation since we only accept JSON
       routine: routine_data
     }
   end
@@ -134,6 +201,43 @@ class AiWorkoutRoutineService
     # Check for required top-level structure
     unless routine_data.is_a?(Hash) && routine_data[:routines].is_a?(Array)
       raise InvalidResponseError, "AI response must contain 'routines' array"
+    end
+    
+
+    
+    # Validate number of routines
+    actual_routines = routine_data[:routines].length
+    expected_routines = @params[:frequency_per_week]
+    
+    if actual_routines != expected_routines
+      Rails.logger.warn "AI generated #{actual_routines} routines, expected #{expected_routines}"
+      if actual_routines < expected_routines
+        # Add missing routines with placeholder data
+        (actual_routines + 1..expected_routines).each do |day|
+          routine_data[:routines] << {
+            routine: {
+              day: day,
+              name: "Rutina de #{@params[:goal].downcase} - Día #{day}",
+              description: "Rutina enfocada en #{@params[:goal].downcase} para nivel #{@params[:experience_level]}",
+              difficulty: @params[:experience_level],
+              duration: @params[:time_per_session],
+              routine_exercises_attributes: [
+                {
+                  exercise_id: 1,
+                  name: "Ejercicio placeholder",
+                  sets: 3,
+                  reps: 10,
+                  rest_time: 60,
+                  order: 1
+                }
+              ]
+            }
+          }
+        end
+      elsif actual_routines > expected_routines
+        # Remove extra routines
+        routine_data[:routines] = routine_data[:routines].first(expected_routines)
+      end
     end
     
     # Validate each routine
@@ -169,11 +273,15 @@ class AiWorkoutRoutineService
       end
     end
     
+    Rails.logger.info "Exercise IDs from AI response: #{exercise_ids.join(', ')}"
+    
     # Check if all exercise IDs exist in the database
     existing_ids = Exercise.where(id: exercise_ids).pluck(:id)
     missing_ids = exercise_ids - existing_ids
     
     if missing_ids.any?
+      Rails.logger.error "Missing exercise IDs: #{missing_ids.join(', ')}"
+      Rails.logger.error "Available exercise IDs: #{Exercise.where(id: exercise_ids).pluck(:id).join(', ')}"
       raise InvalidExerciseIdError, "Invalid exercise IDs found in AI response: #{missing_ids.join(', ')}"
     end
     

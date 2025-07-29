@@ -58,8 +58,18 @@ class Workout < ApplicationRecord
       exercises.each(&:finalize!)
       calculate_totals
       
-      # Set the duration from frontend if provided
-      self.total_duration_seconds = duration_seconds if duration_seconds.present?
+      # Set the duration from frontend if provided, or calculate it
+      if duration_seconds.present?
+        self.total_duration_seconds = duration_seconds
+      else
+        # Calculate duration if not provided
+        self.total_duration_seconds = actual_duration.to_i
+      end
+      
+      # Ensure we have a valid duration before completing
+      if total_duration_seconds.blank? || total_duration_seconds <= 0
+        self.total_duration_seconds = 1 # Minimum valid duration
+      end
       
       update!(
         status: 'completed',

@@ -134,7 +134,8 @@ RSpec.describe WorkoutTrackable, type: :model do
       expect(workout.paused?).to be_truthy
       expect(workout.active?).to be_truthy
 
-      workout.update!(status: 'completed')
+      # Set duration before completing the workout
+      workout.update!(total_duration_seconds: 3600, status: 'completed')
       expect(workout.completed?).to be_truthy
       expect(workout.active?).to be_falsey
 

@@ -10,6 +10,7 @@ class AiApiClient
   class InvalidResponseError < ServiceError; end
 
   # AI service endpoint configuration
+
   # TheAnswer.ai service configuration - REQUIRES ENVIRONMENT VARIABLES
   AI_SERVICE_URL = ENV['AI_SERVICE_URL']
   AI_API_KEY = ENV['AI_API_KEY']

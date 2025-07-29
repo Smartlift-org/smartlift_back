@@ -10,16 +10,22 @@ class AiApiClient
   class InvalidResponseError < ServiceError; end
 
   # AI service endpoint configuration
-  # Use environment variable if set, otherwise use default based on environment
-  # For Docker: host.docker.internal allows accessing host services
-  # For local development: use localhost
-  DEFAULT_AI_HOST = ENV['AI_SERVICE_HOST'] || (Rails.env.development? ? 'host.docker.internal' : 'localhost')
-  DEFAULT_AI_PORT = ENV['AI_SERVICE_PORT'] || '4000'
-  AI_SERVICE_URL = ENV['AI_SERVICE_URL'] || "http://#{DEFAULT_AI_HOST}:#{DEFAULT_AI_PORT}/api/v1/prediction/53773a52-4eac-42b8-a5d0-4f9aa5e20529"
+  # TheAnswer.ai service configuration - REQUIRES ENVIRONMENT VARIABLES
+  AI_SERVICE_URL = ENV['AI_SERVICE_URL']
+  AI_API_KEY = ENV['AI_API_KEY']
   REQUEST_TIMEOUT = (ENV['AI_REQUEST_TIMEOUT'] || 60).to_i # 60 seconds timeout
   MAX_RETRIES = (ENV['AI_MAX_RETRIES'] || 2).to_i
 
   def initialize
+    # Validate environment variables are present
+    if AI_SERVICE_URL.blank?
+      raise ServiceError, "AI_SERVICE_URL environment variable is required but not set"
+    end
+    
+    if AI_API_KEY.blank?
+      raise ServiceError, "AI_API_KEY environment variable is required but not set"
+    end
+    
     @uri = URI(AI_SERVICE_URL)
     Rails.logger.info "AI Service URL configured as: #{AI_SERVICE_URL}"
   end
@@ -66,9 +72,22 @@ class AiApiClient
     http.read_timeout = REQUEST_TIMEOUT
     http.open_timeout = REQUEST_TIMEOUT
     
+    # Configure SSL for HTTPS URLs
+    if @uri.scheme == 'https'
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    end
+    
     # Create the request
     request = Net::HTTP::Post.new(@uri)
     request['Content-Type'] = 'application/json'
+    request['Accept'] = 'application/json'
+    request['User-Agent'] = 'Ruby/Rails SmartLift API Client'
+    
+    # Add Authorization header for TheAnswer.ai
+    if AI_API_KEY.present?
+      request['Authorization'] = "Bearer #{AI_API_KEY}"
+    end
     
     # Set the request body
     request.body = {
@@ -82,7 +101,8 @@ class AiApiClient
     response = http.request(request)
     
     Rails.logger.info "AI API response status: #{response.code}"
-    Rails.logger.debug "AI API response body: #{response.body}" if Rails.env.development?
+    Rails.logger.info "AI API response headers: #{response.to_hash}"
+    Rails.logger.error "AI API response body: #{response.body}" # Always log for debugging
     
     response
   end

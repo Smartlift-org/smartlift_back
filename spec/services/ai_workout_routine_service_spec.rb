@@ -9,7 +9,6 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
       weight: 80,
       height: 175,
       experience_level: 'intermediate',
-      equipment: ['barbell', 'dumbbell'],
       preferences: 'No cardio, solo tren superior',
       frequency_per_week: 3,
       time_per_session: 45,
@@ -84,10 +83,10 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
 
   before do
     # Create test exercises
-    FactoryBot.create(:exercise, id: 1, name: 'Bench Press', equipment: 'barbell', category: 'strength')
-    FactoryBot.create(:exercise, id: 2, name: 'Dumbbell Curl', equipment: 'dumbbell', category: 'strength')
-    FactoryBot.create(:exercise, id: 3, name: 'Squat', equipment: 'barbell', category: 'strength')
-    FactoryBot.create(:exercise, id: 4, name: 'Push-up', equipment: 'body only', category: 'strength')
+    FactoryBot.create(:exercise, id: 1, name: 'Bench Press', level: 'beginner')
+    FactoryBot.create(:exercise, id: 2, name: 'Dumbbell Curl', level: 'intermediate')
+    FactoryBot.create(:exercise, id: 3, name: 'Squat', level: 'beginner')
+    FactoryBot.create(:exercise, id: 4, name: 'Push-up', level: 'beginner')
   end
 
   describe '#generate_routine' do
@@ -204,7 +203,6 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
       expect(prompt).to include('Weight: 80kg')
       expect(prompt).to include('Height: 175cm')
       expect(prompt).to include('Experience level: intermediate')
-      expect(prompt).to include('Available equipment: barbell, dumbbell')
       expect(prompt).to include('Preferences: No cardio, solo tren superior')
       expect(prompt).to include('Training frequency: 3 days per week')
       expect(prompt).to include('Session duration: 45 minutes')

@@ -22,12 +22,11 @@ class AiWorkoutRoutineService
       parsed_response = parse_ai_response(response)
       
       # Validate exercise IDs
-      validate_exercise_ids(parsed_response[:routine])
+      validate_exercise_ids(parsed_response[:routines])
       
       # Return the structured response
       {
-        explanation: parsed_response[:explanation],
-        routine: parsed_response[:routine]
+        routines: parsed_response[:routines]
       }
       
     rescue AiApiClient::TimeoutError => e
@@ -48,8 +47,6 @@ class AiWorkoutRoutineService
   private
 
   def build_prompt
-    # Build the exercise catalog based on user's available equipment
-    exercise_catalog = build_exercise_catalog
 
     # Build the prompt according to the new specification
     prompt = <<~PROMPT
@@ -60,16 +57,10 @@ class AiWorkoutRoutineService
       - Weight: #{@params[:weight]}kg
       - Height: #{@params[:height]}cm
       - Experience level: #{@params[:experience_level]} (beginner, intermediate, or expert)
-      - Available equipment: #{@params[:equipment].join(', ')} (from: barbell, dumbbell, kettlebell, bodyweight, machine, cable)
       - Preferences: #{@params[:preferences] || 'None specified'}
       - Training frequency: #{@params[:frequency_per_week]} sessions per week
       - Time per session: #{@params[:time_per_session]} minutes
       - Training goal: #{@params[:goal]}
-
-      EXERCISE CATALOG (available exercises for this user):
-      #{exercise_catalog}
-
-      IMPORTANT: You MUST only use exercise IDs from the catalog above. Do not create new exercise IDs.
 
     PROMPT
 
@@ -80,30 +71,17 @@ class AiWorkoutRoutineService
   end
 
   def build_exercise_catalog
-    # Get exercises that match the user's available equipment
-    available_exercises = Exercise.where(equipment: @params[:equipment])
-                                 .or(Exercise.where(equipment: 'body only'))
-                                 .limit(100) # Limit to avoid too long prompts
-                                 .select(:id, :name, :equipment, :category, :primary_muscles, :level)
+    # Get available exercises (using all exercises with reasonable limit)
+    available_exercises = Exercise.limit(100) # Limit to avoid too long prompts
+                                 .select(:id, :name, :primary_muscles, :level)
     
     catalog = available_exercises.map do |exercise|
       primary_muscles = exercise.primary_muscles.is_a?(Array) ? exercise.primary_muscles.join(', ') : exercise.primary_muscles
-      "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
+      "ID: #{exercise.id}, Name: #{exercise.name}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
     end.join("\n")
     
-    if catalog.blank?
-      # Fallback to bodyweight exercises if no equipment matches
-      fallback_exercises = Exercise.where(equipment: 'body only')
-                                  .limit(50)
-                                  .select(:id, :name, :equipment, :category, :primary_muscles, :level)
-      
-      catalog = fallback_exercises.map do |exercise|
-        primary_muscles = exercise.primary_muscles.is_a?(Array) ? exercise.primary_muscles.join(', ') : exercise.primary_muscles
-        "ID: #{exercise.id}, Name: #{exercise.name}, Equipment: #{exercise.equipment}, Category: #{exercise.category}, Level: #{exercise.level}, Primary Muscles: #{primary_muscles}"
-      end.join("\n")
-    end
     
-    Rails.logger.info "Built exercise catalog with #{available_exercises.count} exercises for equipment: #{@params[:equipment].join(', ')}"
+    Rails.logger.info "Built exercise catalog with #{available_exercises.count} exercises"
     catalog
   end
 
@@ -113,20 +91,29 @@ class AiWorkoutRoutineService
     # Clean the response (remove any potential whitespace or extra characters)
     json_content = response.strip
     
-    # Parse the JSON directly since we expect only JSON
+    # Parse TheAnswer.ai response format
     begin
-      routine_data = JSON.parse(json_content, symbolize_names: true)
+      ai_response = JSON.parse(json_content, symbolize_names: true)
     rescue JSON::ParserError => e
       Rails.logger.error "JSON parsing failed. Content: #{json_content[0..500]}..."
       raise InvalidResponseError, "Invalid JSON in AI response: #{e.message}. Response must be valid JSON only."
+    end
+    
+    # Check if response has the nested 'json' field (TheAnswer.ai format) or direct routines
+    routine_data = if ai_response[:json].present?
+      ai_response[:json]  # TheAnswer.ai nested format
+    elsif ai_response[:routines].present?
+      ai_response  # Direct routines format
+    else
+      Rails.logger.error "AI response missing 'json' or 'routines' field: #{ai_response}"
+      raise InvalidResponseError, "AI response must contain 'json' or 'routines' field"
     end
     
     # Validate the JSON structure
     validate_routine_structure(routine_data)
     
     {
-      explanation: nil, # No explanation since we only accept JSON
-      routine: routine_data
+      routines: routine_data[:routines]
     }
   end
 
@@ -160,10 +147,10 @@ class AiWorkoutRoutineService
     end
   end
 
-  def validate_exercise_ids(routine_data)
+  def validate_exercise_ids(routines_array)
     # Collect all exercise IDs from the routines
     exercise_ids = []
-    routine_data[:routines].each do |routine_item|
+    routines_array.each do |routine_item|
       routine_item[:routine][:routine_exercises_attributes].each do |exercise|
         exercise_ids << exercise[:exercise_id]
       end

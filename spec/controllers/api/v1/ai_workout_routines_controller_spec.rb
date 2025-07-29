@@ -11,7 +11,6 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
       weight: 80,
       height: 175,
       experience_level: 'intermediate',
-      equipment: ['barbell', 'dumbbell'],
       preferences: 'No cardio, solo tren superior',
       frequency_per_week: 3,
       time_per_session: 45,
@@ -49,7 +48,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
 
   before do
     # Create a test exercise for validation
-    FactoryBot.create(:exercise, id: 1, name: 'Push-up', equipment: 'body only')
+    FactoryBot.create(:exercise, id: 1, name: 'Push-up', level: 'beginner')
   end
 
   describe 'POST #create' do
@@ -110,17 +109,6 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         expect(json_response['details']['gender']).to include('must be one of: male, female, other')
       end
 
-      it 'returns validation error for empty equipment' do
-        invalid_params = valid_params.merge(equipment: [])
-        
-        post :create, params: invalid_params
-
-        expect(response).to have_http_status(:bad_request)
-        
-        json_response = JSON.parse(response.body)
-        expect(json_response['success']).to be false
-        expect(json_response['details']['equipment']).to include('must include at least one valid equipment type')
-      end
 
       it 'returns validation error for invalid frequency' do
         invalid_params = valid_params.merge(frequency_per_week: 8)

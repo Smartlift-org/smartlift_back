@@ -20,29 +20,27 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
 
   let(:mock_ai_response) do
     {
-      routine: {
-        routines: [
-          {
-            routine: {
-              day: 1,
-              name: 'Rutina de ganar masa muscular - Día 1',
-              description: 'Rutina enfocada en ganar masa muscular para nivel intermediate',
-              difficulty: 'intermediate',
-              duration: 45,
-              routine_exercises_attributes: [
-                {
-                  exercise_id: 1,
-                  name: 'Flexiones',
-                  sets: 4,
-                  reps: 10,
-                  rest_time: 60,
-                  order: 1
-                }
-              ]
-            }
+      routines: [
+        {
+          routine: {
+            day: 1,
+            name: 'Rutina de ganar masa muscular - Día 1',
+            description: 'Rutina enfocada en ganar masa muscular para nivel intermediate',
+            difficulty: 'intermediate',
+            duration: 45,
+            routine_exercises_attributes: [
+              {
+                exercise_id: 1,
+                name: 'Flexiones',
+                sets: 4,
+                reps: 10,
+                rest_time: 60,
+                order: 1
+              }
+            ]
           }
-        ]
-      }
+        }
+      ]
     }
   end
 
@@ -65,7 +63,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be true
-        expect(json_response['data']['routines']).to eq(mock_ai_response[:routine][:routines])
+        expect(json_response['data']['routines']).to eq(mock_ai_response[:routines])
         expect(json_response['data']['generated_at']).to be_present
       end
     end

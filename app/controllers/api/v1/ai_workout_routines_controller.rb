@@ -24,7 +24,10 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       # Return successful response
       render json: {
         success: true,
-        data: result[:routine].merge(generated_at: Time.current.iso8601)
+        data: {
+          routines: result[:routines],
+          generated_at: Time.current.iso8601
+        }
       }, status: :ok
 
     rescue AiWorkoutRoutineService::InvalidExerciseIdError => e
@@ -65,8 +68,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
   def workout_params
     params.permit(
       :age, :gender, :weight, :height, :experience_level,
-      :preferences, :frequency_per_week, :time_per_session, :goal,
-      equipment: []
+      :preferences, :frequency_per_week, :time_per_session, :goal
     )
   end
 
@@ -113,17 +115,6 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       errors[:experience_level] = ["must be one of: beginner, intermediate, advanced"]
     end
 
-    # Equipment validation
-    equipment = params[:equipment]
-    if equipment.blank? || !equipment.is_a?(Array) || equipment.empty?
-      errors[:equipment] = ["must include at least one valid equipment type"]
-    else
-      valid_equipment = get_valid_equipment_types
-      invalid_equipment = equipment - valid_equipment
-      if invalid_equipment.any?
-        errors[:equipment] = ["invalid equipment types: #{invalid_equipment.join(', ')}"]
-      end
-    end
 
     # Frequency validation
     frequency = params[:frequency_per_week]
@@ -158,8 +149,4 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     errors
   end
 
-  def get_valid_equipment_types
-    # Get unique equipment types from the exercise database
-    @valid_equipment_types ||= Exercise.distinct.pluck(:equipment).compact.reject(&:blank?)
-  end
 end 

@@ -10,13 +10,23 @@ class AiApiClient
   class InvalidResponseError < ServiceError; end
 
   # AI service endpoint configuration
-  # TheAnswer.ai service configuration
-  AI_SERVICE_URL = ENV['AI_SERVICE_URL'] || "https://lr-staging.studio.theanswer.ai/api/v1/prediction/dbc304ad-e576-4f7e-9974-b20cab09b9e9"
-  AI_API_KEY = ENV['AI_API_KEY'] || "nC7uxcEX6etjtIoZi1tKeg9k1jroKl26g0sXnSy9FwI"
+
+  # TheAnswer.ai service configuration - REQUIRES ENVIRONMENT VARIABLES
+  AI_SERVICE_URL = ENV['AI_SERVICE_URL']
+  AI_API_KEY = ENV['AI_API_KEY']
   REQUEST_TIMEOUT = (ENV['AI_REQUEST_TIMEOUT'] || 60).to_i # 60 seconds timeout
   MAX_RETRIES = (ENV['AI_MAX_RETRIES'] || 2).to_i
 
   def initialize
+    # Validate environment variables are present
+    if AI_SERVICE_URL.blank?
+      raise ServiceError, "AI_SERVICE_URL environment variable is required but not set"
+    end
+    
+    if AI_API_KEY.blank?
+      raise ServiceError, "AI_API_KEY environment variable is required but not set"
+    end
+    
     @uri = URI(AI_SERVICE_URL)
     Rails.logger.info "AI Service URL configured as: #{AI_SERVICE_URL}"
   end

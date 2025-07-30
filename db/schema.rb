@@ -54,22 +54,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_26_184508) do
 
   create_table "exercises", force: :cascade do |t|
     t.string "name"
-    t.string "equipment"
-    t.string "category"
-    t.string "difficulty"
     t.text "instructions"
     t.string "primary_muscles", default: [], array: true
-    t.string "secondary_muscles", default: [], array: true
-    t.string "force"
-    t.string "mechanic"
     t.string "level"
     t.string "images", default: [], array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["force"], name: "index_exercises_on_force"
     t.index ["images"], name: "index_exercises_on_images", using: :gin
     t.index ["level"], name: "index_exercises_on_level"
-    t.index ["mechanic"], name: "index_exercises_on_mechanic"
   end
 
   create_table "routine_exercises", force: :cascade do |t|

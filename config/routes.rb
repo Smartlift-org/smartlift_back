@@ -107,6 +107,14 @@ Rails.application.routes.draw do
       # AI-powered workout routine generation
       resources :ai_workout_routines, only: [:create], path: 'ai/workout_routines'
       
+      # Routine Validations (Trainer only)
+      resources :routine_validations, only: [:index, :show] do
+        member do
+          post :approve
+          post :reject
+        end
+      end
+      
       # New TrainerMembers controller (solución a problemas de reconocimiento de acciones)
       resources :trainers, only: [] do
         resources :members, only: [:show], controller: 'trainer_members' do

@@ -1,10 +1,12 @@
 class Routine < ApplicationRecord
   belongs_to :user
+  belongs_to :validated_by, class_name: 'User', optional: true
   has_many :routine_exercises, dependent: :destroy
   has_many :exercises, through: :routine_exercises
 
   accepts_nested_attributes_for :routine_exercises, allow_destroy: true
 
+  # Validations
   validates :name, presence: true, uniqueness: { scope: :user_id, case_sensitive: false }
   validates :description, presence: true, length: { minimum: 10, maximum: 1000 }
   validates :difficulty, presence: true, inclusion: { in: %w[beginner intermediate advanced] }
@@ -13,6 +15,23 @@ class Routine < ApplicationRecord
     less_than_or_equal_to: 180,
     message: "must be between 1 and 180 minutes"
   }
+  validates :source_type, presence: true, inclusion: { in: %w[manual ai_generated] }
+  validates :validation_status, presence: true, inclusion: { in: %w[pending approved rejected] }
+  validates :validated_by, presence: true, if: -> { validation_status.in?(%w[approved rejected]) }
+  validates :validated_at, presence: true, if: -> { validation_status.in?(%w[approved rejected]) }
+  validate :validator_must_be_trainer, if: -> { validated_by.present? }
+
+  # Scopes
+  scope :ai_generated, -> { where(ai_generated: true) }
+  scope :manual, -> { where(ai_generated: false) }
+  scope :pending_validation, -> { where(validation_status: 'pending') }
+  scope :approved, -> { where(validation_status: 'approved') }
+  scope :rejected, -> { where(validation_status: 'rejected') }
+  scope :validated, -> { where(validation_status: %w[approved rejected]) }
+
+  # Callbacks
+  before_validation :set_ai_generated_flag
+  before_validation :set_default_validation_status
 
   # Crea una copia profunda de la rutina, incluyendo ejercicios si se especifica
   # @param include [Symbol, nil] Si es :routine_exercises, clona también los ejercicios asociados
@@ -67,5 +86,60 @@ class Routine < ApplicationRecord
 
   def formatted_updated_at
     updated_at.strftime("%Y-%m-%d %H:%M:%S")
+  end
+
+  # AI-specific methods
+  def ai_generated?
+    ai_generated == true
+  end
+
+  def pending_validation?
+    validation_status == 'pending'
+  end
+
+  def approved?
+    validation_status == 'approved'
+  end
+
+  def rejected?
+    validation_status == 'rejected'
+  end
+
+  def validate_routine!(trainer, notes = nil)
+    update!(
+      validation_status: 'approved',
+      validated_by: trainer,
+      validated_at: Time.current,
+      validation_notes: notes
+    )
+  end
+
+  def reject_routine!(trainer, notes)
+    update!(
+      validation_status: 'rejected',
+      validated_by: trainer,
+      validated_at: Time.current,
+      validation_notes: notes
+    )
+  end
+
+  private
+
+  def set_ai_generated_flag
+    self.ai_generated = (source_type == 'ai_generated')
+  end
+
+  def set_default_validation_status
+    if ai_generated? && validation_status.blank?
+      self.validation_status = 'pending'
+    elsif !ai_generated? && validation_status.blank?
+      self.validation_status = 'approved'
+    end
+  end
+
+  def validator_must_be_trainer
+    unless validated_by&.role == 'trainer'
+      errors.add(:validated_by, 'must be a trainer')
+    end
   end
 end 

@@ -37,19 +37,19 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options = { host: "localhost", port: 3002 }
-  
+
   # SMTP Configuration for development (using environment variables)
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: ENV.fetch('SMTP_ADDRESS', 'smtp.gmail.com'),
-    port: ENV.fetch('SMTP_PORT', 587).to_i,
-    domain: ENV.fetch('SMTP_DOMAIN', 'localhost'),
-    user_name: ENV.fetch('SMTP_USERNAME', 'fefo0611@gmail.com'),
-    password: ENV.fetch('SMTP_PASSWORD', ''),
-    authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain'),
-    enable_starttls_auto: ENV.fetch('SMTP_ENABLE_STARTTLS_AUTO', 'true') == 'true',
-    open_timeout: ENV.fetch('SMTP_OPEN_TIMEOUT', 5).to_i,
-    read_timeout: ENV.fetch('SMTP_READ_TIMEOUT', 5).to_i
+    address: ENV.fetch("SMTP_ADDRESS", "smtp.gmail.com"),
+    port: ENV.fetch("SMTP_PORT", 587).to_i,
+    domain: ENV.fetch("SMTP_DOMAIN", "localhost"),
+    user_name: ENV.fetch("SMTP_USERNAME", "fefo0611@gmail.com"),
+    password: ENV.fetch("SMTP_PASSWORD", ""),
+    authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain"),
+    enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true") == "true",
+    open_timeout: ENV.fetch("SMTP_OPEN_TIMEOUT", 5).to_i,
+    read_timeout: ENV.fetch("SMTP_READ_TIMEOUT", 5).to_i
   }
 
   # Print deprecation notices to the Rails logger.

@@ -40,4 +40,4 @@ RSpec.describe Routine, type: :model do
   describe 'nested attributes' do
     it { should accept_nested_attributes_for(:routine_exercises).allow_destroy(true) }
   end
-end 
+end

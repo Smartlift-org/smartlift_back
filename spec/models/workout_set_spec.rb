@@ -36,12 +36,12 @@ RSpec.describe WorkoutSet, type: :model do
     let!(:previous_workout) { create(:workout, :completed, user: user) }
     let!(:previous_exercise) { create(:workout_exercise, workout: previous_workout, exercise: workout_exercise.exercise) }
     let!(:previous_set) { create(:workout_set, :completed, exercise: previous_exercise, weight: 60, reps: 12, set_type: 'normal') }
-    
+
     # Disable PR checking for these tests
     before do
       allow_any_instance_of(WorkoutSet).to receive(:check_for_personal_records)
     end
-    
+
     let!(:set1) { create(:workout_set, exercise: workout_exercise, set_number: 1) }
     let!(:set2) { create(:workout_set, exercise: workout_exercise, set_number: 2) }
     let!(:completed_set) { create(:workout_set, :completed, exercise: workout_exercise, weight: 50, reps: 10) }
@@ -113,8 +113,6 @@ RSpec.describe WorkoutSet, type: :model do
         expect(set.completed_at).to be_present
       end
     end
-
-
   end
 
   describe 'instance methods' do
@@ -128,8 +126,8 @@ RSpec.describe WorkoutSet, type: :model do
 
       context 'for drop sets' do
         it 'calculates volume including drop set' do
-          set = create(:workout_set, :drop_set, :completed, 
-                      weight: 80, reps: 8, 
+          set = create(:workout_set, :drop_set, :completed,
+                      weight: 80, reps: 8,
                       drop_set_weight: 60, drop_set_reps: 10)
           expected_volume = (80 * 8) + (60 * 10)
           expect(set.volume).to eq(expected_volume)
@@ -158,7 +156,7 @@ RSpec.describe WorkoutSet, type: :model do
           # New PR
           new_set = create(:workout_set, exercise: workout_exercise, weight: 90, reps: 10, set_type: 'normal')
           new_set.update!(completed: true)
-          
+
           # Complete workout to trigger PR detection
           workout.complete!
 
@@ -177,7 +175,7 @@ RSpec.describe WorkoutSet, type: :model do
           # New reps PR at same weight
           new_set = create(:workout_set, exercise: workout_exercise, weight: 80, reps: 12, set_type: 'normal')
           new_set.update!(completed: true)
-          
+
           # Complete workout to trigger PR detection
           workout.complete!
 
@@ -196,7 +194,7 @@ RSpec.describe WorkoutSet, type: :model do
           # New volume PR (same weight, more reps, so it's both reps and volume, but volume should be detected)
           new_set = create(:workout_set, exercise: workout_exercise, weight: 80, reps: 11, set_type: 'normal')
           new_set.update!(completed: true) # 880 volume
-          
+
           # Complete workout to trigger PR detection
           workout.complete!
 
@@ -242,7 +240,7 @@ RSpec.describe WorkoutSet, type: :model do
       it 'marks set as completed with optional parameters' do
         set = create(:workout_set, exercise: workout_exercise, weight: 50, reps: 8)
         expect(set.complete!(actual_reps: 10, actual_weight: 55)).to be_truthy
-        
+
         set.reload
         expect(set.completed).to be_truthy
         expect(set.completed_at).to be_present
@@ -253,9 +251,9 @@ RSpec.describe WorkoutSet, type: :model do
       it 'handles drop set data' do
         set = create(:workout_set, :drop_set, exercise: workout_exercise)
         drop_set_data = { weight: 40, reps: 12 }
-        
+
         expect(set.complete!(drop_set_data: drop_set_data)).to be_truthy
-        
+
         set.reload
         expect(set.drop_set_weight).to eq(40)
         expect(set.drop_set_reps).to eq(12)
@@ -298,4 +296,4 @@ RSpec.describe WorkoutSet, type: :model do
       end
     end
   end
-end 
+end

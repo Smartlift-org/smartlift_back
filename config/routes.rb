@@ -129,6 +129,7 @@ Rails.application.routes.draw do
       resources :trainers, only: [ :show ] do
         member do
           get :members
+          get :inactive_members, path: "inactive_members"
           get :dashboard
           get :available_users
           get :list_routines, path: "routines"

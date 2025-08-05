@@ -1,9 +1,9 @@
 class Workout::SetsController < Workout::BaseController
   before_action :set_workout
   before_action :set_workout_exercise
-  before_action :set_workout_set, only: [:show, :update, :destroy, :complete, :start, :mark_as_completed]
-  before_action :ensure_workout_active, only: [:create, :update, :complete, :start]
-  before_action :ensure_set_not_completed, only: [:update, :start]
+  before_action :set_workout_set, only: [ :show, :update, :destroy, :complete, :start, :mark_as_completed ]
+  before_action :ensure_workout_active, only: [ :create, :update, :complete, :start ]
+  before_action :ensure_set_not_completed, only: [ :update, :start ]
 
   # POST /workout/exercises/:exercise_id/sets
   def create
@@ -58,11 +58,11 @@ class Workout::SetsController < Workout::BaseController
 
     # Get completion data from params (standardized with nested structure)
     completion_data = completion_set_params
-    
+
     # Map actual_* to standard names if needed (backward compatibility)
     completion_data[:weight] = completion_data[:actual_weight] if completion_data[:actual_weight].present?
     completion_data[:reps] = completion_data[:actual_reps] if completion_data[:actual_reps].present?
-    
+
     # Validate required completion data
     if completion_data[:weight].blank? || completion_data[:reps].blank?
       render json: { error: "Weight and reps are required for completion" }, status: :unprocessable_entity
@@ -117,10 +117,10 @@ class Workout::SetsController < Workout::BaseController
   def set_workout
     @workout = current_user.workouts.find(params[:workout_id]) if params[:workout_id]
     @workout ||= current_workout
-    
+
     unless @workout
       render json: { error: "No active workout found" }, status: :not_found
-      return
+      nil
     end
   end
 
@@ -135,14 +135,14 @@ class Workout::SetsController < Workout::BaseController
   def ensure_workout_active
     unless @workout.in_progress? || @workout.paused?
       render json: { error: "Cannot modify completed workout" }, status: :bad_request
-      return false
+      false
     end
   end
 
   def ensure_set_not_completed
     if @workout_set&.completed?
       render json: { error: "Cannot modify completed set" }, status: :bad_request
-      return false
+      false
     end
   end
 
@@ -169,4 +169,4 @@ class Workout::SetsController < Workout::BaseController
       params.permit(:weight, :reps, :actual_weight, :actual_reps, :rpe, :drop_set_weight, :drop_set_reps)
     end
   end
-end 
+end

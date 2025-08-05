@@ -72,9 +72,9 @@ class Rack::Attack
   private
 
   def self.extract_user_id_from_token(auth_header)
-    return nil unless auth_header&.start_with?('Bearer ')
-    
-    token = auth_header.split(' ').last
+    return nil unless auth_header&.start_with?("Bearer ")
+
+    token = auth_header.split(" ").last
     begin
       decoded = JsonWebToken.decode(token)
       decoded[:user_id] if decoded

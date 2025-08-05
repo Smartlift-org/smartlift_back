@@ -10,7 +10,7 @@ class CreateWorkoutPauses < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :workout_pauses, [:workout_id, :paused_at]
+    add_index :workout_pauses, [ :workout_id, :paused_at ]
     add_index :workout_pauses, :paused_at
   end
-end 
+end

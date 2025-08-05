@@ -144,4 +144,4 @@ RSpec.describe WorkoutTrackable, type: :model do
       expect(workout.active?).to be_falsey
     end
   end
-end 
+end

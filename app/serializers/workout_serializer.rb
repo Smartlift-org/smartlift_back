@@ -58,4 +58,4 @@ class WorkoutSerializer < ActiveModel::Serializer
   end
 
   attributes :display_name, :has_exercises?, :routine_based?, :free_style?
-end 
+end

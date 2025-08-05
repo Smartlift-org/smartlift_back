@@ -69,7 +69,7 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
 
         expect(captured_request).to be_a(Net::HTTP::Post)
         expect(captured_request['Content-Type']).to eq('application/json')
-        
+
         request_body = JSON.parse(captured_request.body)
         expect(request_body['question']).to eq(test_prompt)
       end
@@ -123,7 +123,7 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
         allow(mock_http).to receive(:request).and_raise(Errno::ECONNREFUSED)
-        
+
         # Mock sleep to speed up test
         allow_any_instance_of(Object).to receive(:sleep)
 
@@ -139,13 +139,13 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
         allow(mock_http).to receive(:request).and_raise(SocketError)
-        
+
         # Track sleep calls to verify exponential backoff
         sleep_calls = []
         allow_any_instance_of(Object).to receive(:sleep) { |_, duration| sleep_calls << duration }
 
         expect { client.generate_routine(test_prompt) }.to raise_error(AiApiClient::NetworkError)
-        expect(sleep_calls).to eq([2, 4]) # 2^1, 2^2
+        expect(sleep_calls).to eq([ 2, 4 ]) # 2^1, 2^2
       end
     end
 
@@ -270,13 +270,13 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       # Test that environment variables can override defaults
       ENV['AI_SERVICE_HOST'] = 'custom-host'
       ENV['AI_SERVICE_PORT'] = '8080'
-      
+
       # Need to reload the constant
       Object.send(:remove_const, :AiApiClient) if defined?(AiApiClient)
       load 'app/services/ai_api_client.rb'
-      
+
       expect(AiApiClient::AI_SERVICE_URL).to include('custom-host:8080')
-      
+
       # Clean up
       ENV.delete('AI_SERVICE_HOST')
       ENV.delete('AI_SERVICE_PORT')
@@ -286,7 +286,7 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
   describe 'logging' do
     it 'logs API requests in development' do
       allow(Rails.env).to receive(:development?).and_return(true)
-      
+
       mock_response = instance_double(Net::HTTPResponse)
       allow(mock_response).to receive(:code).and_return('200')
       allow(mock_response).to receive(:body).and_return(mock_response_body)
@@ -317,4 +317,4 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       expect { client.generate_routine(test_prompt) }.to raise_error(AiApiClient::TimeoutError)
     end
   end
-end 
+end

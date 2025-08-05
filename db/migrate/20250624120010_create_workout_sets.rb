@@ -20,8 +20,8 @@ class CreateWorkoutSets < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :workout_sets, [:workout_exercise_id, :set_number], unique: true
+    add_index :workout_sets, [ :workout_exercise_id, :set_number ], unique: true
     add_index :workout_sets, :completed
     add_index :workout_sets, :is_personal_record
   end
-end 
+end

@@ -16,4 +16,4 @@ FactoryBot.define do
       reps { 15 }
     end
   end
-end 
+end

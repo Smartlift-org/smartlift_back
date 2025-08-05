@@ -1,5 +1,5 @@
 class RoutinesController < ApplicationController
-  before_action :set_routine, only: [:show, :update, :destroy]
+  before_action :set_routine, only: [ :show, :update, :destroy ]
   # JWT-based authentication is already handled by ApplicationController
 
   # GET /routines
@@ -70,4 +70,4 @@ class RoutinesController < ApplicationController
       ]
     )
   end
-end 
+end

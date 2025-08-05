@@ -19,7 +19,7 @@ class SmartLiftAiExample
       weight: 75,
       height: 178,
       experience_level: 'intermediate',
-      equipment: ['barbell', 'dumbbell', 'cable'],
+      equipment: [ 'barbell', 'dumbbell', 'cable' ],
       preferences: 'Prefiero ejercicios compuestos, no me gusta el cardio',
       frequency_per_week: 4,
       time_per_session: 60,
@@ -29,12 +29,12 @@ class SmartLiftAiExample
     # Make API request
     uri = URI("#{@base_url}/api/v1/ai/workout_routines")
     http = Net::HTTP.new(uri.host, uri.port)
-    
+
     request = Net::HTTP::Post.new(uri)
     request['Content-Type'] = 'application/json'
     # Add authentication header if required
     # request['Authorization'] = 'Bearer your_jwt_token_here'
-    
+
     request.body = user_profile.to_json
 
     puts "🤖 Generating AI workout routine..."
@@ -45,7 +45,7 @@ class SmartLiftAiExample
 
     begin
       response = http.request(request)
-      
+
       case response.code.to_i
       when 200
         result = JSON.parse(response.body)
@@ -60,7 +60,7 @@ class SmartLiftAiExample
         puts "❌ Unexpected response code: #{response.code}"
         puts response.body
       end
-      
+
     rescue Errno::ECONNREFUSED
       puts "❌ Connection refused. Make sure the SmartLift API server is running on #{@base_url}"
     rescue JSON::ParserError => e
@@ -77,20 +77,20 @@ class SmartLiftAiExample
     puts "\n📝 Explanation (in Spanish):"
     puts "-" * 40
     puts result['data']['explanation']
-    
+
     puts "\n🏋️ Weekly Routine:"
     puts "-" * 40
-    
+
     result['data']['routine']['days'].each_with_index do |day_data, index|
       day = day_data['day']
       routine = day_data['routine']
-      
+
       puts "\n📅 Day #{index + 1}: #{day}"
       puts "   🎯 Routine: #{routine['name']}"
       puts "   📋 Description: #{routine['description']}"
       puts "   ⚡ Difficulty: #{routine['difficulty']}"
       puts "   ⏱️  Duration: #{routine['duration']} minutes"
-      
+
       puts "   💪 Exercises:"
       routine['routine_exercises_attributes'].each do |exercise|
         puts "      #{exercise['order']}. Exercise ID: #{exercise['exercise_id']}"
@@ -98,14 +98,14 @@ class SmartLiftAiExample
         puts "         Rest: #{exercise['rest_time']} seconds"
       end
     end
-    
+
     puts "\n⏰ Generated at: #{result['data']['generated_at']}"
   end
 
   def display_validation_error(error)
     puts "❌ Validation Error:"
     puts "Error: #{error['error']}"
-    
+
     if error['details']
       puts "\nValidation Details:"
       error['details'].each do |field, messages|
@@ -142,13 +142,13 @@ class SmartLiftAiExample
 
     uri = URI("#{@base_url}/api/v1/ai/workout_routines")
     http = Net::HTTP.new(uri.host, uri.port)
-    
+
     request = Net::HTTP::Post.new(uri)
     request['Content-Type'] = 'application/json'
     request.body = invalid_profile.to_json
 
     puts "📤 Sending invalid profile to demonstrate validation..."
-    
+
     begin
       response = http.request(request)
       if response.code.to_i == 400
@@ -167,16 +167,16 @@ end
 if __FILE__ == $0
   puts "🚀 SmartLift AI Workout Routine Generation Example"
   puts "="*60
-  
+
   example = SmartLiftAiExample.new
-  
+
   # Generate a workout routine
   example.generate_workout_routine
-  
+
   # Demonstrate validation errors
   example.demonstrate_validation_errors
-  
+
   puts "\n" + "="*60
   puts "✨ Example completed!"
   puts "💡 For more information, check the API documentation at docs/API_DOCUMENTATION.md"
-end 
+end

@@ -157,4 +157,4 @@ RSpec.describe RoutinesController, type: :controller do
       expect(response).to have_http_status(:no_content)
     end
   end
-end 
+end

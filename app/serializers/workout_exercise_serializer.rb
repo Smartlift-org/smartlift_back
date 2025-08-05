@@ -48,6 +48,6 @@ class WorkoutExerciseSerializer < ActiveModel::Serializer
     object.in_progress?
   end
 
-  attributes :completed_sets_count, :total_volume, :average_weight, 
+  attributes :completed_sets_count, :total_volume, :average_weight,
              :average_reps, :average_rpe, :completed?, :in_progress?
-end 
+end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_26_184508) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_30_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -90,8 +90,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_26_184508) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source_type", default: "manual", null: false
+    t.boolean "ai_generated", default: false, null: false
+    t.string "validation_status", default: "pending", null: false
+    t.integer "validated_by_id"
+    t.datetime "validated_at"
+    t.text "validation_notes"
+    t.json "ai_prompt_data"
+    t.index ["ai_generated"], name: "index_routines_on_ai_generated"
+    t.index ["source_type"], name: "index_routines_on_source_type"
     t.index ["user_id", "name"], name: "index_routines_on_user_id_and_name", unique: true
     t.index ["user_id"], name: "index_routines_on_user_id"
+    t.index ["validated_by_id"], name: "index_routines_on_validated_by_id"
+    t.index ["validation_status"], name: "index_routines_on_validation_status"
   end
 
   create_table "user_stats", force: :cascade do |t|
@@ -213,6 +224,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_26_184508) do
   add_foreign_key "routine_exercises", "exercises"
   add_foreign_key "routine_exercises", "routines"
   add_foreign_key "routines", "users"
+  add_foreign_key "routines", "users", column: "validated_by_id"
   add_foreign_key "user_stats", "users"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "routine_exercises"

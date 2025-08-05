@@ -45,4 +45,4 @@ FactoryBot.define do
       routine_exercise { nil }
     end
   end
-end 
+end

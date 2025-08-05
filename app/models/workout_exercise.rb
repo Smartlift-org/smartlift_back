@@ -2,19 +2,19 @@ class WorkoutExercise < ApplicationRecord
   belongs_to :workout
   belongs_to :exercise
   belongs_to :routine_exercise, optional: true
-  has_many :sets, class_name: 'WorkoutSet', foreign_key: 'workout_exercise_id', dependent: :destroy
+  has_many :sets, class_name: "WorkoutSet", foreign_key: "workout_exercise_id", dependent: :destroy
   # Alias for backwards compatibility in serializers/tests
-  has_many :workout_sets, class_name: 'WorkoutSet', foreign_key: 'workout_exercise_id', dependent: :destroy
+  has_many :workout_sets, class_name: "WorkoutSet", foreign_key: "workout_exercise_id", dependent: :destroy
 
   EXERCISE_GROUPS = {
-    'regular' => 'Single exercise',
-    'superset' => 'Two exercises performed back-to-back',
-    'circuit' => 'Multiple exercises in sequence'
+    "regular" => "Single exercise",
+    "superset" => "Two exercises performed back-to-back",
+    "circuit" => "Multiple exercises in sequence"
   }.freeze
 
   validates :order, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :group_type, presence: true, inclusion: { in: EXERCISE_GROUPS.keys }
-  validates :group_order, numericality: { only_integer: true, greater_than: 0 }, if: -> { group_type != 'regular' }
+  validates :group_order, numericality: { only_integer: true, greater_than: 0 }, if: -> { group_type != "regular" }
   validates :target_sets, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :target_reps, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validates :suggested_weight, numericality: { greater_than: 0 }, allow_nil: true
@@ -25,8 +25,8 @@ class WorkoutExercise < ApplicationRecord
 
   scope :ordered, -> { order(:order) }
   scope :by_group, -> { order(:group_type, :group_order, :order) }
-  scope :supersets, -> { where(group_type: 'superset') }
-  scope :circuits, -> { where(group_type: 'circuit') }
+  scope :supersets, -> { where(group_type: "superset") }
+  scope :circuits, -> { where(group_type: "circuit") }
 
   def completed_sets_count
     sets.completed.count
@@ -56,12 +56,12 @@ class WorkoutExercise < ApplicationRecord
 
   def completed_as_prescribed?
     return false unless completed?
-    
+
     completed_sets = sets.completed
     return false if completed_sets.count != target_sets
-    
+
     completed_sets.all? do |set|
-      set.reps == target_reps && 
+      set.reps == target_reps &&
       (suggested_weight.nil? || set.weight == suggested_weight)
     end
   end
@@ -75,40 +75,40 @@ class WorkoutExercise < ApplicationRecord
   end
 
   def regular?
-    group_type == 'regular'
+    group_type == "regular"
   end
 
   def superset?
-    group_type == 'superset'
+    group_type == "superset"
   end
 
   def circuit?
-    group_type == 'circuit'
+    group_type == "circuit"
   end
 
   # Get all exercises in the same group
   def group_exercises
-    return [self] if regular?
-    
+    return [ self ] if regular?
+
     workout.exercises
       .where(group_type: group_type, group_order: group_order)
       .ordered
   end
 
   # Record a new set for this exercise
-  def record_set(weight:, reps:, rpe: nil, set_type: 'normal', drop_set_weight: nil, drop_set_reps: nil)
+  def record_set(weight:, reps:, rpe: nil, set_type: "normal", drop_set_weight: nil, drop_set_reps: nil)
     # Validate workout is still active
     unless workout.active?
       raise ActiveRecord::RecordInvalid.new(self).tap do |error|
         error.record.errors.add(:base, "Cannot add sets to inactive workout")
       end
     end
-    
+
     sets.create!(
       weight: weight,
       reps: reps,
       rpe: rpe,
-      set_type: set_type || 'normal',
+      set_type: set_type || "normal",
       drop_set_weight: drop_set_weight,
       drop_set_reps: drop_set_reps,
       completed: true,
@@ -119,7 +119,7 @@ class WorkoutExercise < ApplicationRecord
   # Mark exercise as completed and set final status
   def finalize!
     return false unless completed?
-    
+
     update!(completed_at: Time.current)
   end
 
@@ -132,11 +132,11 @@ class WorkoutExercise < ApplicationRecord
       .joins(exercise: :workout)
       .where(
         workout_exercises: { exercise_id: exercise.id },
-        workouts: { 
+        workouts: {
           user_id: workout.user_id,
-          status: 'completed'
+          status: "completed"
         },
-        set_type: 'normal'  # Only consider normal sets for progression
+        set_type: "normal"  # Only consider normal sets for progression
       )
       .where(completed: true)
       .order(created_at: :desc)
@@ -156,14 +156,14 @@ class WorkoutExercise < ApplicationRecord
   def set_default_order
     return if order.present?
     return unless workout.present?
-    
+
     last_order = workout.exercises.maximum(:order) || 0
     self.order = last_order + 1
   end
 
   def set_default_group_order
-    return if group_type == 'regular' || group_order.present?
-    
+    return if group_type == "regular" || group_order.present?
+
     last_group_order = workout.exercises
       .where(group_type: group_type)
       .maximum(:group_order) || 0
@@ -172,17 +172,17 @@ class WorkoutExercise < ApplicationRecord
 
   def validate_superset_size
     return unless workout.present? && group_order.present?
-    
+
     existing_exercises = workout.exercises
-      .where(group_type: 'superset', group_order: group_order)
+      .where(group_type: "superset", group_order: group_order)
       .where.not(id: id) # Exclude current exercise if updating
       .count
-    
+
     # Add 1 for the current exercise being validated
     total_exercises = existing_exercises + 1
-    
+
     if total_exercises > 2
       errors.add(:group_type, "can only have 2 exercises in a superset")
     end
   end
-end 
+end

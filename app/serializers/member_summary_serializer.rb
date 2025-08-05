@@ -54,11 +54,11 @@ class MemberSummarySerializer
   def activity_data
     workouts = @user.workouts
     recent_workouts = workouts.where(created_at: 30.days.ago..)
-    
+
     {
       total_workouts: workouts.count,
       recent_workouts: recent_workouts.count,
-      completed_workouts: workouts.where(status: 'completed').count,
+      completed_workouts: workouts.where(status: "completed").count,
       this_month_workouts: workouts.where(created_at: Date.current.beginning_of_month..).count,
       last_workout_date: workouts.maximum(:created_at),
       activity_status: determine_activity_status(recent_workouts.count),
@@ -67,8 +67,8 @@ class MemberSummarySerializer
   end
 
   def stats_data
-    completed_workouts = @user.workouts.where(status: 'completed')
-    
+    completed_workouts = @user.workouts.where(status: "completed")
+
     return basic_stats if completed_workouts.empty?
 
     {
@@ -97,13 +97,13 @@ class MemberSummarySerializer
   def determine_activity_status(recent_workouts_count)
     case recent_workouts_count
     when 0
-      'inactive'
+      "inactive"
     when 1..4
-      'low'
+      "low"
     when 5..12
-      'moderate'
+      "moderate"
     else
-      'high'
+      "high"
     end
   end
 
@@ -111,34 +111,34 @@ class MemberSummarySerializer
     # Calculate workout consistency over last 8 weeks
     weeks = 8
     weeks_with_workouts = 0
-    
+
     weeks.times do |i|
       week_start = i.weeks.ago.beginning_of_week
       week_end = i.weeks.ago.end_of_week
-      
+
       if @user.workouts.where(created_at: week_start..week_end).exists?
         weeks_with_workouts += 1
       end
     end
-    
+
     ((weeks_with_workouts.to_f / weeks) * 100).round(1)
   end
 
   def calculate_total_volume
-    @user.workouts.where(status: 'completed').sum(:total_volume) || 0
+    @user.workouts.where(status: "completed").sum(:total_volume) || 0
   end
 
   def calculate_average_rating
-    ratings = @user.workouts.where(status: 'completed').where.not(workout_rating: nil).pluck(:workout_rating)
+    ratings = @user.workouts.where(status: "completed").where.not(workout_rating: nil).pluck(:workout_rating)
     return nil if ratings.empty?
-    
+
     (ratings.sum.to_f / ratings.length).round(1)
   end
 
   def calculate_average_duration
-    durations = @user.workouts.where(status: 'completed').where.not(total_duration_seconds: nil).pluck(:total_duration_seconds)
+    durations = @user.workouts.where(status: "completed").where.not(total_duration_seconds: nil).pluck(:total_duration_seconds)
     return nil if durations.empty?
-    
+
     (durations.sum / durations.length) # Returns seconds
   end
 
@@ -154,10 +154,10 @@ class MemberSummarySerializer
     # Get top 3 most performed exercises
     @user.workouts
          .joins(workout_exercises: :exercise)
-         .group('exercises.name')
-         .order(Arel.sql('COUNT(*) DESC'))
+         .group("exercises.name")
+         .order(Arel.sql("COUNT(*) DESC"))
          .limit(3)
-         .pluck('exercises.name')
+         .pluck("exercises.name")
   end
 
   def last_activity_date

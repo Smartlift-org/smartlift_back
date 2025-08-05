@@ -15,9 +15,9 @@ class Api::V1::TrainersController < ApplicationController
   def members
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     members = @trainer.users.preload(:user_stat, :workouts)
-    
+
     if params[:search].present?
       search_term = "%#{params[:search].downcase}%"
       members = members.where(
@@ -28,24 +28,24 @@ class Api::V1::TrainersController < ApplicationController
 
     if params[:status].present?
       case params[:status]
-      when 'active'
+      when "active"
         members = members.joins(:workouts)
                         .where(workouts: { created_at: 30.days.ago.. })
-                        .group('users.id')
-      when 'inactive'
+                        .group("users.id")
+      when "inactive"
         active_member_ids = User.joins(:workouts)
                                .where(workouts: { created_at: 30.days.ago.. })
-                               .group('users.id')
+                               .group("users.id")
                                .pluck(:id)
         members = members.where.not(id: active_member_ids)
       end
     end
 
     members = members.left_joins(:workouts)
-                    .group('users.id')
-                    .order('MAX(workouts.created_at) DESC NULLS LAST, users.created_at DESC')
+                    .group("users.id")
+                    .order("MAX(workouts.created_at) DESC NULLS LAST, users.created_at DESC")
     page = params[:page] || 1
-    per_page = [params[:per_page]&.to_i || 20, 100].min
+    per_page = [ params[:per_page]&.to_i || 20, 100 ].min
 
     paginated_members = members.page(page).per(per_page)
 
@@ -111,31 +111,31 @@ class Api::V1::TrainersController < ApplicationController
   def assign_member
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     begin
       member = User.find(params[:user_id])
     rescue ActiveRecord::RecordNotFound
-      return render json: { error: 'Usuario no encontrado' }, status: :not_found
+      return render json: { error: "Usuario no encontrado" }, status: :not_found
     end
-    
+
     unless member.user?
-      return render json: { error: 'Error al asignar socio', details: ['El usuario no es un socio válido'] },
+      return render json: { error: "Error al asignar socio", details: [ "El usuario no es un socio válido" ] },
                     status: :unprocessable_entity
     end
-    
+
     existing_assignment = CoachUser.find_by(coach: @trainer, user: member)
     if existing_assignment
-      return render json: { 
-        error: 'Este usuario ya está asignado a este entrenador',
+      return render json: {
+        error: "Este usuario ya está asignado a este entrenador",
         member: basic_member_info(member)
       }, status: :unprocessable_entity
     end
-    
+
     begin
       coach_user = CoachUser.create!(coach: @trainer, user: member)
-      
+
       render json: {
-        message: 'Socio asignado exitosamente',
+        message: "Socio asignado exitosamente",
         assignment: {
           id: coach_user.id,
           trainer_id: @trainer.id,
@@ -144,37 +144,37 @@ class Api::V1::TrainersController < ApplicationController
           assigned_at: coach_user.created_at
         }
       }, status: :created
-      
+
     rescue ActiveRecord::RecordInvalid => e
-      render json: { 
-        error: 'Error al asignar socio',
+      render json: {
+        error: "Error al asignar socio",
         details: e.record.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
-  
+
   def unassign_member
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     begin
       member = User.user.find(params[:user_id])
     rescue ActiveRecord::RecordNotFound
-      return render json: { error: 'Usuario no encontrado' }, status: :not_found
+      return render json: { error: "Usuario no encontrado" }, status: :not_found
     end
-    
+
     assignment = CoachUser.find_by(coach: @trainer, user: member)
     unless assignment
-      return render json: { 
-        error: 'Este usuario no está asignado a este entrenador',
+      return render json: {
+        error: "Este usuario no está asignado a este entrenador",
         member: basic_member_info(member)
       }, status: :not_found
     end
-    
+
     assignment.destroy!
-    
+
     render json: {
-      message: 'Socio desasignado exitosamente',
+      message: "Socio desasignado exitosamente",
       unassigned: {
         trainer_id: @trainer.id,
         trainer_name: "#{@trainer.first_name} #{@trainer.last_name}",
@@ -187,11 +187,11 @@ class Api::V1::TrainersController < ApplicationController
   def available_users
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     assigned_user_ids = @trainer.users.pluck(:id)
-    available_users = User.where(role: 'user')
+    available_users = User.where(role: "user")
                           .where.not(id: assigned_user_ids)
-    
+
     if params[:search].present?
       search_term = "%#{params[:search].downcase}%"
       available_users = available_users.where(
@@ -201,12 +201,12 @@ class Api::V1::TrainersController < ApplicationController
     end
 
     available_users = available_users.order(created_at: :desc)
-    
+
     page = params[:page] || 1
-    per_page = [params[:per_page]&.to_i || 20, 100].min
-    
+    per_page = [ params[:per_page]&.to_i || 20, 100 ].min
+
     paginated_users = available_users.page(page).per(per_page)
-    
+
     users_data = paginated_users.map do |user|
       {
         id: user.id,
@@ -216,7 +216,7 @@ class Api::V1::TrainersController < ApplicationController
         created_at: user.created_at
       }
     end
-    
+
     render json: {
       available_users: users_data,
       pagination: {
@@ -231,27 +231,27 @@ class Api::V1::TrainersController < ApplicationController
   def dashboard
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     # Obtener la última actualización de workouts
     last_workout_update = Workout.joins(:user)
                                 .where(users: { id: @trainer.users.select(:id) })
                                 .maximum(:updated_at) || Time.current
-    
+
     # Obtener la última actualización de asignaciones de miembros
     last_member_assignment = CoachUser.where(coach_id: @trainer.id)
                                       .maximum(:updated_at) || Time.current
-    
+
     # Usar el más reciente de los dos para la clave de caché
-    last_update = [last_workout_update, last_member_assignment].max
+    last_update = [ last_workout_update, last_member_assignment ].max
     Rails.logger.info "[TRAINER_DASHBOARD] Last updates - workout: #{last_workout_update}, member: #{last_member_assignment}"
-    
+
     cache_key = "trainer_dashboard_#{@trainer.id}_#{last_update.to_i}"
-    
+
     dashboard_data = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       Rails.logger.info "[TRAINER_DASHBOARD] Cache miss for trainer_id: #{@trainer.id}, generating dashboard data"
-      
+
       members = @trainer.users.preload(:user_stat, :workouts)
-      
+
       {
         overview: calculate_overview_stats(members),
         activity_metrics: calculate_activity_metrics(members),
@@ -262,9 +262,9 @@ class Api::V1::TrainersController < ApplicationController
         generated_at: Time.current
       }
     end
-    
+
     Rails.logger.info "[TRAINER_DASHBOARD] Serving dashboard for trainer_id: #{@trainer.id} (#{@trainer.users.count} members)"
-    
+
     render json: {
       trainer: {
         id: @trainer.id,
@@ -283,18 +283,18 @@ class Api::V1::TrainersController < ApplicationController
   def list_routines
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     @routines = @trainer.routines
-    
+
     @routines = @routines.where(difficulty: params[:difficulty]) if params[:difficulty].present?
-    
+
     @routines = @routines.order(created_at: :desc)
-    
+
     page = params[:page] || 1
-    per_page = [params[:per_page]&.to_i || 20, 100].min
-    
+    per_page = [ params[:per_page]&.to_i || 20, 100 ].min
+
     paginated_routines = @routines.page(page).per(per_page)
-    
+
     render json: {
       routines: paginated_routines,
       pagination: {
@@ -308,44 +308,44 @@ class Api::V1::TrainersController < ApplicationController
       }
     }
   end
-  
+
   def assign_routine
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     member = @trainer.users.find(params[:user_id])
     routine = Routine.find(params[:routine_id])
-    
+
     new_routine = routine.deep_clone(include: :routine_exercises)
     new_routine.user = member
     new_routine.name = params[:custom_name].presence || "#{routine.name} (Asignada por #{@trainer.first_name})"
-    
+
     if new_routine.save
       render json: new_routine, status: :created
     else
       render json: { errors: new_routine.errors.full_messages }, status: :unprocessable_entity
     end
   end
-  
+
 
   def assign_routine
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     member = User.find_by(id: params[:user_id])
     unless member && CoachUser.exists?(coach: @trainer, user: member)
-      return render json: { error: 'Usuario no encontrado o no asignado a este entrenador' }, status: :not_found
+      return render json: { error: "Usuario no encontrado o no asignado a este entrenador" }, status: :not_found
     end
-    
+
     routine = @trainer.routines.find_by(id: params[:routine_id])
     unless routine
-      return render json: { error: 'Rutina no encontrada' }, status: :not_found
+      return render json: { error: "Rutina no encontrada" }, status: :not_found
     end
-    
+
     new_routine = routine.deep_clone(include: :routine_exercises)
     new_routine.user = member
     new_routine.name = params[:custom_name].presence || "#{routine.name} (Asignada por #{@trainer.first_name})"
-    
+
     if new_routine.save
       render json: new_routine, status: :created
     else
@@ -356,37 +356,37 @@ class Api::V1::TrainersController < ApplicationController
   def update_member_routine
     authorize_trainer_access!(@trainer.id)
     return if performed?
-    
+
     begin
       member = User.find(params[:user_id])
     rescue ActiveRecord::RecordNotFound
-      return render json: { error: 'Usuario no encontrado' }, status: :not_found
+      return render json: { error: "Usuario no encontrado" }, status: :not_found
     end
-    
+
     unless CoachUser.exists?(coach: @trainer, user: member)
-      return render json: { error: 'El usuario no está asignado a este entrenador' }, 
+      return render json: { error: "El usuario no está asignado a este entrenador" },
                     status: :forbidden
     end
-    
-    
+
+
     begin
       routine = Routine.find(params[:routine_id])
     rescue ActiveRecord::RecordNotFound
-      return render json: { error: 'No se encontró la rutina especificada' }, status: :not_found
+      return render json: { error: "No se encontró la rutina especificada" }, status: :not_found
     end
-    
+
     unless routine.user_id == member.id
-      return render json: { error: 'La rutina no pertenece a este usuario' }, 
+      return render json: { error: "La rutina no pertenece a este usuario" },
                     status: :forbidden
     end
-    
+
     if routine.update(routine_params)
-      render json: { 
+      render json: {
         routine: routine.as_json(include: :routine_exercises),
-        message: 'Rutina actualizada exitosamente'
+        message: "Rutina actualizada exitosamente"
       }
     else
-      render json: { error: 'Error al actualizar la rutina', details: routine.errors.full_messages }, 
+      render json: { error: "Error al actualizar la rutina", details: routine.errors.full_messages },
                   status: :unprocessable_entity
     end
   end
@@ -396,19 +396,19 @@ class Api::V1::TrainersController < ApplicationController
   def set_trainer
     @trainer = User.coach.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Entrenador no encontrado' }, status: :not_found
+    render json: { error: "Entrenador no encontrado" }, status: :not_found
   end
 
   def ensure_trainer_role
     unless current_user.coach?
-      render json: { error: 'Acceso denegado. Solo entrenadores pueden acceder a esta funcionalidad.' }, 
+      render json: { error: "Acceso denegado. Solo entrenadores pueden acceder a esta funcionalidad." },
              status: :forbidden
     end
   end
 
   def authorize_trainer_access!(trainer_id)
     unless current_user.id == trainer_id.to_i
-      render json: { error: 'No tienes permisos para acceder a los datos de este entrenador.' },
+      render json: { error: "No tienes permisos para acceder a los datos de este entrenador." },
              status: :forbidden and return
     end
   end
@@ -429,18 +429,18 @@ class Api::V1::TrainersController < ApplicationController
                           .where(workouts: { created_at: 30.days.ago.. })
                           .distinct
                           .count
-    
+
     total_workouts = Workout.joins(:user)
                            .where(user: members)
                            .count
-    
+
     total_workouts_this_month = Workout.joins(:user)
                                       .where(user: members)
                                       .where(created_at: Date.current.beginning_of_month..)
                                       .count
-    
+
     completed_workouts = Workout.joins(:user)
-                               .where(user: members, status: 'completed')
+                               .where(user: members, status: "completed")
                                .count
 
     {
@@ -460,12 +460,12 @@ class Api::V1::TrainersController < ApplicationController
     8.times do |i|
       week_start = i.weeks.ago.beginning_of_week
       week_end = i.weeks.ago.end_of_week
-      
+
       workouts_count = Workout.joins(:user)
                              .where(user: members)
                              .where(created_at: week_start..week_end)
                              .count
-      
+
       weekly_activity << {
         week: week_start.strftime("%Y-W%U"),
         week_start: week_start,
@@ -473,7 +473,7 @@ class Api::V1::TrainersController < ApplicationController
       }
     end
 
-    avg_workouts_per_member = members.count > 0 ? 
+    avg_workouts_per_member = members.count > 0 ?
       (Workout.joins(:user).where(user: members).count.to_f / members.count).round(1) : 0
 
     {
@@ -489,13 +489,13 @@ class Api::V1::TrainersController < ApplicationController
     6.times do |i|
       month_start = i.months.ago.beginning_of_month
       month_end = i.months.ago.end_of_month
-      
+
       avg_rating = Workout.joins(:user)
                          .where(user: members)
                          .where(created_at: month_start..month_end)
                          .where.not(workout_rating: nil)
                          .average(:workout_rating)
-      
+
       monthly_ratings << {
         month: month_start.strftime("%Y-%m"),
         month_name: month_start.strftime("%B %Y"),
@@ -507,13 +507,13 @@ class Api::V1::TrainersController < ApplicationController
     6.times do |i|
       month_start = i.months.ago.beginning_of_month
       month_end = i.months.ago.end_of_month
-      
+
       pr_count = Workout.joins(:user, workout_exercises: :workout_sets)
                        .where(user: members)
                        .where(workouts: { created_at: month_start..month_end })
                        .where(workout_sets: { is_personal_record: true })
                        .count
-      
+
       pr_trend << {
         month: month_start.strftime("%Y-%m"),
         month_name: month_start.strftime("%B %Y"),
@@ -531,27 +531,27 @@ class Api::V1::TrainersController < ApplicationController
 
   def calculate_member_distribution(members)
     experience_distribution = members.joins(:user_stat)
-                                   .group('user_stats.experience_level')
+                                   .group("user_stats.experience_level")
                                    .count
     goal_distribution = members.joins(:user_stat)
-                              .group('user_stats.fitness_goal')
+                              .group("user_stats.fitness_goal")
                               .count
 
     activity_distribution = members.joins(:user_stat)
-                                  .group('user_stats.activity_level')
+                                  .group("user_stats.activity_level")
                                   .count
     age_ranges = {
-      '18-25' => 0, '26-35' => 0, '36-45' => 0, '46-55' => 0, '55+' => 0
+      "18-25" => 0, "26-35" => 0, "36-45" => 0, "46-55" => 0, "55+" => 0
     }
-    
+
     members.joins(:user_stat).where.not(user_stats: { age: nil }).find_each do |member|
       age = member.user_stat.age
       case age
-      when 18..25 then age_ranges['18-25'] += 1
-      when 26..35 then age_ranges['26-35'] += 1
-      when 36..45 then age_ranges['36-45'] += 1
-      when 46..55 then age_ranges['46-55'] += 1
-      else age_ranges['55+'] += 1
+      when 18..25 then age_ranges["18-25"] += 1
+      when 26..35 then age_ranges["26-35"] += 1
+      when 36..45 then age_ranges["36-45"] += 1
+      when 46..55 then age_ranges["46-55"] += 1
+      else age_ranges["55+"] += 1
       end
     end
 
@@ -566,7 +566,7 @@ class Api::V1::TrainersController < ApplicationController
   def get_recent_activity(members)
     recent_workouts = Workout.joins(:user)
                             .where(user: members)
-                            .order('workouts.created_at DESC')
+                            .order("workouts.created_at DESC")
                             .limit(10)
                             .includes(:user)
 
@@ -577,7 +577,7 @@ class Api::V1::TrainersController < ApplicationController
           id: workout.user.id,
           name: "#{workout.user.first_name} #{workout.user.last_name}"
         },
-        type: workout.workout_type || 'workout',
+        type: workout.workout_type || "workout",
         status: workout.status,
         duration: workout.total_duration_seconds,
         rating: workout.workout_rating,
@@ -590,16 +590,16 @@ class Api::V1::TrainersController < ApplicationController
   def get_top_performers(members)
     consistency_leaders = members.left_joins(:workouts)
                                .where(workouts: { created_at: 30.days.ago.. })
-                               .group('users.id')
-                               .order(Arel.sql('COUNT(workouts.id) DESC'))
+                               .group("users.id")
+                               .order(Arel.sql("COUNT(workouts.id) DESC"))
                                .limit(5)
                                .includes(:user_stat)
 
     pr_leaders = members.joins(workouts: { workout_exercises: :workout_sets })
                        .where(workout_sets: { is_personal_record: true })
                        .where(workouts: { created_at: 90.days.ago.. })
-                       .group('users.id')
-                       .order(Arel.sql('COUNT(workout_sets.id) DESC'))
+                       .group("users.id")
+                       .order(Arel.sql("COUNT(workout_sets.id) DESC"))
                        .limit(5)
                        .includes(:user_stat)
 
@@ -612,7 +612,7 @@ class Api::V1::TrainersController < ApplicationController
   def calculate_most_active_day(members)
     day_counts = Workout.joins(:user)
                        .where(user: members)
-                       .where('workouts.created_at >= ?', 30.days.ago)
+                       .where("workouts.created_at >= ?", 30.days.ago)
                        .group("EXTRACT(DOW FROM workouts.created_at)")
                        .count
 
@@ -620,7 +620,7 @@ class Api::V1::TrainersController < ApplicationController
 
     day_names = %w[Domingo Lunes Martes Miércoles Jueves Viernes Sábado]
     most_active_dow = day_counts.max_by { |_, count| count }.first
-    
+
     {
       day: day_names[most_active_dow.to_i],
       workout_count: day_counts[most_active_dow]
@@ -630,7 +630,7 @@ class Api::V1::TrainersController < ApplicationController
   def calculate_peak_hours(members)
     hour_counts = Workout.joins(:user)
                         .where(user: members)
-                        .where('workouts.created_at >= ?', 30.days.ago)
+                        .where("workouts.created_at >= ?", 30.days.ago)
                         .group("EXTRACT(HOUR FROM workouts.created_at)")
                         .count
 
@@ -646,16 +646,16 @@ class Api::V1::TrainersController < ApplicationController
 
   def calculate_avg_session_duration(members)
     avg_duration = Workout.joins(:user)
-                         .where(user: members, status: 'completed')
+                         .where(user: members, status: "completed")
                          .where.not(total_duration_seconds: nil)
                          .average(:total_duration_seconds)
-    
+
     avg_duration ? avg_duration.to_i : nil
   end
 
   def calculate_progress_indicators(members)
     total_volume = Workout.joins(:user)
-                         .where(user: members, status: 'completed')
+                         .where(user: members, status: "completed")
                          .sum(:total_volume)
 
     avg_workout_rating = Workout.joins(:user)
@@ -710,29 +710,29 @@ class Api::V1::TrainersController < ApplicationController
     8.times do |i|
       week_start = i.weeks.ago.beginning_of_week
       week_end = i.weeks.ago.end_of_week
-      
+
       if member.workouts.where(created_at: week_start..week_end).exists?
         weeks_with_workouts += 1
       end
     end
-    
+
     ((weeks_with_workouts.to_f / 8) * 100).round(1)
   end
 
   def routine_params
     params.require(:routine).permit(
-      :name, 
-      :description, 
+      :name,
+      :description,
       :difficulty,
       routine_exercises_attributes: [
-        :id, 
-        :name, 
-        :description, 
-        :sets, 
-        :reps, 
-        :duration_seconds, 
-        :rest_seconds, 
-        :weight, 
+        :id,
+        :name,
+        :description,
+        :sets,
+        :reps,
+        :duration_seconds,
+        :rest_seconds,
+        :weight,
         :position,
         :_destroy # Permite eliminar ejercicios existentes
       ]

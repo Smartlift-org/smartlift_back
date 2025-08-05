@@ -28,4 +28,4 @@ class WorkoutSetSerializer < ActiveModel::Serializer
   end
 
   attributes :volume, :duration
-end 
+end

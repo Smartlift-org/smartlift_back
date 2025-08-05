@@ -27,5 +27,4 @@ class Exercise < ApplicationRecord
         when "expert" then 3
         end
     end
-
 end

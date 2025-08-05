@@ -13,4 +13,4 @@ class CreateExercises < ActiveRecord::Migration[7.1]
     add_index :exercises, :level
     add_index :exercises, :images, using: :gin
   end
-end 
+end

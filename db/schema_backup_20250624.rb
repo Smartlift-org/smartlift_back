@@ -19,9 +19,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["coach_id", "user_id"], name: "index_coach_users_on_coach_id_and_user_id", unique: true
-    t.index ["coach_id"], name: "index_coach_users_on_coach_id"
-    t.index ["user_id"], name: "index_coach_users_on_user_id"
+    t.index [ "coach_id", "user_id" ], name: "index_coach_users_on_coach_id_and_user_id", unique: true
+    t.index [ "coach_id" ], name: "index_coach_users_on_coach_id"
+    t.index [ "user_id" ], name: "index_coach_users_on_user_id"
   end
 
   create_table "exercises", force: :cascade do |t|
@@ -32,8 +32,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.string "images", default: [], array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["images"], name: "index_exercises_on_images", using: :gin
-    t.index ["level"], name: "index_exercises_on_level"
+    t.index [ "images" ], name: "index_exercises_on_images", using: :gin
+    t.index [ "level" ], name: "index_exercises_on_level"
   end
 
   create_table "routine_exercises", force: :cascade do |t|
@@ -48,10 +48,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.string "group_type", default: "regular"
     t.integer "group_order"
     t.decimal "weight", precision: 8, scale: 2
-    t.index ["exercise_id"], name: "index_routine_exercises_on_exercise_id"
-    t.index ["routine_id", "exercise_id", "order"], name: "index_routine_exercises_on_routine_id_and_exercise_id_and_order", unique: true
-    t.index ["routine_id", "group_type", "group_order"], name: "idx_on_routine_id_group_type_group_order_6af3f864b1"
-    t.index ["routine_id"], name: "index_routine_exercises_on_routine_id"
+    t.index [ "exercise_id" ], name: "index_routine_exercises_on_exercise_id"
+    t.index [ "routine_id", "exercise_id", "order" ], name: "index_routine_exercises_on_routine_id_and_exercise_id_and_order", unique: true
+    t.index [ "routine_id", "group_type", "group_order" ], name: "idx_on_routine_id_group_type_group_order_6af3f864b1"
+    t.index [ "routine_id" ], name: "index_routine_exercises_on_routine_id"
   end
 
   create_table "routines", force: :cascade do |t|
@@ -62,8 +62,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["user_id", "name"], name: "index_routines_on_user_id_and_name", unique: true
-    t.index ["user_id"], name: "index_routines_on_user_id"
+    t.index [ "user_id", "name" ], name: "index_routines_on_user_id_and_name", unique: true
+    t.index [ "user_id" ], name: "index_routines_on_user_id"
   end
 
   create_table "user_stats", force: :cascade do |t|
@@ -80,7 +80,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.string "physical_limitations", limit: 100
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_user_stats_on_user_id"
+    t.index [ "user_id" ], name: "index_user_stats_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -109,14 +109,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.boolean "completed_as_prescribed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["exercise_id"], name: "index_workout_exercises_on_exercise_id"
-    t.index ["routine_exercise_id"], name: "index_workout_exercises_on_routine_exercise_id"
-    t.index ["workout_id", "exercise_id"], name: "index_workout_exercises_on_workout_id_and_exercise_id"
-    t.index ["workout_id", "group_type", "group_order"], name: "idx_on_workout_id_group_type_group_order_94bdfc90ac"
-    t.index ["workout_id", "group_type", "group_order"], name: "idx_workout_exercises_group"
-    t.index ["workout_id", "order"], name: "idx_workout_exercises_order"
-    t.index ["workout_id", "order"], name: "index_workout_exercises_on_workout_id_and_order", unique: true
-    t.index ["workout_id"], name: "index_workout_exercises_on_workout_id"
+    t.index [ "exercise_id" ], name: "index_workout_exercises_on_exercise_id"
+    t.index [ "routine_exercise_id" ], name: "index_workout_exercises_on_routine_exercise_id"
+    t.index [ "workout_id", "exercise_id" ], name: "index_workout_exercises_on_workout_id_and_exercise_id"
+    t.index [ "workout_id", "group_type", "group_order" ], name: "idx_on_workout_id_group_type_group_order_94bdfc90ac"
+    t.index [ "workout_id", "group_type", "group_order" ], name: "idx_workout_exercises_group"
+    t.index [ "workout_id", "order" ], name: "idx_workout_exercises_order"
+    t.index [ "workout_id", "order" ], name: "index_workout_exercises_on_workout_id_and_order", unique: true
+    t.index [ "workout_id" ], name: "index_workout_exercises_on_workout_id"
   end
 
   create_table "workout_pauses", force: :cascade do |t|
@@ -127,9 +127,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.integer "duration_seconds"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["paused_at"], name: "index_workout_pauses_on_paused_at"
-    t.index ["workout_id", "paused_at"], name: "index_workout_pauses_on_workout_id_and_paused_at"
-    t.index ["workout_id"], name: "index_workout_pauses_on_workout_id"
+    t.index [ "paused_at" ], name: "index_workout_pauses_on_paused_at"
+    t.index [ "workout_id", "paused_at" ], name: "index_workout_pauses_on_workout_id_and_paused_at"
+    t.index [ "workout_id" ], name: "index_workout_pauses_on_workout_id"
   end
 
   create_table "workout_sets", force: :cascade do |t|
@@ -150,15 +150,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.string "pr_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["completed"], name: "index_workout_sets_on_completed"
-    t.index ["created_at"], name: "idx_workout_sets_created_at"
-    t.index ["is_personal_record", "pr_type"], name: "idx_workout_sets_pr"
-    t.index ["is_personal_record"], name: "index_workout_sets_on_is_personal_record"
-    t.index ["set_type", "completed"], name: "idx_workout_sets_type_completed"
-    t.index ["weight", "workout_exercise_id"], name: "idx_workout_sets_weight_exercise", where: "((completed = true) AND ((set_type)::text = 'normal'::text))"
-    t.index ["workout_exercise_id", "completed"], name: "idx_workout_sets_exercise_completed"
-    t.index ["workout_exercise_id", "set_number"], name: "index_workout_sets_on_workout_exercise_id_and_set_number", unique: true
-    t.index ["workout_exercise_id"], name: "index_workout_sets_on_workout_exercise_id"
+    t.index [ "completed" ], name: "index_workout_sets_on_completed"
+    t.index [ "created_at" ], name: "idx_workout_sets_created_at"
+    t.index [ "is_personal_record", "pr_type" ], name: "idx_workout_sets_pr"
+    t.index [ "is_personal_record" ], name: "index_workout_sets_on_is_personal_record"
+    t.index [ "set_type", "completed" ], name: "idx_workout_sets_type_completed"
+    t.index [ "weight", "workout_exercise_id" ], name: "idx_workout_sets_weight_exercise", where: "((completed = true) AND ((set_type)::text = 'normal'::text))"
+    t.index [ "workout_exercise_id", "completed" ], name: "idx_workout_sets_exercise_completed"
+    t.index [ "workout_exercise_id", "set_number" ], name: "index_workout_sets_on_workout_exercise_id_and_set_number", unique: true
+    t.index [ "workout_exercise_id" ], name: "index_workout_sets_on_workout_exercise_id"
   end
 
   create_table "workouts", force: :cascade do |t|
@@ -181,13 +181,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_20_000008) do
     t.datetime "updated_at", null: false
     t.integer "workout_type", default: 0, null: false
     t.string "name"
-    t.index ["completed_at"], name: "index_workouts_on_completed_at"
-    t.index ["routine_id"], name: "index_workouts_on_routine_id"
-    t.index ["started_at"], name: "index_workouts_on_started_at"
-    t.index ["user_id", "status"], name: "index_workouts_on_user_id_and_status"
-    t.index ["user_id", "workout_type"], name: "index_workouts_on_user_id_and_workout_type"
-    t.index ["user_id"], name: "index_workouts_on_user_id"
-    t.index ["workout_type"], name: "index_workouts_on_workout_type"
+    t.index [ "completed_at" ], name: "index_workouts_on_completed_at"
+    t.index [ "routine_id" ], name: "index_workouts_on_routine_id"
+    t.index [ "started_at" ], name: "index_workouts_on_started_at"
+    t.index [ "user_id", "status" ], name: "index_workouts_on_user_id_and_status"
+    t.index [ "user_id", "workout_type" ], name: "index_workouts_on_user_id_and_workout_type"
+    t.index [ "user_id" ], name: "index_workouts_on_user_id"
+    t.index [ "workout_type" ], name: "index_workouts_on_workout_type"
   end
 
   add_foreign_key "coach_users", "users"

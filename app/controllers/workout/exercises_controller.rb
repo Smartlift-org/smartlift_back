@@ -1,7 +1,7 @@
 class Workout::ExercisesController < Workout::BaseController
   before_action :set_workout
-  before_action :set_workout_exercise, only: [:show, :update, :destroy, :record_set, :complete, :finalize]
-  before_action :ensure_workout_active, only: [:update, :record_set, :complete, :finalize]
+  before_action :set_workout_exercise, only: [ :show, :update, :destroy, :record_set, :complete, :finalize ]
+  before_action :ensure_workout_active, only: [ :update, :record_set, :complete, :finalize ]
 
   # POST /workout/exercises
   def create
@@ -47,23 +47,23 @@ class Workout::ExercisesController < Workout::BaseController
     weight = set_params[:weight].to_f
     reps = set_params[:reps].to_i
     rpe = set_params[:rpe].presence&.to_f
-    set_type = set_params[:set_type] || 'normal'
+    set_type = set_params[:set_type] || "normal"
     drop_set_weight = set_params[:drop_set_weight].presence&.to_f
     drop_set_reps = set_params[:drop_set_reps].presence&.to_i
 
     begin
       Rails.logger.debug "Recording set for exercise #{@workout_exercise.id} with weight: #{weight}, reps: #{reps}, rpe: #{rpe}, set_type: #{set_type}"
-      
+
       @workout_exercise.record_set(
-        weight: weight, 
-        reps: reps, 
+        weight: weight,
+        reps: reps,
         rpe: rpe,
         set_type: set_type,
         drop_set_weight: drop_set_weight,
         drop_set_reps: drop_set_reps
       )
       Rails.logger.debug "Set recorded successfully."
-      
+
       render json: @workout_exercise.reload, status: :created
     rescue => e
       Rails.logger.error "Error recording set: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -71,7 +71,7 @@ class Workout::ExercisesController < Workout::BaseController
     end
   end
 
-  # PUT /workout/exercises/:id/complete  
+  # PUT /workout/exercises/:id/complete
   def complete
     unless @workout_exercise.completed?
       render json: { error: "Exercise is not ready to be completed. Please complete all required sets first." }, status: :bad_request
@@ -93,10 +93,10 @@ class Workout::ExercisesController < Workout::BaseController
   def set_workout
     @workout = current_user.workouts.find(params[:workout_id]) if params[:workout_id]
     @workout ||= current_workout
-    
+
     unless @workout
       render json: { error: "No active workout found" }, status: :not_found
-      return
+      nil
     end
   end
 
@@ -107,7 +107,7 @@ class Workout::ExercisesController < Workout::BaseController
   def ensure_workout_active
     unless @workout.in_progress? || @workout.paused?
       render json: { error: "Cannot modify completed workout" }, status: :bad_request
-      return false
+      false
     end
   end
 
@@ -127,4 +127,4 @@ class Workout::ExercisesController < Workout::BaseController
   def set_params
     params.require(:set).permit(:weight, :reps, :rpe, :set_type, :drop_set_weight, :drop_set_reps)
   end
-end 
+end

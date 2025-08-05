@@ -26,11 +26,11 @@ class ApplicationController < ActionController::Base
 
   # API Key authentication for external agents (AI, integrations)
   def authenticate_api_key
-    api_key = request.headers['X-API-Key']
+    api_key = request.headers["X-API-Key"]
     valid_api_keys = Rails.application.credentials.api_keys || []
-    
+
     return true if valid_api_keys.include?(api_key)
-    
+
     render json: { error: "Invalid API Key" }, status: :unauthorized
     false
   end

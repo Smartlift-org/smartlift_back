@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "f39deff2-2639-4186-9846-7759f8822ed9",
 		"name": "SmartLift API",
-		"description": "# 🚀 SmartLift API Collection\n\nThis collection contains all the endpoints for the SmartLift API, including user management, exercises, routines, workouts, and personal records.\n\n## 🔖 **How to use this collection**\n\n1. Set up your environment variables:\n   - `base_url`: Your API base URL (default: http://127.0.0.1:3000)\n\n2. Start with the authentication flow:\n   - Register a new user\n   - Login to get your JWT token\n\n3. The token will be automatically set and used for all subsequent requests\n\n## 💪 Features\n\n- JWT Authentication\n- User Management\n- Exercise Management\n- Routine Management\n- User Stats Tracking\n- **NEW**: Workout Tracking (Routine-based & Free-style)\n- **NEW**: Personal Records Tracking\n- **NEW**: Real-time Set Recording\n- **NEW**: Workout Pauses & Resume\n\n## 📋 Response Formats\n\n### Routine Response Format\n\nWhen fetching or creating a routine, the response will include the following structure:\n\n```json\n{\n    \"id\": 187,                    // Routine ID\n    \"name\": \"Test workout\",      // Routine name\n    \"description\": \"...\",        // Routine description\n    \"difficulty\": \"intermediate\", // Difficulty level\n    \"duration\": 60,               // Duration in minutes\n    \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n    \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n    \"routine_exercises\": [        // Array of exercises in the routine\n        {\n            \"id\": 58,            // RoutineExercise ID (for CRUD operations)\n            \"routine_id\": 187,    // Reference to the routine\n            \"exercise_id\": 98,    // Reference to the exercise\n            \"sets\": 3,           // Number of sets\n            \"reps\": 12,          // Number of repetitions\n            \"rest_time\": 60,     // Rest time in seconds\n            \"order\": 1,          // Exercise order in the routine\n            \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n            \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n            \"exercise\": {        // Full exercise details\n                \"id\": 98,\n                \"name\": \"3/4 Sit-Up\",\n                \"equipment\": \"body only\",\n                \"category\": \"strength\",\n                \"level\": \"beginner\",\n                \"primary_muscles\": [\"abdominals\"],\n                \"secondary_muscles\": [],\n                \"image_urls\": [\"...\"],\n                \"difficulty_level\": 1,    // Computed property\n                \"has_equipment\": false    // Computed property\n            }\n        }\n    ]\n}\n```\n\n### Workout Response Format\n\n```json\n{\n    \"id\": 1,\n    \"routine_id\": 123,           // null for free-style workouts\n    \"workout_type\": \"routine_based\", // or \"free_style\"\n    \"name\": \"Full Body Workout\",\n    \"status\": \"in_progress\",     // \"in_progress\", \"paused\", \"completed\", \"abandoned\"\n    \"started_at\": \"2025-01-01T10:00:00Z\",\n    \"completed_at\": null,\n    \"total_duration_seconds\": 3600,\n    \"total_volume\": 2500.0,      // Total weight lifted\n    \"total_sets_completed\": 15,\n    \"total_exercises_completed\": 5,\n    \"average_rpe\": 7.5,\n    \"workout_rating\": 8,\n    \"notes\": \"Excellent session!\",\n    \"exercises\": [               // WorkoutExercises with sets\n        {\n            \"id\": 1,\n            \"exercise_id\": 98,\n            \"order\": 1,\n            \"group_type\": \"regular\", // \"regular\", \"superset\", \"circuit\"\n            \"group_order\": null,\n            \"target_sets\": 3,\n            \"target_reps\": 12,\n            \"suggested_weight\": 80.0,\n            \"notes\": \"\",\n            \"exercise\": { /* exercise details */ },\n            \"sets\": [           // Individual sets performed\n                {\n                    \"id\": 1,\n                    \"set_number\": 1,\n                    \"set_type\": \"normal\", // \"normal\", \"warmup\", \"drop\", \"failure\"\n                    \"weight\": 80.0,\n                    \"reps\": 12,\n                    \"rpe\": 7,\n                    \"completed\": true,\n                    \"completed_at\": \"2025-01-01T10:05:00Z\",\n                    \"is_personal_record\": false,\n                    \"pr_type\": null\n                }\n            ]\n        }\n    ],\n    \"pauses\": [                 // Workout pauses\n        {\n            \"id\": 1,\n            \"reason\": \"rest\",\n            \"paused_at\": \"2025-01-01T10:30:00Z\",\n            \"resumed_at\": \"2025-01-01T10:35:00Z\",\n            \"duration_seconds\": 300\n        }\n    ]\n}\n```\n\n## 📋 **Parameter Structure**\n\nAll POST/PATCH requests follow Rails Strong Parameters conventions with nested objects:\n\n```json\n// User Registration/Update\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", ... } }\n\n// Exercise Creation\n{ \"exercise\": { \"name\": \"Bench Press\", \"level\": \"intermediate\", ... } }\n\n// Routine Creation/Update\n{ \"routine\": { \"name\": \"Push Day\", \"difficulty\": \"intermediate\", ... } }\n\n// User Stats\n{ \"user_stat\": { \"height\": 180, \"weight\": 75, ... } }\n\n// Workout Actions\n{ \"workout_rating\": 8, \"notes\": \"Great workout!\" }\n{ \"pause\": { \"reason\": \"rest break\" } }\n\n// Workout Exercise Management\n{ \"workout_exercise\": { \"exercise_id\": 98, \"target_sets\": 3, ... } }\n{ \"routine_exercise\": { \"exercise_id\": 98, \"sets\": 3, ... } }\n\n// Set Recording\n{ \"set\": { \"weight\": 80, \"reps\": 12, \"rpe\": 7, ... } }\n{ \"workout_set\": { \"weight\": 85, \"reps\": 10, \"rpe\": 8 } }\n\n// Workout Pauses\n{ \"pause\": { \"reason\": \"bathroom break\" } }\n```\n\nNotes:\n- Workout types: `routine_based` (follows a predefined routine) or `free_style` (exercises added during workout)\n- The `routine_exercise.id` is used for updating/deleting specific exercises in a routine\n- The `exercise_id` is kept for reference and validation\n- Full exercise details are included to avoid additional API calls\n- Timestamps are formatted for better readability\n- Computed properties (`difficulty_level` and `has_equipment`) are included for frontend logic\n- **Login endpoint is the only exception** - parameters are sent at root level (`email`, `password`)",
+		"description": "# 🚀 SmartLift API Collection\n\nThis collection contains all the endpoints for the SmartLift API, including user management, exercises, routines, workouts, personal records, AI workout generation, trainer management, admin functions, and health monitoring.\n\n## 🔖 **How to use this collection**\n\n1. Set up your environment variables:\n   - `base_url`: Your API base URL (default: http://127.0.0.1:3000)\n\n2. Start with the authentication flow:\n   - Register a new user\n   - Login to get your JWT token\n\n3. The token will be automatically set and used for all subsequent requests\n\n## 💪 Features\n\n- **JWT Authentication** (login, token validation, password reset)\n- **User Management** (registration, profile management, profile pictures)\n- **Admin Panel** (user and coach management, assignments)\n- **Exercise Management** (CRUD operations, exercise database)\n- **Routine Management** (create, update, delete routines with exercises)\n- **User Stats Tracking** (comprehensive fitness metrics)\n- **Workout Tracking** (routine-based & free-style workouts)\n- **Personal Records Tracking** (automatic PR detection and statistics)\n- **Real-time Set Recording** (detailed workout logging)\n- **Workout Pauses & Resume** (flexible workout management)\n- **AI Workout Generation** (personalized routine creation)\n- **Trainer Dashboard** (coach management and member oversight)\n- **Routine Validation** (trainer approval system)\n- **Health Monitoring** (system health checks)\n\n## 📋 Response Formats\n\n### Routine Response Format\n\nWhen fetching or creating a routine, the response will include the following structure:\n\n```json\n{\n    \"id\": 187,                    // Routine ID\n    \"name\": \"Test workout\",      // Routine name\n    \"description\": \"...\",        // Routine description\n    \"difficulty\": \"intermediate\", // Difficulty level\n    \"duration\": 60,               // Duration in minutes\n    \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n    \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n    \"routine_exercises\": [        // Array of exercises in the routine\n        {\n            \"id\": 58,            // RoutineExercise ID (for CRUD operations)\n            \"routine_id\": 187,    // Reference to the routine\n            \"exercise_id\": 98,    // Reference to the exercise\n            \"sets\": 3,           // Number of sets\n            \"reps\": 12,          // Number of repetitions\n            \"rest_time\": 60,     // Rest time in seconds\n            \"order\": 1,          // Exercise order in the routine\n            \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n            \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n            \"exercise\": {        // Full exercise details\n                \"id\": 98,\n                \"name\": \"3/4 Sit-Up\",\n                \"equipment\": \"body only\",\n                \"category\": \"strength\",\n                \"level\": \"beginner\",\n                \"primary_muscles\": [\"abdominals\"],\n                \"secondary_muscles\": [],\n                \"image_urls\": [\"...\"],\n                \"difficulty_level\": 1,    // Computed property\n                \"has_equipment\": false    // Computed property\n            }\n        }\n    ]\n}\n```\n\n### Workout Response Format\n\n```json\n{\n    \"id\": 1,\n    \"routine_id\": 123,           // null for free-style workouts\n    \"workout_type\": \"routine_based\", // or \"free_style\"\n    \"name\": \"Full Body Workout\",\n    \"status\": \"in_progress\",     // \"in_progress\", \"paused\", \"completed\", \"abandoned\"\n    \"started_at\": \"2025-01-01T10:00:00Z\",\n    \"completed_at\": null,\n    \"total_duration_seconds\": 3600,\n    \"total_volume\": 2500.0,      // Total weight lifted\n    \"total_sets_completed\": 15,\n    \"total_exercises_completed\": 5,\n    \"average_rpe\": 7.5,\n    \"workout_rating\": 8,\n    \"notes\": \"Excellent session!\",\n    \"exercises\": [               // WorkoutExercises with sets\n        {\n            \"id\": 1,\n            \"exercise_id\": 98,\n            \"order\": 1,\n            \"group_type\": \"regular\", // \"regular\", \"superset\", \"circuit\"\n            \"group_order\": null,\n            \"target_sets\": 3,\n            \"target_reps\": 12,\n            \"suggested_weight\": 80.0,\n            \"notes\": \"\",\n            \"exercise\": { /* exercise details */ },\n            \"sets\": [           // Individual sets performed\n                {\n                    \"id\": 1,\n                    \"set_number\": 1,\n                    \"set_type\": \"normal\", // \"normal\", \"warmup\", \"drop\", \"failure\"\n                    \"weight\": 80.0,\n                    \"reps\": 12,\n                    \"rpe\": 7,\n                    \"completed\": true,\n                    \"completed_at\": \"2025-01-01T10:05:00Z\",\n                    \"is_personal_record\": false,\n                    \"pr_type\": null\n                }\n            ]\n        }\n    ],\n    \"pauses\": [                 // Workout pauses\n        {\n            \"id\": 1,\n            \"reason\": \"rest\",\n            \"paused_at\": \"2025-01-01T10:30:00Z\",\n            \"resumed_at\": \"2025-01-01T10:35:00Z\",\n            \"duration_seconds\": 300\n        }\n    ]\n}\n```\n\n## 📋 **Parameter Structure**\n\nAll POST/PATCH requests follow Rails Strong Parameters conventions with nested objects:\n\n```json\n// User Registration/Update\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", ... } }\n\n// Exercise Creation\n{ \"exercise\": { \"name\": \"Bench Press\", \"level\": \"intermediate\", ... } }\n\n// Routine Creation/Update\n{ \"routine\": { \"name\": \"Push Day\", \"difficulty\": \"intermediate\", ... } }\n\n// User Stats\n{ \"user_stat\": { \"height\": 180, \"weight\": 75, ... } }\n\n// Workout Actions\n{ \"workout_rating\": 8, \"notes\": \"Great workout!\" }\n{ \"pause\": { \"reason\": \"rest break\" } }\n\n// Workout Exercise Management\n{ \"workout_exercise\": { \"exercise_id\": 98, \"target_sets\": 3, ... } }\n{ \"routine_exercise\": { \"exercise_id\": 98, \"sets\": 3, ... } }\n\n// Set Recording\n{ \"set\": { \"weight\": 80, \"reps\": 12, \"rpe\": 7, ... } }\n{ \"workout_set\": { \"weight\": 85, \"reps\": 10, \"rpe\": 8 } }\n\n// Workout Pauses\n{ \"pause\": { \"reason\": \"bathroom break\" } }\n\n// AI Workout Generation\n{ \"user_request\": \"Create a full body workout\", \"preferences\": { \"duration_minutes\": 45, \"difficulty\": \"beginner\" } }\n\n// Trainer Member Assignment\n{ \"user_id\": 123 }\n\n// Admin User Creation\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", \"email\": \"john@example.com\", \"role\": \"user\" } }\n\n// Password Reset\n{ \"token\": \"reset_token\", \"password\": \"newpassword\", \"password_confirmation\": \"newpassword\" }\n```\n\n## 🔐 **Authentication & Authorization**\n\n### User Roles\n- **user**: Regular users who can create workouts and track progress\n- **coach**: Trainers who can manage members and validate routines\n- **admin**: Administrators with full system access\n\n### Protected Endpoints\nMost endpoints require JWT authentication via the `Authorization` header with format: `Bearer <token>`\n\n### Role-Based Access\n- Admin endpoints (`/admin/*`) require admin role\n- Trainer endpoints (`/api/v1/trainers/*`) require coach role\n- User data is scoped to the authenticated user unless admin/coach access is granted\n\nNotes:\n- Workout types: `routine_based` (follows a predefined routine) or `free_style` (exercises added during workout)\n- The `routine_exercise.id` is used for updating/deleting specific exercises in a routine\n- The `exercise_id` is kept for reference and validation\n- Full exercise details are included to avoid additional API calls\n- Timestamps are formatted for better readability\n- Computed properties (`difficulty_level` and `has_equipment`) are included for frontend logic\n- **Login endpoint is the only exception** - parameters are sent at root level (`email`, `password`)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "27249468"
 	},
@@ -1520,6 +1520,752 @@
 							}
 						],
 						"url": "{{base_url}}/workout/pauses"
+					}
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "validate token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validate token\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('user');",
+									"    pm.expect(response.user).to.have.property('id');",
+									"    pm.expect(response.user).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/auth/validate-token"
+					}
+				},
+				{
+					"name": "forgot password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Forgot password\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"    pm.expect(response).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"email@email.com\"\n}"
+						},
+						"url": "{{base_url}}/auth/forgot-password"
+					}
+				},
+				{
+					"name": "reset password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Reset password\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"    pm.expect(response).to.have.property('user');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"your_reset_token_here\",\n  \"password\": \"newpassword123\",\n  \"password_confirmation\": \"newpassword123\"\n}"
+						},
+						"url": "{{base_url}}/auth/reset-password"
+					}
+				}
+			]
+		},
+		{
+			"name": "profile_pictures",
+			"item": [
+				{
+					"name": "upload profile picture",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Upload profile picture\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"    pm.expect(response).to.have.property('user');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "profile_picture",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": "{{base_url}}/users/profile-picture"
+					}
+				},
+				{
+					"name": "get profile picture",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get profile picture\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    // Response should be image binary data",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/users/1/profile-picture"
+					}
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "get coaches list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get coaches list\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/admin/coaches"
+					}
+				},
+				{
+					"name": "get users list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get users list\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/admin/users"
+					}
+				},
+				{
+					"name": "assign users to coach",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Assign users to coach\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_ids\": [1, 2, 3]\n}"
+						},
+						"url": "{{base_url}}/admin/coaches/1/assign-users"
+					}
+				},
+				{
+					"name": "create user by admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create user by admin\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user\": {\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\",\n    \"role\": \"user\"\n  }\n}"
+						},
+						"url": "{{base_url}}/admin/users"
+					}
+				}
+			]
+		},
+		{
+			"name": "user_stats_complete",
+			"item": [
+				{
+					"name": "get complete user stats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get complete user stats\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('user_stats');",
+									"    pm.expect(response).to.have.property('workout_history');",
+									"    pm.expect(response).to.have.property('personal_records');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": "{{base_url}}/user_stats/complete"
+					}
+				}
+			]
+		},
+		{
+			"name": "api_v1",
+			"item": [
+				{
+					"name": "ai_workout_routines",
+					"item": [
+						{
+							"name": "generate ai workout routine",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Generate AI workout routine\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('routine');",
+											"    pm.expect(response.routine).to.have.property('id');",
+											"    pm.expect(response.routine).to.have.property('name');",
+											"    pm.expect(response.routine).to.have.property('routine_exercises');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"user_request\": \"Create a full body workout for a beginner with dumbbells\",\n  \"preferences\": {\n    \"duration_minutes\": 45,\n    \"difficulty\": \"beginner\",\n    \"equipment\": [\"dumbbells\"],\n    \"muscle_groups\": [\"chest\", \"back\", \"legs\"]\n  }\n}"
+								},
+								"url": "{{base_url}}/api/v1/ai/workout_routines"
+							}
+						}
+					]
+				},
+				{
+					"name": "trainers",
+					"item": [
+						{
+							"name": "get trainer info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get trainer info\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('name');",
+											"    pm.expect(response).to.have.property('email');",
+											"    pm.expect(response).to.have.property('members_count');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": "{{base_url}}/api/v1/trainers/1"
+							}
+						},
+						{
+							"name": "get trainer members",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get trainer members\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('members');",
+											"    pm.expect(response).to.have.property('pagination');",
+											"    pm.expect(response.members).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/trainers/1/members?search=Juan&status=active&page=1&per_page=10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "trainers", "1", "members"],
+									"query": [
+										{
+											"key": "search",
+											"value": "Juan"
+										},
+										{
+											"key": "status",
+											"value": "active"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "per_page",
+											"value": "10"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "get trainer dashboard",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get trainer dashboard\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('trainer');",
+											"    pm.expect(response).to.have.property('dashboard');",
+											"    pm.expect(response.dashboard).to.have.property('overview');",
+											"    pm.expect(response.dashboard).to.have.property('activity_metrics');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": "{{base_url}}/api/v1/trainers/1/dashboard"
+							}
+						},
+						{
+							"name": "assign member to trainer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Assign member to trainer\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"    pm.expect(response).to.have.property('assignment');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"user_id\": 2\n}"
+								},
+								"url": "{{base_url}}/api/v1/trainers/1/members"
+							}
+						},
+						{
+							"name": "unassign member from trainer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Unassign member from trainer\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"    pm.expect(response).to.have.property('unassigned');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": "{{base_url}}/api/v1/trainers/1/members/2"
+							}
+						},
+						{
+							"name": "get member routines",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get member routines\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": "{{base_url}}/api/v1/trainers/1/members/2/routines"
+							}
+						}
+					]
+				},
+				{
+					"name": "routine_validations",
+					"item": [
+						{
+							"name": "get pending validations",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get pending validations\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": "{{base_url}}/api/v1/routine_validations"
+							}
+						},
+						{
+							"name": "approve routine",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Approve routine\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									}
+								],
+								"url": "{{base_url}}/api/v1/routine_validations/1/approve"
+							}
+						},
+						{
+							"name": "reject routine",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Reject routine\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"reason\": \"Routine does not meet safety standards\"\n}"
+								},
+								"url": "{{base_url}}/api/v1/routine_validations/1/reject"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "health_checks",
+			"item": [
+				{
+					"name": "health check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Health check\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/health"
+					}
+				},
+				{
+					"name": "rails health check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Rails health check\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/up"
 					}
 				}
 			]

@@ -1,12 +1,12 @@
 class Workout < ApplicationRecord
   include WorkoutTrackable
-  
+
   attr_accessor :skip_active_workout_validation
-  
+
   belongs_to :user
   belongs_to :routine, optional: true
-  has_many :exercises, class_name: 'WorkoutExercise', dependent: :destroy
-  has_many :workout_exercises, class_name: 'WorkoutExercise', dependent: :destroy
+  has_many :exercises, class_name: "WorkoutExercise", dependent: :destroy
+  has_many :workout_exercises, class_name: "WorkoutExercise", dependent: :destroy
   has_many :performed_exercises, through: :exercises, source: :exercise
 
   enum workout_type: { routine_based: 0, free_style: 1 }
@@ -31,9 +31,9 @@ class Workout < ApplicationRecord
   scope :this_month, -> { where(created_at: Time.current.beginning_of_month..Time.current.end_of_month) }
   scope :with_routine, -> { routine_based.joins(:routine) }
   scope :free_workouts, -> { free_style }
-  scope :active, -> { where(status: ['in_progress', 'paused']) }
-  scope :completed, -> { where(status: 'completed') }
-  
+  scope :active, -> { where(status: [ "in_progress", "paused" ]) }
+  scope :completed, -> { where(status: "completed") }
+
   # Rating-based scopes for analytics
   scope :rated, -> { where.not(workout_rating: nil) }
   scope :highly_rated, -> { where(workout_rating: 7..10) }
@@ -42,23 +42,23 @@ class Workout < ApplicationRecord
 
   def pause!
     return false unless active? && !paused?
-    update!(status: 'paused')
+    update!(status: "paused")
   end
 
   def resume!
     return false unless paused?
-    update!(status: 'in_progress')
+    update!(status: "in_progress")
   end
 
   def complete!(duration_seconds = nil)
     return false unless active?
-    
+
     transaction do
       resume! if paused?
-      
+
       exercises.each(&:finalize!)
       calculate_totals
-      
+
       # Set the duration from frontend if provided, or calculate it
       if duration_seconds.present?
         self.total_duration_seconds = duration_seconds
@@ -66,14 +66,14 @@ class Workout < ApplicationRecord
         # Calculate duration if not provided
         self.total_duration_seconds = actual_duration.to_i
       end
-      
+
       # Ensure we have a valid duration before completing
       if total_duration_seconds.blank? || total_duration_seconds <= 0
         self.total_duration_seconds = 1 # Minimum valid duration
       end
-      
+
       update!(
-        status: 'completed',
+        status: "completed",
         completed_at: Time.current
       )
     end
@@ -91,20 +91,20 @@ class Workout < ApplicationRecord
 
   def abandon!
     return false if completed?
-    update!(status: 'abandoned', completed_at: Time.current)
+    update!(status: "abandoned", completed_at: Time.current)
   end
 
 
   def actual_duration
     # If we have the duration from frontend, use that (more accurate)
     return total_duration_seconds if total_duration_seconds.present?
-    
+
     # Fallback to calculated duration (for backwards compatibility)
     return 0 unless started_at
     return 0 if started_at > Time.current
-    
+
     end_time = completed_at || Time.current
-    [end_time - started_at, 0].max
+    [ end_time - started_at, 0 ].max
   end
 
   def display_name
@@ -123,19 +123,19 @@ class Workout < ApplicationRecord
 
   # Workout rating interpretation helpers
   def rating_description
-    return 'Not rated' unless workout_rating
+    return "Not rated" unless workout_rating
 
     case workout_rating
     when 1..3
-      'Poor workout'
+      "Poor workout"
     when 4..6
-      'Average workout'
+      "Average workout"
     when 7..8
-      'Good workout'
+      "Good workout"
     when 9..10
-      'Excellent workout'
+      "Excellent workout"
     else
-      'Invalid rating'
+      "Invalid rating"
     end
   end
 
@@ -151,22 +151,22 @@ class Workout < ApplicationRecord
 
   def validate_one_active_workout_per_user
     return unless user.present?
-    
+
     if user.workouts.active.exists?
-      errors.add(:base, 'You already have an active workout')
+      errors.add(:base, "You already have an active workout")
     end
   end
 
   def set_default_status
-    self.status ||= 'in_progress'
+    self.status ||= "in_progress"
     self.started_at ||= Time.current
   end
 
   def set_default_workout_type
     if routine_id.present?
-      self.workout_type ||= 'routine_based'
+      self.workout_type ||= "routine_based"
     else
-      self.workout_type ||= 'free_style'
+      self.workout_type ||= "free_style"
     end
   end
 
@@ -177,7 +177,7 @@ class Workout < ApplicationRecord
         exercise: routine_exercise.exercise,
         routine_exercise: routine_exercise,
         order: routine_exercise.order,
-        group_type: routine_exercise.group_type || 'regular',
+        group_type: routine_exercise.group_type || "regular",
         group_order: routine_exercise.group_order,
         target_sets: routine_exercise.sets,
         target_reps: routine_exercise.reps,
@@ -190,9 +190,9 @@ class Workout < ApplicationRecord
     self.total_volume = exercises.sum(&:total_volume)
     self.total_sets_completed = exercises.sum(&:completed_sets_count)
     self.total_exercises_completed = exercises.count(&:completed?)
-    self.average_rpe = exercises.map(&:average_rpe).compact.sum / [exercises.count, 1].max
+    self.average_rpe = exercises.map(&:average_rpe).compact.sum / [ exercises.count, 1 ].max
   end
-  
+
   def check_personal_records!
     # Check PRs for all completed normal sets in this workout
     # Preload associations to avoid N+1 queries
@@ -202,7 +202,7 @@ class Workout < ApplicationRecord
       end
     end
   end
-
+  
   def update_user_activity
     user.touch(:last_activity_at)
   end

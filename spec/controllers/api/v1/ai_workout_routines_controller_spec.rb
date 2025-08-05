@@ -60,7 +60,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         post :create, params: valid_params
 
         expect(response).to have_http_status(:ok)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be true
         expect(json_response['data']['routines']).to eq(mock_ai_response[:routines])
@@ -71,11 +71,11 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
     context 'with invalid parameters' do
       it 'returns validation error for missing age' do
         invalid_params = valid_params.except(:age)
-        
+
         post :create, params: invalid_params
 
         expect(response).to have_http_status(:bad_request)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('Validation failed')
@@ -84,11 +84,11 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
 
       it 'returns validation error for invalid age range' do
         invalid_params = valid_params.merge(age: 12)
-        
+
         post :create, params: invalid_params
 
         expect(response).to have_http_status(:bad_request)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['details']['age']).to include('must be between 13 and 100')
@@ -96,11 +96,11 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
 
       it 'returns validation error for invalid gender' do
         invalid_params = valid_params.merge(gender: 'invalid')
-        
+
         post :create, params: invalid_params
 
         expect(response).to have_http_status(:bad_request)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['details']['gender']).to include('must be one of: male, female, other')
@@ -109,11 +109,11 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
 
       it 'returns validation error for invalid frequency' do
         invalid_params = valid_params.merge(frequency_per_week: 8)
-        
+
         post :create, params: invalid_params
 
         expect(response).to have_http_status(:bad_request)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['details']['frequency_per_week']).to include('must be between 1 and 7 days')
@@ -130,7 +130,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         post :create, params: valid_params
 
         expect(response).to have_http_status(:service_unavailable)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('AI service temporarily unavailable')
@@ -145,7 +145,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         post :create, params: valid_params
 
         expect(response).to have_http_status(:unprocessable_entity)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('AI service returned invalid response')
@@ -160,7 +160,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         post :create, params: valid_params
 
         expect(response).to have_http_status(:unprocessable_entity)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('Invalid exercise IDs in AI response')
@@ -175,7 +175,7 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
         post :create, params: valid_params
 
         expect(response).to have_http_status(:internal_server_error)
-        
+
         json_response = JSON.parse(response.body)
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('Internal server error')
@@ -186,33 +186,33 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
   describe 'parameter validation' do
     it 'validates weight range' do
       invalid_params = valid_params.merge(weight: 0)
-      
+
       post :create, params: invalid_params
 
       expect(response).to have_http_status(:bad_request)
-      
+
       json_response = JSON.parse(response.body)
       expect(json_response['details']['weight']).to include('must be between 1 and 300 kg')
     end
 
     it 'validates height range' do
       invalid_params = valid_params.merge(height: 50)
-      
+
       post :create, params: invalid_params
 
       expect(response).to have_http_status(:bad_request)
-      
+
       json_response = JSON.parse(response.body)
       expect(json_response['details']['height']).to include('must be between 100 and 250 cm')
     end
 
     it 'validates session time range' do
       invalid_params = valid_params.merge(time_per_session: 10)
-      
+
       post :create, params: invalid_params
 
       expect(response).to have_http_status(:bad_request)
-      
+
       json_response = JSON.parse(response.body)
       expect(json_response['details']['time_per_session']).to include('must be between 15 and 180 minutes')
     end
@@ -220,13 +220,13 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller, skip: tr
     it 'validates preferences length' do
       long_preferences = 'a' * 501
       invalid_params = valid_params.merge(preferences: long_preferences)
-      
+
       post :create, params: invalid_params
 
       expect(response).to have_http_status(:bad_request)
-      
+
       json_response = JSON.parse(response.body)
       expect(json_response['details']['preferences']).to include('must be less than 500 characters')
     end
   end
-end 
+end

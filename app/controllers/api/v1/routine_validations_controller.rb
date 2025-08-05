@@ -1,7 +1,7 @@
 class Api::V1::RoutineValidationsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_trainer
-  before_action :find_routine, only: [:show, :approve, :reject]
+  before_action :find_routine, only: [ :show, :approve, :reject ]
 
   # GET /api/v1/routine_validations
   # Lista rutinas pendientes de validación de los usuarios asignados al entrenador
@@ -9,12 +9,12 @@ class Api::V1::RoutineValidationsController < ApplicationController
     begin
       # Obtener IDs de usuarios asignados al entrenador actual
       assigned_user_ids = @current_user.users.pluck(:id)
-      
+
       # Filtrar rutinas solo de usuarios asignados
       pending_routines = Routine.ai_generated
                                 .pending_validation
                                 .where(user_id: assigned_user_ids)
-                                .includes(:user, :routine_exercises => :exercise)
+                                .includes(:user, routine_exercises: :exercise)
                                 .order(created_at: :desc)
 
       render json: {
@@ -182,23 +182,23 @@ class Api::V1::RoutineValidationsController < ApplicationController
   def find_routine
     # Obtener IDs de usuarios asignados al entrenador actual
     assigned_user_ids = @current_user.users.pluck(:id)
-    
+
     # Buscar rutina que sea IA y pertenezca a un usuario asignado
     @routine = Routine.ai_generated
                       .where(user_id: assigned_user_ids)
                       .find_by(id: params[:id])
-    
+
     unless @routine
       render json: {
         success: false,
         error: "Rutina no encontrada, no es una rutina generada por IA, o no pertenece a uno de tus usuarios asignados"
       }, status: :not_found
-      return
+      nil
     end
   end
 
   def ensure_trainer
-    unless current_user&.role == 'trainer'
+    unless current_user&.role == "trainer"
       render json: {
         success: false,
         error: "Acceso denegado. Solo los entrenadores pueden validar rutinas."

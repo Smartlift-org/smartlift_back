@@ -39,4 +39,4 @@ class RoutineExercisesController < ApplicationController
       :order
     )
   end
-end 
+end

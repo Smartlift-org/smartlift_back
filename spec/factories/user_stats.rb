@@ -12,4 +12,4 @@ FactoryBot.define do
     activity_level { 'moderate' }
     physical_limitations { 'none' }
   end
-end 
+end

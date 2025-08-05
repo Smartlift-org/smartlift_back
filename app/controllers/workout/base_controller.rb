@@ -16,4 +16,4 @@ class Workout::BaseController < ApplicationController
   def current_workout_exercise
     @current_workout_exercise ||= current_workout.exercises.find(params[:workout_exercise_id])
   end
-end 
+end

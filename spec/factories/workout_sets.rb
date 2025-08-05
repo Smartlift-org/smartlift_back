@@ -44,7 +44,7 @@ FactoryBot.define do
 
     # Personal records traits removed - functionality simplified
     # Use completed trait for basic completed sets
-    
+
     trait :heavy_weight do
       weight { 100.0 }
       completed { true }
@@ -93,4 +93,4 @@ FactoryBot.define do
       completed_at { Time.current }
     end
   end
-end 
+end

@@ -9,8 +9,8 @@ RSpec.describe UserMailer, type: :mailer do
 
     it 'renders the headers' do
       expect(mail.subject).to eq('SmartLift - Restablecer tu contraseña')
-      expect(mail.to).to eq([user.email])
-      expect(mail.from).to eq([ENV.fetch('SMTP_FROM_EMAIL', 'noreply@smartlift.com')])
+      expect(mail.to).to eq([ user.email ])
+      expect(mail.from).to eq([ ENV.fetch('SMTP_FROM_EMAIL', 'noreply@smartlift.com') ])
     end
 
     it 'renders the body with user information' do
@@ -44,8 +44,8 @@ RSpec.describe UserMailer, type: :mailer do
 
     it 'renders the headers' do
       expect(mail.subject).to eq('SmartLift - Tu contraseña ha sido cambiada')
-      expect(mail.to).to eq([user.email])
-      expect(mail.from).to eq([ENV.fetch('SMTP_FROM_EMAIL', 'noreply@smartlift.com')])
+      expect(mail.to).to eq([ user.email ])
+      expect(mail.from).to eq([ ENV.fetch('SMTP_FROM_EMAIL', 'noreply@smartlift.com') ])
     end
 
     it 'renders the body with user information' do
@@ -83,7 +83,7 @@ RSpec.describe UserMailer, type: :mailer do
 
       it 'uses custom from email' do
         mail = UserMailer.reset_password_email(user, reset_token)
-        expect(mail.from).to eq(['custom@smartlift.com'])
+        expect(mail.from).to eq([ 'custom@smartlift.com' ])
       end
     end
 

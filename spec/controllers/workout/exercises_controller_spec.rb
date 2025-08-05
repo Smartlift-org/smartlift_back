@@ -24,7 +24,7 @@ RSpec.describe Workout::ExercisesController, type: :controller do
     it 'orders exercises by order field' do
       exercise1 = create(:workout_exercise, workout: workout, order: 2)
       exercise2 = create(:workout_exercise, workout: workout, order: 1)
-      
+
       get :index, params: { workout_id: workout.id }
       ordered_exercises = assigns(:exercises)
       expect(ordered_exercises.first).to eq(exercise2)
@@ -78,7 +78,7 @@ RSpec.describe Workout::ExercisesController, type: :controller do
       it 'sets automatic order' do
         existing_exercise = create(:workout_exercise, workout: workout, order: 5)
         post :create, params: { workout_id: workout.id, workout_exercise: valid_attributes }
-        
+
         created_exercise = WorkoutExercise.last
         expect(created_exercise.order).to eq(6)
       end
@@ -88,7 +88,7 @@ RSpec.describe Workout::ExercisesController, type: :controller do
           group_type: 'superset',
           group_order: 1
         )
-        
+
         post :create, params: { workout_id: workout.id, workout_exercise: superset_attributes }
         created_exercise = WorkoutExercise.last
         expect(created_exercise.group_type).to eq('superset')
@@ -106,13 +106,13 @@ RSpec.describe Workout::ExercisesController, type: :controller do
       it 'returns error when superset already has 2 exercises' do
         create(:workout_exercise, :superset, workout: workout, group_order: 1)
         create(:workout_exercise, :superset, workout: workout, group_order: 1)
-        
+
         invalid_attributes = {
           exercise_id: exercise.id,
           group_type: 'superset',
           group_order: 1
         }
-        
+
         post :create, params: { workout_id: workout.id, workout_exercise: invalid_attributes }
         expect(response).to have_http_status(:unprocessable_entity)
       end
@@ -131,12 +131,12 @@ RSpec.describe Workout::ExercisesController, type: :controller do
       }
 
       it 'updates the exercise' do
-        put :update, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          workout_exercise: new_attributes 
+        put :update, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          workout_exercise: new_attributes
         }
-        
+
         workout_exercise.reload
         expect(workout_exercise.target_sets).to eq(4)
         expect(workout_exercise.target_reps).to eq(12)
@@ -145,10 +145,10 @@ RSpec.describe Workout::ExercisesController, type: :controller do
       end
 
       it 'returns success status' do
-        put :update, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          workout_exercise: new_attributes 
+        put :update, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          workout_exercise: new_attributes
         }
         expect(response).to have_http_status(:success)
       end
@@ -157,10 +157,10 @@ RSpec.describe Workout::ExercisesController, type: :controller do
     context 'with invalid parameters' do
       it 'returns unprocessable entity for invalid data' do
         invalid_attributes = { target_sets: -1 }
-        put :update, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          workout_exercise: invalid_attributes 
+        put :update, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          workout_exercise: invalid_attributes
         }
         expect(response).to have_http_status(:unprocessable_entity)
       end
@@ -180,31 +180,31 @@ RSpec.describe Workout::ExercisesController, type: :controller do
 
       it 'creates a new completed set' do
         expect {
-          post :record_set, params: { 
-            workout_id: workout.id, 
-            id: workout_exercise.id, 
-            set: set_attributes 
+          post :record_set, params: {
+            workout_id: workout.id,
+            id: workout_exercise.id,
+            set: set_attributes
           }
         }.to change(WorkoutSet, :count).by(1)
       end
 
       it 'marks the set as completed' do
-        post :record_set, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          set: set_attributes 
+        post :record_set, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          set: set_attributes
         }
-        
+
         created_set = WorkoutSet.last
         expect(created_set.completed).to be_truthy
         expect(created_set.completed_at).to be_present
       end
 
       it 'returns created status' do
-        post :record_set, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          set: set_attributes 
+        post :record_set, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          set: set_attributes
         }
         expect(response).to have_http_status(:created)
       end
@@ -215,29 +215,27 @@ RSpec.describe Workout::ExercisesController, type: :controller do
           drop_set_weight: 60.0,
           drop_set_reps: 10
         )
-        
-        post :record_set, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          set: drop_set_attributes 
+
+        post :record_set, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          set: drop_set_attributes
         }
-        
+
         created_set = WorkoutSet.last
         expect(created_set.set_type).to eq('drop_set')
         expect(created_set.drop_set_weight).to eq(60.0)
         expect(created_set.drop_set_reps).to eq(10)
       end
-
-
     end
 
     context 'with invalid parameters' do
       it 'returns unprocessable entity for invalid set data' do
         invalid_attributes = { weight: -10, reps: 0 }
-        post :record_set, params: { 
-          workout_id: workout.id, 
-          id: workout_exercise.id, 
-          set: invalid_attributes 
+        post :record_set, params: {
+          workout_id: workout.id,
+          id: workout_exercise.id,
+          set: invalid_attributes
         }
         expect(response).to have_http_status(:unprocessable_entity)
       end
@@ -245,27 +243,27 @@ RSpec.describe Workout::ExercisesController, type: :controller do
   end
 
   describe 'PUT #finalize' do
-    let(:workout_exercise_with_sets) { 
-      create(:workout_exercise, :with_completed_sets, workout: workout, target_sets: 3) 
+    let(:workout_exercise_with_sets) {
+      create(:workout_exercise, :with_completed_sets, workout: workout, target_sets: 3)
     }
 
     it 'finalizes the exercise' do
-      put :finalize, params: { 
-        workout_id: workout.id, 
-        id: workout_exercise_with_sets.id 
+      put :finalize, params: {
+        workout_id: workout.id,
+        id: workout_exercise_with_sets.id
       }
-      
+
       expect(response).to have_http_status(:success)
       workout_exercise_with_sets.reload
       expect(workout_exercise_with_sets.reload.completed_at).to be_present
     end
 
     it 'successfully completes exercise finalization' do
-      put :finalize, params: { 
-        workout_id: workout.id, 
-        id: workout_exercise_with_sets.id 
+      put :finalize, params: {
+        workout_id: workout.id,
+        id: workout_exercise_with_sets.id
       }
-      
+
       expect(response).to have_http_status(:success)
       expect(workout_exercise_with_sets.reload.completed_at).to be_present
     end
@@ -274,9 +272,9 @@ RSpec.describe Workout::ExercisesController, type: :controller do
       let(:incomplete_exercise) { create(:workout_exercise, workout: workout) }
 
       it 'returns bad request' do
-        put :finalize, params: { 
-          workout_id: workout.id, 
-          id: incomplete_exercise.id 
+        put :finalize, params: {
+          workout_id: workout.id,
+          id: incomplete_exercise.id
         }
         expect(response).to have_http_status(:bad_request)
       end
@@ -287,17 +285,17 @@ RSpec.describe Workout::ExercisesController, type: :controller do
     it 'deletes the exercise' do
       exercise_to_delete = create(:workout_exercise, workout: workout)
       expect {
-        delete :destroy, params: { 
-          workout_id: workout.id, 
-          id: exercise_to_delete.id 
+        delete :destroy, params: {
+          workout_id: workout.id,
+          id: exercise_to_delete.id
         }
       }.to change(WorkoutExercise, :count).by(-1)
     end
 
     it 'returns success status' do
-      delete :destroy, params: { 
-        workout_id: workout.id, 
-        id: workout_exercise.id 
+      delete :destroy, params: {
+        workout_id: workout.id,
+        id: workout_exercise.id
       }
       expect(response).to have_http_status(:success)
     end
@@ -305,9 +303,9 @@ RSpec.describe Workout::ExercisesController, type: :controller do
     it 'also deletes associated sets' do
       exercise_with_sets = create(:workout_exercise, :with_sets, workout: workout)
       expect {
-        delete :destroy, params: { 
-          workout_id: workout.id, 
-          id: exercise_with_sets.id 
+        delete :destroy, params: {
+          workout_id: workout.id,
+          id: exercise_with_sets.id
         }
       }.to change(WorkoutSet, :count).by(-3) # Assuming factory creates 3 sets
     end
@@ -326,9 +324,9 @@ RSpec.describe Workout::ExercisesController, type: :controller do
 
     it 'prevents creating exercises in other users workouts' do
       expect {
-        post :create, params: { 
-          workout_id: other_workout.id, 
-          workout_exercise: { exercise_id: exercise.id } 
+        post :create, params: {
+          workout_id: other_workout.id,
+          workout_exercise: { exercise_id: exercise.id }
         }
       }.to raise_error(ActiveRecord::RecordNotFound)
     end
@@ -339,21 +337,21 @@ RSpec.describe Workout::ExercisesController, type: :controller do
     let(:completed_exercise) { create(:workout_exercise, workout: completed_workout) }
 
     it 'prevents modifications to completed workout exercises' do
-      put :update, params: { 
-        workout_id: completed_workout.id, 
-        id: completed_exercise.id, 
-        workout_exercise: { target_sets: 5 } 
+      put :update, params: {
+        workout_id: completed_workout.id,
+        id: completed_exercise.id,
+        workout_exercise: { target_sets: 5 }
       }
       expect(response).to have_http_status(:bad_request)
     end
 
     it 'prevents recording sets in completed workouts' do
-      post :record_set, params: { 
-        workout_id: completed_workout.id, 
-        id: completed_exercise.id, 
-        set: { weight: 80, reps: 10 } 
+      post :record_set, params: {
+        workout_id: completed_workout.id,
+        id: completed_exercise.id,
+        set: { weight: 80, reps: 10 }
       }
       expect(response).to have_http_status(:bad_request)
     end
   end
-end 
+end

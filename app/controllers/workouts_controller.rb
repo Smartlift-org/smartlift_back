@@ -1,7 +1,7 @@
 class WorkoutsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_workout, except: [:index, :create, :create_free]
-  before_action :ensure_workout_active, only: [:pause, :resume, :complete]
+  before_action :set_workout, except: [ :index, :create, :create_free ]
+  before_action :ensure_workout_active, only: [ :pause, :resume, :complete ]
 
   # POST /workouts
   def create
@@ -18,7 +18,7 @@ class WorkoutsController < ApplicationController
   # POST /workouts/free
   def create_free
     @workout = current_user.workouts.new(free_workout_params)
-    @workout.workout_type = 'free_style'
+    @workout.workout_type = "free_style"
     @workout.started_at = Time.current
 
     if @workout.save
@@ -61,7 +61,7 @@ class WorkoutsController < ApplicationController
   def complete
     # Extract duration from completion params
     duration_seconds = completion_params[:total_duration_seconds]
-    
+
     # Complete the workout with the duration from frontend
     if @workout.complete!(duration_seconds)
       # Update other completion attributes (rating, notes)
@@ -69,7 +69,7 @@ class WorkoutsController < ApplicationController
       @workout.update!(completion_attrs) if completion_attrs.present?
       render json: @workout
     else
-      error_messages = @workout.errors.full_messages.presence || ["Could not complete workout"]
+      error_messages = @workout.errors.full_messages.presence || [ "Could not complete workout" ]
       render json: { errors: error_messages }, status: :unprocessable_entity
     end
   end
@@ -77,7 +77,7 @@ class WorkoutsController < ApplicationController
   # PUT /workouts/:id/abandon
   def abandon
     return render json: { error: "Cannot abandon a completed workout" }, status: :unprocessable_entity if @workout.completed?
-    
+
     if @workout.abandon!
       render json: @workout
     else
@@ -109,4 +109,4 @@ class WorkoutsController < ApplicationController
   def completion_params
     params.permit(:workout_rating, :notes, :total_duration_seconds)
   end
-end 
+end

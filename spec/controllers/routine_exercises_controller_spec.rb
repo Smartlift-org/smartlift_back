@@ -32,7 +32,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
     context 'with valid parameters' do
       it 'creates a new routine exercise' do
         expect {
-          post :create, params: { 
+          post :create, params: {
             routine_id: routine.id,
             routine_exercise: valid_attributes
           }
@@ -40,7 +40,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
       end
 
       it 'returns created status' do
-        post :create, params: { 
+        post :create, params: {
           routine_id: routine.id,
           routine_exercise: valid_attributes
         }
@@ -51,7 +51,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
     context 'with invalid parameters' do
       it 'does not create a new routine exercise' do
         expect {
-          post :create, params: { 
+          post :create, params: {
             routine_id: routine.id,
             routine_exercise: invalid_attributes
           }
@@ -59,7 +59,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
       end
 
       it 'returns unprocessable entity status' do
-        post :create, params: { 
+        post :create, params: {
           routine_id: routine.id,
           routine_exercise: invalid_attributes
         }
@@ -69,7 +69,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
 
     context 'with non-existent routine' do
       it 'returns not found status' do
-        post :create, params: { 
+        post :create, params: {
           routine_id: 999,
           routine_exercise: valid_attributes
         }
@@ -83,7 +83,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
 
     it 'destroys the routine exercise' do
       expect {
-        delete :destroy, params: { 
+        delete :destroy, params: {
           routine_id: routine.id,
           id: routine_exercise.id
         }
@@ -91,7 +91,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
     end
 
     it 'returns no content status' do
-      delete :destroy, params: { 
+      delete :destroy, params: {
         routine_id: routine.id,
         id: routine_exercise.id
       }
@@ -100,7 +100,7 @@ RSpec.describe RoutineExercisesController, type: :controller do
 
     context 'with non-existent routine exercise' do
       it 'returns not found status' do
-        delete :destroy, params: { 
+        delete :destroy, params: {
           routine_id: routine.id,
           id: 999
         }
@@ -108,4 +108,4 @@ RSpec.describe RoutineExercisesController, type: :controller do
       end
     end
   end
-end 
+end

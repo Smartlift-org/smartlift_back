@@ -6,7 +6,7 @@ RSpec.describe Workout, type: :model do
 
   describe 'associations' do
     it { should belong_to(:user).required }
-    
+
     context 'for free-style workouts' do
       subject { build(:workout, :free_style) }
       it { should belong_to(:routine).optional }
@@ -226,4 +226,4 @@ RSpec.describe Workout, type: :model do
       end
     end
   end
-end 
+end

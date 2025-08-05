@@ -18,8 +18,8 @@ class CreateWorkoutExercises < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :workout_exercises, [:workout_id, :order], unique: true
-    add_index :workout_exercises, [:workout_id, :group_type, :group_order]
-    add_index :workout_exercises, [:workout_id, :exercise_id]
+    add_index :workout_exercises, [ :workout_id, :order ], unique: true
+    add_index :workout_exercises, [ :workout_id, :group_type, :group_order ]
+    add_index :workout_exercises, [ :workout_id, :exercise_id ]
   end
-end 
+end

@@ -42,7 +42,7 @@ namespace :exercises do
               full_image_urls = (exercise_data["images"] || []).map do |image|
                 "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/#{image}"
               end
-              
+
               exercise.assign_attributes(
                 level: exercise_data["level"],
                 instructions: exercise_data["instructions"] || [],

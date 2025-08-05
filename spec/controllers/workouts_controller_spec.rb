@@ -105,9 +105,9 @@ RSpec.describe WorkoutsController, type: :controller do
       travel_to 1.day.ago do
         @new_workout = create(:workout, user: user)
       end
-      
+
       get :index
-      ordered_workouts = assigns(:workouts).where(id: [@old_workout.id, @new_workout.id])
+      ordered_workouts = assigns(:workouts).where(id: [ @old_workout.id, @new_workout.id ])
       expect(ordered_workouts.first).to eq(@new_workout)
     end
 
@@ -188,7 +188,7 @@ RSpec.describe WorkoutsController, type: :controller do
       let(:workout) { create(:workout, :with_exercises, user: user, status: 'in_progress') }
 
       it 'completes the workout' do
-        put :complete, params: { 
+        put :complete, params: {
           id: workout.id,
           workout_rating: 8,
           notes: 'Great workout!'
@@ -198,12 +198,12 @@ RSpec.describe WorkoutsController, type: :controller do
       end
 
       it 'updates completion parameters' do
-        put :complete, params: { 
+        put :complete, params: {
           id: workout.id,
           workout_rating: 8,
           notes: 'Excellent workout!'
         }
-        
+
         workout.reload
         expect(workout.workout_rating).to eq(8)
         expect(workout.notes).to eq('Excellent workout!')
@@ -216,13 +216,13 @@ RSpec.describe WorkoutsController, type: :controller do
 
       it 'accepts and sets total_duration_seconds from frontend' do
         duration_seconds = 3600 # 1 hour
-        put :complete, params: { 
+        put :complete, params: {
           id: workout.id,
           total_duration_seconds: duration_seconds,
           workout_rating: 8,
           notes: 'Great workout!'
         }
-        
+
         expect(response).to have_http_status(:success)
         workout.reload
         expect(workout.total_duration_seconds).to eq(duration_seconds)
@@ -245,7 +245,7 @@ RSpec.describe WorkoutsController, type: :controller do
       it 'returns unprocessable entity with error messages' do
         # Mock the complete! method to return false and set up errors
         allow_any_instance_of(Workout).to receive(:complete!).and_return(false)
-        
+
         put :complete, params: { id: workout.id }
         expect(response).to have_http_status(:unprocessable_entity)
         response_body = JSON.parse(response.body)
@@ -312,4 +312,4 @@ RSpec.describe WorkoutsController, type: :controller do
       }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
-end 
+end

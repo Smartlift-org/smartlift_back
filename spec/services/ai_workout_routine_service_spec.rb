@@ -102,7 +102,7 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
         expect(result[:explanation]).to include('Esta rutina fue diseñada específicamente')
         expect(result[:routine][:days]).to be_an(Array)
         expect(result[:routine][:days].length).to eq(2)
-        
+
         # Check first day structure
         first_day = result[:routine][:days][0]
         expect(first_day[:day]).to eq('Monday')
@@ -369,4 +369,4 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
       )
     end
   end
-end 
+end

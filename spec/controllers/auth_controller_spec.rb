@@ -7,7 +7,7 @@ RSpec.describe AuthController, type: :controller do
     context 'with valid credentials' do
       it 'returns a JWT token' do
         post :login, params: { email: user.email, password: 'password123' }
-        
+
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response).to have_key('token')
@@ -17,7 +17,7 @@ RSpec.describe AuthController, type: :controller do
     context 'with invalid credentials' do
       it 'returns unauthorized' do
         post :login, params: { email: user.email, password: 'wrongpassword' }
-        
+
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Credenciales inválidas')
@@ -27,7 +27,7 @@ RSpec.describe AuthController, type: :controller do
     context 'with invalid email format' do
       it 'returns unprocessable entity' do
         post :login, params: { email: 'invalid-email', password: 'password123' }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Formato de email inválido')
@@ -37,7 +37,7 @@ RSpec.describe AuthController, type: :controller do
     context 'with missing parameters' do
       it 'returns error for missing email' do
         post :login, params: { password: 'password123' }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Email y password son requeridos')
@@ -45,7 +45,7 @@ RSpec.describe AuthController, type: :controller do
 
       it 'returns error for missing password' do
         post :login, params: { email: user.email }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Email y password son requeridos')
@@ -57,14 +57,14 @@ RSpec.describe AuthController, type: :controller do
     context 'with valid email' do
       it 'sends password reset email for existing user' do
         skip 'Email functionality not configured for test environment'
-        
+
         post :forgot_password, params: { email: user.email }
-        
+
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['message']).to include('recibirás instrucciones')
         expect(json_response['email']).to eq(user.email)
-        
+
         # Check that user was updated with reset token
         user.reload
         expect(user.password_reset_token).to be_present
@@ -73,7 +73,7 @@ RSpec.describe AuthController, type: :controller do
 
       it 'returns success message for non-existing user (security)' do
         post :forgot_password, params: { email: 'nonexistent@example.com' }
-        
+
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['message']).to include('recibirás instrucciones')
@@ -82,7 +82,7 @@ RSpec.describe AuthController, type: :controller do
 
       it 'does not send email for non-existing user' do
         post :forgot_password, params: { email: 'nonexistent@example.com' }
-        
+
         expect(response).to have_http_status(:ok)
         # We assume email functionality works correctly
       end
@@ -91,7 +91,7 @@ RSpec.describe AuthController, type: :controller do
     context 'with invalid email format' do
       it 'returns validation error' do
         post :forgot_password, params: { email: 'invalid-email' }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Formato de email inválido')
@@ -105,7 +105,7 @@ RSpec.describe AuthController, type: :controller do
 
       it 'returns server error' do
         post :forgot_password, params: { email: user.email }
-        
+
         expect(response).to have_http_status(:internal_server_error)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to include('Error al enviar el email')
@@ -116,7 +116,7 @@ RSpec.describe AuthController, type: :controller do
   describe 'POST #reset_password' do
     let(:reset_token) { 'valid_reset_token' }
     let(:hashed_token) { Digest::SHA256.hexdigest(reset_token) }
-    
+
     before do
       user.update!(
         password_reset_token: hashed_token,
@@ -127,23 +127,23 @@ RSpec.describe AuthController, type: :controller do
     context 'with valid token and password' do
       it 'successfully resets password' do
         skip 'Email functionality not configured for test environment'
-        
+
         post :reset_password, params: {
           token: reset_token,
           password: 'newpassword123',
           password_confirmation: 'newpassword123'
         }
-        
+
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['message']).to include('actualizada exitosamente')
         expect(json_response['user']['email']).to eq(user.email)
-        
+
         # Check that reset fields were cleared
         user.reload
         expect(user.password_reset_token).to be_nil
         expect(user.password_reset_sent_at).to be_nil
-        
+
         # Check that password was actually changed
         expect(user.authenticate('newpassword123')).to be_truthy
         expect(user.authenticate('password123')).to be_falsey
@@ -161,7 +161,7 @@ RSpec.describe AuthController, type: :controller do
           password: 'newpassword123',
           password_confirmation: 'newpassword123'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Token inválido o expirado')
@@ -175,7 +175,7 @@ RSpec.describe AuthController, type: :controller do
           password: 'newpassword123',
           password_confirmation: 'newpassword123'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Token inválido o expirado')
@@ -189,7 +189,7 @@ RSpec.describe AuthController, type: :controller do
           password: 'newpassword123',
           password_confirmation: 'differentpassword'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('La confirmación de contraseña no coincide')
@@ -203,7 +203,7 @@ RSpec.describe AuthController, type: :controller do
           password: '123',
           password_confirmation: '123'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to include('al menos 6 caracteres')
@@ -217,7 +217,7 @@ RSpec.describe AuthController, type: :controller do
           password: 'newpassword123',
           password_confirmation: 'newpassword123'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Token y nueva contraseña son requeridos')
@@ -228,7 +228,7 @@ RSpec.describe AuthController, type: :controller do
           token: reset_token,
           password_confirmation: 'newpassword123'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Token y nueva contraseña son requeridos')
@@ -238,7 +238,7 @@ RSpec.describe AuthController, type: :controller do
     context 'with database error' do
       before do
         allow_any_instance_of(User).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(user))
-        allow(user).to receive_message_chain(:errors, :full_messages).and_return(['Database error'])
+        allow(user).to receive_message_chain(:errors, :full_messages).and_return([ 'Database error' ])
       end
 
       it 'handles database errors gracefully' do
@@ -247,7 +247,7 @@ RSpec.describe AuthController, type: :controller do
           password: 'newpassword123',
           password_confirmation: 'newpassword123'
         }
-        
+
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['error']).to eq('Error al actualizar la contraseña')
@@ -301,10 +301,10 @@ RSpec.describe AuthController, type: :controller do
     describe '#generate_password_reset_token' do
       it 'generates and stores a secure token' do
         token = controller.send(:generate_password_reset_token, user)
-        
+
         expect(token).to be_present
         expect(token.length).to be >= 32
-        
+
         user.reload
         expect(user.password_reset_token).to be_present
         expect(user.password_reset_sent_at).to be_present
@@ -355,7 +355,7 @@ RSpec.describe AuthController, type: :controller do
         it 'returns nil for blank token' do
           found_user = controller.send(:find_user_by_reset_token, '')
           expect(found_user).to be_nil
-          
+
           found_user = controller.send(:find_user_by_reset_token, nil)
           expect(found_user).to be_nil
         end
@@ -365,30 +365,30 @@ RSpec.describe AuthController, type: :controller do
 
   describe "Rate Limiting" do
     let(:user) { create(:user, email: 'test@example.com') }
-    
+
     before do
       # Clear cache before each test
       Rails.cache.clear
     end
-    
+
     describe "password recovery rate limiting" do
       it "allows up to 5 attempts per hour" do
         skip 'Rate limiting disabled in test environment'
-        
+
         5.times do
           post :forgot_password, params: { email: user.email }
           expect(response).to have_http_status(:ok)
         end
       end
-      
+
       it "blocks attempts after 5 requests" do
         skip 'Rate limiting disabled in test environment'
-        
+
         # Make 5 successful attempts
         5.times do
           post :forgot_password, params: { email: user.email }
         end
-        
+
         # 6th attempt should be blocked
         post :forgot_password, params: { email: user.email }
         expect(response).to have_http_status(:too_many_requests)
@@ -397,18 +397,18 @@ RSpec.describe AuthController, type: :controller do
           'retry_after' => 3600
         )
       end
-      
+
       it "tracks attempts per IP address" do
         skip 'Rate limiting disabled in test environment'
-        
+
         # Simulate different IP addresses
         allow(controller.request).to receive(:remote_ip).and_return('192.168.1.1')
         5.times { post :forgot_password, params: { email: user.email } }
-        
+
         # This IP should be blocked
         post :forgot_password, params: { email: user.email }
         expect(response).to have_http_status(:too_many_requests)
-        
+
         # Different IP should still work
         allow(controller.request).to receive(:remote_ip).and_return('192.168.1.2')
         post :forgot_password, params: { email: user.email }

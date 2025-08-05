@@ -41,7 +41,7 @@ RSpec.describe WorkoutExercise, type: :model do
 
     describe '.ordered' do
       it 'returns exercises ordered by order' do
-        expect(WorkoutExercise.ordered).to eq([exercise1, exercise2, superset_ex1, circuit_ex1])
+        expect(WorkoutExercise.ordered).to eq([ exercise1, exercise2, superset_ex1, circuit_ex1 ])
       end
     end
 
@@ -79,7 +79,7 @@ RSpec.describe WorkoutExercise, type: :model do
         superset1 = create(:workout_exercise, :superset, workout: workout, group_order: 1)
         superset2 = create(:workout_exercise, :superset, workout: workout, group_order: 1)
         superset3 = build(:workout_exercise, :superset, workout: workout, group_order: 1)
-        
+
         expect(superset3).not_to be_valid
         expect(superset3.errors[:group_type]).to include("can only have 2 exercises in a superset")
       end
@@ -195,7 +195,7 @@ RSpec.describe WorkoutExercise, type: :model do
     describe '#group_exercises' do
       it 'returns only itself for regular exercises' do
         regular_exercise = create(:workout_exercise, :regular, workout: workout)
-        expect(regular_exercise.group_exercises).to eq([regular_exercise])
+        expect(regular_exercise.group_exercises).to eq([ regular_exercise ])
       end
 
       it 'returns all exercises in the same superset group' do
@@ -224,7 +224,7 @@ RSpec.describe WorkoutExercise, type: :model do
     describe '#finalize!' do
       it 'successfully finalizes the exercise' do
         workout_exercise = create(:workout_exercise, :with_completed_sets, workout: workout)
-        
+
         result = workout_exercise.finalize!
         expect(result).to be_truthy
       end
@@ -247,4 +247,4 @@ RSpec.describe WorkoutExercise, type: :model do
       expect(workout_exercise.calculate_suggested_weight).to be_nil
     end
   end
-end 
+end

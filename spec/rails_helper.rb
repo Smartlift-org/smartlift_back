@@ -82,7 +82,7 @@ RSpec.configure do |config|
 
   # Include time helpers for testing
   config.include ActiveSupport::Testing::TimeHelpers
-  
+
   # Clear cache between tests to avoid rate limiting issues
   config.before(:each) do
     Rails.cache.clear

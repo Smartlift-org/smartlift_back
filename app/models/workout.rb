@@ -24,6 +24,7 @@ class Workout < ApplicationRecord
   before_validation :set_default_status, on: :create
   before_validation :set_default_workout_type, on: :create
   after_create :copy_routine_exercises, if: :routine_based?
+  after_create :update_user_activity
 
   scope :recent, -> { order(created_at: :desc) }
   scope :this_week, -> { where(created_at: Time.current.beginning_of_week..Time.current.end_of_week) }
@@ -201,4 +202,8 @@ class Workout < ApplicationRecord
       end
     end
   end
-end 
+
+  def update_user_activity
+    user.touch(:last_activity_at)
+  end
+end

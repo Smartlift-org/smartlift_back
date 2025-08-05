@@ -1,7 +1,7 @@
 class Api::V1::TrainersController < ApplicationController
   before_action :authorize_request
   before_action :ensure_trainer_role
-  before_action :set_trainer, only: [:show, :members, :assign_member, :unassign_member, :dashboard, :available_users, :list_routines, :assign_routine, :update_member_routine]
+  before_action :set_trainer, only: [ :show, :members, :inactive_members, :assign_member, :unassign_member, :dashboard, :available_users, :list_routines, :assign_routine, :update_member_routine ]
 
   def show
     render json: {
@@ -64,6 +64,46 @@ class Api::V1::TrainersController < ApplicationController
       filters_applied: {
         search: params[:search],
         status: params[:status]
+      }
+    }
+  end
+
+  def inactive_members
+    authorize_trainer_access!(@trainer.id)
+    return if performed?
+
+    # Simple query using the new scope and index
+    members = @trainer.users.inactive_since(30)
+                          .includes(:user_stat)
+                          .order(:last_activity_at)
+
+    if params[:search].present?
+      search_term = "%#{params[:search].downcase}%"
+      members = members.where(
+        "LOWER(first_name) LIKE ? OR LOWER(last_name) LIKE ? OR LOWER(email) LIKE ?",
+        search_term, search_term, search_term
+      )
+    end
+
+    page = params[:page] || 1
+    per_page = [ params[:per_page]&.to_i || 20, 100 ].min
+
+    paginated_members = members.page(page).per(per_page)
+
+    members_data = paginated_members.map do |member|
+      MemberSummarySerializer.new(member).as_json
+    end
+
+    render json: {
+      members: members_data,
+      pagination: {
+        current_page: paginated_members.current_page,
+        total_pages: paginated_members.total_pages,
+        total_count: paginated_members.total_count,
+        per_page: paginated_members.limit_value
+      },
+      filters_applied: {
+        search: params[:search]
       }
     }
   end

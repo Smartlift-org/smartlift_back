@@ -18,6 +18,11 @@ class User < ApplicationRecord
     has_many :routines, dependent: :destroy
     has_many :workouts, dependent: :destroy
 
+    # Activity tracking scopes
+    scope :inactive_since, ->(days) {
+      where("last_activity_at < ? OR last_activity_at IS NULL", days.days.ago)
+    }
+
     validates :email, presence: true,
               uniqueness: { message: "ya está en uso" },
               format: { with: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i,

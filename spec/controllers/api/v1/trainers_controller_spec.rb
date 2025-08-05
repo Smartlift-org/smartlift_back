@@ -535,4 +535,68 @@ RSpec.describe Api::V1::TrainersController, type: :controller do
       expect(CoachUser.count).to eq(initial_count) # Assignment removed
     end
   end
+
+  describe 'GET #inactive_members' do
+    let(:active_member) { create(:user, role: :user, first_name: 'Active', last_name: 'Member') }
+    let(:inactive_member) { create(:user, role: :user, first_name: 'Inactive', last_name: 'Member') }
+
+    before do
+      # Set up coach-member relationships
+      create(:coach_user, coach: trainer, user: active_member)
+      create(:coach_user, coach: trainer, user: inactive_member)
+
+      # Set activity dates
+      active_member.update!(last_activity_at: 1.week.ago)
+      inactive_member.update!(last_activity_at: 35.days.ago) # Inactive (>30 days)
+
+      allow(controller).to receive(:current_user).and_return(trainer)
+    end
+
+    context 'when authenticated as trainer' do
+      it 'returns only inactive members' do
+        get :inactive_members, params: { id: trainer.id }
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response['members'].length).to eq(1)
+        expect(json_response['members'].first['name']).to eq('Inactive Member')
+      end
+
+      it 'supports search functionality' do
+        get :inactive_members, params: { id: trainer.id, search: 'Inactive' }
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response['members'].length).to eq(1)
+        expect(json_response['members'].first['name']).to eq('Inactive Member')
+      end
+
+      it 'supports pagination' do
+        get :inactive_members, params: { id: trainer.id, page: 1, per_page: 10 }
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response['pagination']).to be_present
+        expect(json_response['pagination']['current_page']).to eq(1)
+        expect(json_response['pagination']['per_page']).to eq(10)
+      end
+    end
+
+    context 'when accessing another trainer\'s data' do
+      let(:other_trainer) { create(:user, role: :coach) }
+
+      before { allow(controller).to receive(:current_user).and_return(other_trainer) }
+
+      it 'returns forbidden status' do
+        get :inactive_members, params: { id: trainer.id }
+
+        expect(response).to have_http_status(:forbidden)
+        json_response = JSON.parse(response.body)
+        expect(json_response['error']).to include('No tienes permisos')
+      end
+    end
+  end
 end

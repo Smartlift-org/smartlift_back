@@ -161,6 +161,6 @@ class MemberSummarySerializer
   end
 
   def last_activity_date
-    @user.workouts.maximum(:created_at)
+    @user.last_activity_at&.strftime('%Y-%m-%d')
   end
 end

@@ -1,6 +1,6 @@
 class UserStatsController < ApplicationController
   before_action :authenticate_user!
-  
+
   def index
     @user_stat = current_user.user_stat
     if @user_stat

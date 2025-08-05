@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
-  
+
   # Alternative health check endpoint for compatibility
   get "health" => "rails/health#show", as: :health_check
 
@@ -55,15 +55,16 @@ Rails.application.routes.draw do
   post "/user_stats", to: "user_stats#create"
   patch "/user_stats", to: "user_stats#update"
   put "/user_stats", to: "user_stats#update"
+  get "/user_stats/complete", to: "user_stats#complete"
 
   resources :routines do
-    resources :exercises, only: [:create, :destroy], controller: 'routine_exercises'
+    resources :exercises, only: [ :create, :destroy ], controller: "routine_exercises"
   end
 
   # Workout tracking - Better structured
   resources :workouts do
     collection do
-      post :free, to: 'workouts#create_free'
+      post :free, to: "workouts#create_free"
     end
     member do
       put :pause
@@ -92,12 +93,12 @@ Rails.application.routes.draw do
   end
 
   # Performance tracking
-  resources :personal_records, only: [:index, :show] do
+  resources :personal_records, only: [ :index, :show ] do
     collection do
-      get 'by_exercise/:exercise_id', to: 'personal_records#by_exercise'
-      get 'recent'
-      get 'latest'
-      get 'statistics'
+      get "by_exercise/:exercise_id", to: "personal_records#by_exercise"
+      get "recent"
+      get "latest"
+      get "statistics"
     end
   end
 
@@ -105,37 +106,37 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # AI-powered workout routine generation
-      resources :ai_workout_routines, only: [:create], path: 'ai/workout_routines'
-      
+      resources :ai_workout_routines, only: [ :create ], path: "ai/workout_routines"
+
       # Routine Validations (Trainer only)
-      resources :routine_validations, only: [:index, :show] do
+      resources :routine_validations, only: [ :index, :show ] do
         member do
           post :approve
           post :reject
         end
       end
-      
+
       # New TrainerMembers controller (solución a problemas de reconocimiento de acciones)
       resources :trainers, only: [] do
-        resources :members, only: [:show], controller: 'trainer_members' do
+        resources :members, only: [ :show ], controller: "trainer_members" do
           member do
             get :routines
           end
         end
       end
-      
+
       # Trainer endpoints
-      resources :trainers, only: [:show] do
+      resources :trainers, only: [ :show ] do
         member do
           get :members
           get :dashboard
           get :available_users
-          get :list_routines, path: 'routines'
-          post :assign_member, path: 'members'
-          delete :unassign_member, path: 'members/:user_id'
+          get :list_routines, path: "routines"
+          post :assign_member, path: "members"
+          delete :unassign_member, path: "members/:user_id"
           # Rutas eliminadas: member_profile y member_routines ahora son manejadas por TrainerMembersController
-          post :assign_routine, path: 'members/:user_id/assign_routine'
-          put :update_member_routine, path: 'members/:user_id/routines/:routine_id'
+          post :assign_routine, path: "members/:user_id/assign_routine"
+          put :update_member_routine, path: "members/:user_id/routines/:routine_id"
         end
       end
     end

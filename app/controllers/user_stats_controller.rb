@@ -1,6 +1,6 @@
 class UserStatsController < ApplicationController
   before_action :authenticate_user!
-  
+
   def index
     @user_stat = current_user.user_stat
     if @user_stat
@@ -36,6 +36,11 @@ class UserStatsController < ApplicationController
     else
       render json: @user_stat.errors, status: :unprocessable_entity
     end
+  end
+
+  def complete
+    service = UserStatsService.new(current_user)
+    render json: service.complete_stats
   end
 
   private

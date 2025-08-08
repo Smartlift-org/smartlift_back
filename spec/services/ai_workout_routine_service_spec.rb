@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 # AI functionality tests
-RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
+RSpec.describe AiWorkoutRoutineService do
   let(:valid_params) do
     {
       age: 30,
@@ -17,164 +17,134 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
   end
 
   let(:mock_ai_response) do
-    <<~RESPONSE
-      <explicacion>
-      Esta rutina fue diseñada específicamente para tu objetivo de ganar masa muscular, considerando tu nivel intermedio y disponibilidad de mancuernas y barras. He incluido ejercicios compuestos que trabajan múltiples grupos musculares simultáneamente, maximizando el estímulo de crecimiento. Las series y repeticiones están ajustadas para el rango de hipertrofia (8-12 repeticiones), con descansos adecuados para permitir una recuperación completa entre series.
-      </explicacion>
-
-      <json>
-      {
-        "routines": [
-          {
-            "routine": {
-              "name": "Upper Body Strength",
-              "description": "Focus on chest, shoulders and triceps",
-              "difficulty": "intermediate",
-              "duration": 45,
-              "routine_exercises_attributes": [
-                {
-                  "exercise_id": 1,
-                  "sets": 4,
-                  "reps": 10,
-                  "rest_time": 60,
-                  "order": 1
-                },
-                {
-                  "exercise_id": 2,
-                  "sets": 3,
-                  "reps": 12,
-                  "rest_time": 45,
-                  "order": 2
-                }
-              ]
-            }
-          },
-          {
-            "routine": {
-              "name": "Lower Body Power",
-              "description": "Focus on legs and glutes",
-              "difficulty": "intermediate",
-              "duration": 45,
-              "routine_exercises_attributes": [
-                {
-                  "exercise_id": 3,
-                  "sets": 4,
-                  "reps": 8,
-                  "rest_time": 90,
-                  "order": 1
-                },
-                {
-                  "exercise_id": 4,
-                  "sets": 3,
-                  "reps": 10,
-                  "rest_time": 60,
-                  "order": 2
-                }
-              ]
-            }
+    {
+      "routines": [
+        {
+          "routine": {
+            "name": "Upper Body Strength",
+            "description": "Focus on chest, shoulders and triceps",
+            "difficulty": "intermediate",
+            "duration": 45,
+            "routine_exercises_attributes": [
+              {
+                "exercise_id": 900,
+                "sets": 4,
+                "reps": 10,
+                "rest_time": 60,
+                "order": 1
+              },
+              {
+                "exercise_id": 901,
+                "sets": 3,
+                "reps": 12,
+                "rest_time": 45,
+                "order": 2
+              }
+            ]
           }
-        ]
-      }
-      </json>
-    RESPONSE
+        },
+        {
+          "routine": {
+            "name": "Lower Body Power",
+            "description": "Focus on legs and glutes",
+            "difficulty": "intermediate",
+            "duration": 45,
+            "routine_exercises_attributes": [
+              {
+                "exercise_id": 902,
+                "sets": 4,
+                "reps": 8,
+                "rest_time": 90,
+                "order": 1
+              },
+              {
+                "exercise_id": 903,
+                "sets": 3,
+                "reps": 10,
+                "rest_time": 60,
+                "order": 2
+              }
+            ]
+          }
+        }
+      ]
+    }.to_json
   end
 
   let(:service) { described_class.new(valid_params) }
 
   before do
-    # Create test exercises
-    FactoryBot.create(:exercise, id: 1, name: 'Bench Press', level: 'beginner')
-    FactoryBot.create(:exercise, id: 2, name: 'Dumbbell Curl', level: 'intermediate')
-    FactoryBot.create(:exercise, id: 3, name: 'Squat', level: 'beginner')
-    FactoryBot.create(:exercise, id: 4, name: 'Push-up', level: 'beginner')
+    # Create test exercises using find_or_create_by to avoid duplicate key errors
+    unless Exercise.exists?(900)
+      Exercise.create!(id: 900, name: 'Bench Press', level: 'beginner', instructions: 'Test', primary_muscles: ['chest'], images: [])
+    end
+    unless Exercise.exists?(901)
+      Exercise.create!(id: 901, name: 'Dumbbell Curl', level: 'intermediate', instructions: 'Test', primary_muscles: ['arms'], images: [])
+    end
+    unless Exercise.exists?(902)
+      Exercise.create!(id: 902, name: 'Squat', level: 'beginner', instructions: 'Test', primary_muscles: ['legs'], images: [])
+    end
+    unless Exercise.exists?(903)
+      Exercise.create!(id: 903, name: 'Push-up', level: 'beginner', instructions: 'Test', primary_muscles: ['chest'], images: [])
+    end
   end
 
-  describe '#generate_routine' do
+  describe '#create_routine' do
     context 'when AI service returns valid response' do
-      it 'returns parsed explanation and routine' do
+      it 'returns parsed routine' do
         # Mock the AI client
         mock_client = instance_double(AiApiClient)
         allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine).and_return(mock_ai_response)
+        allow(mock_client).to receive(:create_routine).and_return(mock_ai_response)
 
-        result = service.generate_routine
+        result = service.create_routine
 
-        expect(result[:explanation]).to include('Esta rutina fue diseñada específicamente')
-        expect(result[:routine][:days]).to be_an(Array)
-        expect(result[:routine][:days].length).to eq(2)
+        expect(result).to have_key(:routines)
+        expect(result[:routines]).to be_an(Array)
+        expect(result[:routines].length).to eq(2)
 
-        # Check first day structure
-        first_day = result[:routine][:days][0]
-        expect(first_day[:day]).to eq('Monday')
-        expect(first_day[:routine][:name]).to eq('Upper Body Strength')
-        expect(first_day[:routine][:routine_exercises_attributes]).to be_an(Array)
-        expect(first_day[:routine][:routine_exercises_attributes].length).to eq(2)
+        # Check first routine structure
+        first_routine = result[:routines][0]
+        expect(first_routine).to have_key(:routine)
+        expect(first_routine[:routine][:name]).to eq('Upper Body Strength')
+        expect(first_routine[:routine][:routine_exercises_attributes]).to be_an(Array)
+        expect(first_routine[:routine][:routine_exercises_attributes].length).to eq(2)
       end
     end
 
     context 'when AI service returns invalid response format' do
-      it 'raises InvalidResponseError for missing explanation block' do
-        mock_client = instance_double(AiApiClient)
-        allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine).and_return('<json>{}</json>')
-
-        expect { service.generate_routine }.to raise_error(
-          AiWorkoutRoutineService::InvalidResponseError,
-          /Could not find <explicacion> block/
-        )
-      end
-
-      it 'raises InvalidResponseError for missing JSON block' do
-        mock_client = instance_double(AiApiClient)
-        allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine).and_return('<explicacion>Test</explicacion>')
-
-        expect { service.generate_routine }.to raise_error(
-          AiWorkoutRoutineService::InvalidResponseError,
-          /Could not find <json> block/
-        )
-      end
-
       it 'raises InvalidResponseError for malformed JSON' do
-        invalid_response = <<~RESPONSE
-          <explicacion>Test</explicacion>
-          <json>{ invalid json }</json>
-        RESPONSE
-
         mock_client = instance_double(AiApiClient)
         allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine).and_return(invalid_response)
+        allow(mock_client).to receive(:create_routine).and_return('{ invalid json }')
 
-        expect { service.generate_routine }.to raise_error(
+        expect { service.create_routine }.to raise_error(
           AiWorkoutRoutineService::InvalidResponseError,
           /Invalid JSON in AI response/
         )
       end
-    end
 
-    context 'when AI service returns invalid exercise IDs' do
-      it 'raises InvalidExerciseIdError' do
-        invalid_response = mock_ai_response.gsub('"exercise_id": 1', '"exercise_id": 999')
-
+      it 'raises InvalidResponseError for missing routines field' do
         mock_client = instance_double(AiApiClient)
         allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine).and_return(invalid_response)
+        allow(mock_client).to receive(:create_routine).and_return('{"invalid": "structure"}')
 
-        expect { service.generate_routine }.to raise_error(
-          AiWorkoutRoutineService::InvalidExerciseIdError,
-          /Invalid exercise IDs found in AI response: 999/
+        expect { service.create_routine }.to raise_error(
+          AiWorkoutRoutineService::InvalidResponseError,
+          /AI response must contain 'json' or 'routines' field/
         )
       end
     end
+
 
     context 'when AI client raises errors' do
       it 'converts AiApiClient::TimeoutError to ServiceUnavailableError' do
         mock_client = instance_double(AiApiClient)
         allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine)
+        allow(mock_client).to receive(:create_routine)
           .and_raise(AiApiClient::TimeoutError, 'Timeout')
 
-        expect { service.generate_routine }.to raise_error(
+        expect { service.create_routine }.to raise_error(
           AiWorkoutRoutineService::ServiceUnavailableError,
           /AI service timeout/
         )
@@ -183,10 +153,10 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
       it 'converts AiApiClient::NetworkError to ServiceUnavailableError' do
         mock_client = instance_double(AiApiClient)
         allow(AiApiClient).to receive(:new).and_return(mock_client)
-        allow(mock_client).to receive(:generate_routine)
+        allow(mock_client).to receive(:create_routine)
           .and_raise(AiApiClient::NetworkError, 'Network error')
 
-        expect { service.generate_routine }.to raise_error(
+        expect { service.create_routine }.to raise_error(
           AiWorkoutRoutineService::ServiceUnavailableError,
           /AI service network error/
         )
@@ -194,9 +164,9 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
     end
   end
 
-  describe '#build_prompt' do
+  describe '#create_routine_prompt' do
     it 'includes all user parameters in the prompt' do
-      prompt = service.send(:build_prompt)
+      prompt = service.send(:create_routine_prompt)
 
       expect(prompt).to include('Age: 30')
       expect(prompt).to include('Gender: male')
@@ -204,25 +174,16 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
       expect(prompt).to include('Height: 175cm')
       expect(prompt).to include('Experience level: intermediate')
       expect(prompt).to include('Preferences: No cardio, solo tren superior')
-      expect(prompt).to include('Training frequency: 3 days per week')
-      expect(prompt).to include('Session duration: 45 minutes')
-      expect(prompt).to include('Goal: ganar masa muscular')
+      expect(prompt).to include('Training frequency: 3 sessions per week')
+      expect(prompt).to include('Time per session: 45 minutes')
+      expect(prompt).to include('Training goal: ganar masa muscular')
     end
 
-    it 'includes exercise catalog in the prompt' do
-      prompt = service.send(:build_prompt)
+    it 'includes basic prompt structure' do
+      prompt = service.send(:create_routine_prompt)
 
-      expect(prompt).to include('EXERCISE CATALOG:')
-      expect(prompt).to include('ID: 1, Name: Bench Press')
-      expect(prompt).to include('ID: 2, Name: Dumbbell Curl')
-    end
-
-    it 'includes formatting instructions' do
-      prompt = service.send(:build_prompt)
-
-      expect(prompt).to include('<explicacion>')
-      expect(prompt).to include('<json>')
-      expect(prompt).to include('routine_exercises_attributes')
+      expect(prompt).to include('User fitness data:')
+      expect(prompt).to include('Please generate a personalized workout routine')
     end
   end
 
@@ -255,26 +216,25 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
   # end
 
   describe '#parse_ai_response' do
-    it 'correctly extracts explanation and routine' do
+    it 'correctly extracts routines from JSON response' do
       result = service.send(:parse_ai_response, mock_ai_response)
 
-      expect(result[:explanation]).to include('Esta rutina fue diseñada específicamente')
-      expect(result[:routine]).to be_a(Hash)
-      expect(result[:routine][:days]).to be_an(Array)
+      expect(result).to have_key(:routines)
+      expect(result[:routines]).to be_an(Array)
+      expect(result[:routines].length).to eq(2)
     end
   end
 
   describe '#validate_routine_structure' do
     it 'validates correct routine structure' do
       valid_routine = {
-        days: [
+        routines: [
           {
-            day: 'Monday',
             routine: {
               name: 'Test Routine',
               routine_exercises_attributes: [
                 {
-                  exercise_id: 1,
+                  exercise_id: 900,
                   sets: 3,
                   reps: 10,
                   rest_time: 60,
@@ -289,33 +249,32 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
       expect { service.send(:validate_routine_structure, valid_routine) }.not_to raise_error
     end
 
-    it 'raises error for missing days array' do
+    it 'raises error for missing routines array' do
       invalid_routine = { invalid: 'structure' }
 
       expect { service.send(:validate_routine_structure, invalid_routine) }.to raise_error(
         AiWorkoutRoutineService::InvalidResponseError,
-        /AI response must contain 'days' array/
+        /AI response must contain 'routines' array/
       )
     end
 
-    it 'raises error for invalid day structure' do
+    it 'raises error for invalid routine structure' do
       invalid_routine = {
-        days: [
-          { invalid: 'day' }
+        routines: [
+          { invalid: 'routine' }
         ]
       }
 
       expect { service.send(:validate_routine_structure, invalid_routine) }.to raise_error(
         AiWorkoutRoutineService::InvalidResponseError,
-        /Day 1 has invalid structure/
+        /Routine 1 has invalid structure/
       )
     end
 
     it 'raises error for missing routine exercises' do
       invalid_routine = {
-        days: [
+        routines: [
           {
-            day: 'Monday',
             routine: {
               name: 'Test'
               # Missing routine_exercises_attributes
@@ -326,47 +285,196 @@ RSpec.describe AiWorkoutRoutineService, skip: "AI functionality not finished" do
 
       expect { service.send(:validate_routine_structure, invalid_routine) }.to raise_error(
         AiWorkoutRoutineService::InvalidResponseError,
-        /Day 1 routine missing required fields/
+        /Routine 1 missing required fields/
       )
     end
   end
 
-  describe '#validate_exercise_ids' do
-    it 'passes validation for existing exercise IDs' do
-      valid_routine = {
-        days: [
+
+  # Tests for modify_routine functionality
+  describe '#modify_routine' do
+    let(:modify_service) { described_class.new({}, :modify) }
+    let(:sample_routine) do
+      {
+        name: 'Upper Body Strength',
+        description: 'Focus on chest, shoulders and triceps',
+        difficulty: 'intermediate',
+        duration: 45,
+        routine_exercises_attributes: [
           {
-            routine: {
-              routine_exercises_attributes: [
-                { exercise_id: 1 },
-                { exercise_id: 2 }
-              ]
-            }
+            exercise_id: 900,
+            sets: 4,
+            reps: 10,
+            rest_time: 60,
+            order: 1,
+            needs_modification: true
+          },
+          {
+            exercise_id: 901,
+            sets: 3,
+            reps: 12,
+            rest_time: 45,
+            order: 2,
+            needs_modification: false
           }
         ]
       }
-
-      expect { service.send(:validate_exercise_ids, valid_routine) }.not_to raise_error
     end
 
-    it 'raises error for non-existent exercise IDs' do
-      invalid_routine = {
-        days: [
-          {
+    let(:modification_message) { 'Change the first exercise to a back exercise' }
+
+    let(:mock_modify_ai_response) do
+      {
+        routine: {
+          name: 'Upper Body Strength - Modified',
+          description: 'Modified routine with back exercise',
+          difficulty: 'intermediate',
+          duration: 45,
+          routine_exercises_attributes: [
+            {
+              exercise_id: 125,
+              sets: 4,
+              reps: 10,
+              rest_time: 60,
+              order: 1
+            },
+            {
+              exercise_id: 901,
+              sets: 3,
+              reps: 12,
+              rest_time: 45,
+              order: 2
+            }
+          ]
+        }
+      }.to_json
+    end
+
+    context 'when AI service returns valid response' do
+      it 'returns modified routine in consistent format' do
+        mock_client = instance_double(AiApiClient)
+        allow(AiApiClient).to receive(:new).with(:modify).and_return(mock_client)
+        allow(mock_client).to receive(:create_routine).and_return(mock_modify_ai_response)
+
+        result = modify_service.modify_routine(sample_routine, modification_message)
+
+        expect(result).to have_key(:routines)
+        expect(result[:routines]).to be_an(Array)
+        expect(result[:routines].first).to have_key(:routine)
+        expect(result[:routines].first[:routine][:name]).to eq('Upper Body Strength - Modified')
+      end
+    end
+
+    context 'when AI service is unavailable' do
+      it 'handles network errors' do
+        mock_client = instance_double(AiApiClient)
+        allow(AiApiClient).to receive(:new).with(:modify).and_return(mock_client)
+        allow(mock_client).to receive(:create_routine)
+          .and_raise(AiApiClient::NetworkError, 'Network error')
+
+        expect { modify_service.modify_routine(sample_routine, modification_message) }.to raise_error(
+          AiWorkoutRoutineService::ServiceUnavailableError,
+          /AI service network error/
+        )
+      end
+    end
+  end
+
+  describe '#modify_routine_prompt' do
+    let(:modify_service) { described_class.new({}, :modify) }
+    let(:sample_routine) do
+      {
+        name: 'Test Routine',
+        routine_exercises_attributes: [
+          { exercise_id: 900, sets: 3, needs_modification: true }
+        ]
+      }
+    end
+    let(:message) { 'Change to back exercise' }
+
+    it 'constructs prompt with message and routine JSON' do
+      prompt = modify_service.send(:modify_routine_prompt, sample_routine, message)
+
+      expect(prompt).to include('Change to back exercise')
+      expect(prompt).to include('"name": "Test Routine"')
+      expect(prompt).to include('"exercise_id": 900')
+      expect(prompt).to include('"needs_modification": true')
+    end
+
+    it 'uses pretty JSON format' do
+      prompt = modify_service.send(:modify_routine_prompt, sample_routine, message)
+      
+      # Check for pretty formatting (indentation)
+      expect(prompt).to include("{\n")
+      expect(prompt).to include("  \"name\"")
+    end
+  end
+
+  describe '#parse_modification_response' do
+    let(:modify_service) { described_class.new({}, :modify) }
+
+    context 'with direct routine format' do
+      let(:direct_response) do
+        {
+          routine: {
+            name: 'Modified Routine',
+            routine_exercises_attributes: [
+              { exercise_id: 900, sets: 3, reps: 10 }
+            ]
+          }
+        }.to_json
+      end
+
+      it 'parses direct routine format correctly' do
+        result = modify_service.send(:parse_modification_response, direct_response)
+        
+        expect(result).to have_key(:routine)
+        expect(result[:routine][:name]).to eq('Modified Routine')
+      end
+    end
+
+    context 'with nested json format' do
+      let(:nested_response) do
+        {
+          json: {
             routine: {
+              name: 'Modified Routine',
               routine_exercises_attributes: [
-                { exercise_id: 999 },
-                { exercise_id: 1000 }
+                { exercise_id: 900, sets: 3, reps: 10 }
               ]
             }
           }
-        ]
-      }
+        }.to_json
+      end
 
-      expect { service.send(:validate_exercise_ids, invalid_routine) }.to raise_error(
-        AiWorkoutRoutineService::InvalidExerciseIdError,
-        /Invalid exercise IDs found in AI response: 999, 1000/
-      )
+      it 'parses nested json format correctly' do
+        result = modify_service.send(:parse_modification_response, nested_response)
+        
+        expect(result).to have_key(:routine)
+        expect(result[:routine][:name]).to eq('Modified Routine')
+      end
+    end
+
+    context 'with invalid JSON' do
+      it 'raises InvalidResponseError for malformed JSON' do
+        expect { modify_service.send(:parse_modification_response, 'invalid json') }.to raise_error(
+          AiWorkoutRoutineService::InvalidResponseError,
+          /Invalid JSON in AI response/
+        )
+      end
+    end
+
+    context 'with missing routine field' do
+      let(:missing_routine_response) do
+        { invalid: 'structure' }.to_json
+      end
+
+      it 'raises InvalidResponseError for missing routine' do
+        expect { modify_service.send(:parse_modification_response, missing_routine_response) }.to raise_error(
+          AiWorkoutRoutineService::InvalidResponseError,
+          /AI response must contain 'routine' field/
+        )
+      end
     end
   end
 end

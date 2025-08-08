@@ -1,8 +1,38 @@
 require 'rails_helper'
 
 # AI API client tests
-RSpec.describe AiApiClient, skip: "AI functionality not finished" do
+RSpec.describe AiApiClient do
+  # Mock environment variables for all tests
+  before do
+    allow(ENV).to receive(:[]).with('AI_SERVICE_URL').and_return('https://api.example.com')
+    allow(ENV).to receive(:[]).with('AI_API_KEY').and_return('test-key')
+    allow(ENV).to receive(:[]).with('AI_REQUEST_TIMEOUT').and_return('60')
+    allow(ENV).to receive(:[]).with('AI_MAX_RETRIES').and_return('2')
+  end
+
   let(:client) { described_class.new }
+
+  # Helper to mock complete HTTP response
+  def mock_http_success_response(body)
+    mock_response = instance_double(Net::HTTPResponse)
+    allow(mock_response).to receive(:code).and_return('200')
+    allow(mock_response).to receive(:body).and_return(body)
+    allow(mock_response).to receive(:to_hash).and_return({
+      'content-type' => ['application/json'],
+      'status' => ['200']
+    })
+
+    mock_http = instance_double(Net::HTTP)
+    allow(Net::HTTP).to receive(:new).and_return(mock_http)
+    allow(mock_http).to receive(:read_timeout=)
+    allow(mock_http).to receive(:open_timeout=)
+    allow(mock_http).to receive(:use_ssl=)
+    allow(mock_http).to receive(:verify_mode=)
+    allow(mock_http).to receive(:request).and_return(mock_response)
+    
+    mock_response
+  end
+
   let(:test_prompt) { "Test prompt for AI service" }
   let(:mock_response_body) do
     <<~RESPONSE
@@ -28,22 +58,41 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
     RESPONSE
   end
 
-  describe '#generate_routine' do
+  describe '#create_routine' do
     context 'when API request is successful' do
       it 'returns the response body' do
+        # Mock environment variables
+        allow(ENV).to receive(:[]).with('AI_SERVICE_URL').and_return('https://api.example.com')
+        allow(ENV).to receive(:[]).with('AI_API_KEY').and_return('test-key')
+        allow(ENV).to receive(:[]).with('AI_REQUEST_TIMEOUT').and_return('60')
+        allow(ENV).to receive(:[]).with('AI_MAX_RETRIES').and_return('2')
+
+        # Create client with mocked env vars
+        client = described_class.new
+
         # Mock successful HTTP response
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('200')
         allow(mock_response).to receive(:body).and_return(mock_response_body)
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['200']
+        })
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['200']
+        })
 
         # Mock HTTP client
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        result = client.generate_routine(test_prompt)
+        result = client.create_routine(test_prompt)
 
         expect(result).to eq(mock_response_body)
       end
@@ -52,11 +101,17 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('200')
         allow(mock_response).to receive(:body).and_return(mock_response_body)
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['200']
+        })
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
 
         # Capture the request to verify its structure
         captured_request = nil
@@ -65,7 +120,7 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
           mock_response
         end
 
-        client.generate_routine(test_prompt)
+        client.create_routine(test_prompt)
 
         expect(captured_request).to be_a(Net::HTTP::Post)
         expect(captured_request['Content-Type']).to eq('application/json')
@@ -81,9 +136,11 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_raise(Net::ReadTimeout)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::TimeoutError,
           /AI service request timed out/
         )
@@ -94,9 +151,11 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_raise(Net::OpenTimeout)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::TimeoutError,
           /AI service request timed out/
         )
@@ -107,9 +166,11 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_raise(Timeout::Error)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::TimeoutError,
           /AI service request timed out/
         )
@@ -122,12 +183,14 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_raise(Errno::ECONNREFUSED)
 
         # Mock sleep to speed up test
         allow_any_instance_of(Object).to receive(:sleep)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::NetworkError,
           /Unable to connect to AI service after 3 attempts/
         )
@@ -138,13 +201,15 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_raise(SocketError)
 
         # Track sleep calls to verify exponential backoff
         sleep_calls = []
         allow_any_instance_of(Object).to receive(:sleep) { |_, duration| sleep_calls << duration }
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(AiApiClient::NetworkError)
+        expect { client.create_routine(test_prompt) }.to raise_error(AiApiClient::NetworkError)
         expect(sleep_calls).to eq([ 2, 4 ]) # 2^1, 2^2
       end
     end
@@ -153,15 +218,21 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       it 'raises InvalidResponseError for 400 Bad Request' do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('400')
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['400']
+        })
         allow(mock_response).to receive(:body).and_return('Bad request')
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::InvalidResponseError,
           /AI service rejected the request \(400\)/
         )
@@ -170,14 +241,20 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       it 'raises NetworkError for 404 Not Found' do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('404')
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['404']
+        })
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::NetworkError,
           /AI service endpoint not found \(404\)/
         )
@@ -186,14 +263,20 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       it 'raises ServiceError for 429 Rate Limit' do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('429')
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['429']
+        })
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::ServiceError,
           /AI service rate limit exceeded \(429\)/
         )
@@ -202,14 +285,20 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       it 'raises ServiceError for 500 Internal Server Error' do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('500')
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['500']
+        })
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::ServiceError,
           /AI service internal error \(500\)/
         )
@@ -218,14 +307,20 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       it 'raises InvalidResponseError for unexpected status codes' do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('418') # I'm a teapot
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['418']
+        })
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::InvalidResponseError,
           /AI service returned unexpected status: 418/
         )
@@ -237,14 +332,20 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
         mock_response = instance_double(Net::HTTPResponse)
         allow(mock_response).to receive(:code).and_return('200')
         allow(mock_response).to receive(:body).and_return('')
+        allow(mock_response).to receive(:to_hash).and_return({
+          'content-type' => ['application/json'],
+          'status' => ['200']
+        })
 
         mock_http = instance_double(Net::HTTP)
         allow(Net::HTTP).to receive(:new).and_return(mock_http)
         allow(mock_http).to receive(:read_timeout=)
         allow(mock_http).to receive(:open_timeout=)
+        allow(mock_http).to receive(:use_ssl=)
+        allow(mock_http).to receive(:verify_mode=)
         allow(mock_http).to receive(:request).and_return(mock_response)
 
-        expect { client.generate_routine(test_prompt) }.to raise_error(
+        expect { client.create_routine(test_prompt) }.to raise_error(
           AiApiClient::InvalidResponseError,
           /AI service returned empty response/
         )
@@ -253,33 +354,44 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
   end
 
   describe 'configuration' do
-    it 'uses correct API endpoint pattern' do
-      # The URL is now dynamic based on environment
-      expect(AiApiClient::AI_SERVICE_URL).to match(/http:\/\/.+:3000\/api\/v1\/prediction\/53773a52-4eac-42b8-a5d0-4f9aa5e20529/)
+    it 'configures create agent correctly with environment variables' do
+      allow(ENV).to receive(:[]).with('AI_SERVICE_URL').and_return('https://create.example.com')
+      allow(ENV).to receive(:[]).with('AI_API_KEY').and_return('create-key')
+      allow(ENV).to receive(:[]).with('AI_REQUEST_TIMEOUT').and_return('30')
+      allow(ENV).to receive(:[]).with('AI_MAX_RETRIES').and_return('1')
+
+      client = described_class.new(:create)
+
+      expect(client.instance_variable_get(:@service_url)).to eq('https://create.example.com')
+      expect(client.instance_variable_get(:@api_key)).to eq('create-key')
+      expect(client.instance_variable_get(:@timeout)).to eq(30)
+      expect(client.instance_variable_get(:@max_retries)).to eq(1)
     end
 
-    it 'uses correct timeout settings' do
-      expect(AiApiClient::REQUEST_TIMEOUT).to be >= 60
+    it 'configures modify agent correctly with environment variables' do
+      allow(ENV).to receive(:[]).with('AI_MODIFY_SERVICE_URL').and_return('https://modify.example.com')
+      allow(ENV).to receive(:[]).with('AI_MODIFY_API_KEY').and_return('modify-key')
+      allow(ENV).to receive(:[]).with('AI_MODIFY_REQUEST_TIMEOUT').and_return('45')
+      allow(ENV).to receive(:[]).with('AI_MODIFY_MAX_RETRIES').and_return('3')
+
+      client = described_class.new(:modify)
+
+      expect(client.instance_variable_get(:@service_url)).to eq('https://modify.example.com')
+      expect(client.instance_variable_get(:@api_key)).to eq('modify-key')
+      expect(client.instance_variable_get(:@timeout)).to eq(45)
+      expect(client.instance_variable_get(:@max_retries)).to eq(3)
     end
 
-    it 'uses correct retry settings' do
-      expect(AiApiClient::MAX_RETRIES).to be >= 2
-    end
+    it 'uses default timeout and retry values when env vars not set' do
+      allow(ENV).to receive(:[]).with('AI_SERVICE_URL').and_return('https://example.com')
+      allow(ENV).to receive(:[]).with('AI_API_KEY').and_return('key')
+      allow(ENV).to receive(:[]).with('AI_REQUEST_TIMEOUT').and_return(nil)
+      allow(ENV).to receive(:[]).with('AI_MAX_RETRIES').and_return(nil)
 
-    it 'allows configuration via environment variables' do
-      # Test that environment variables can override defaults
-      ENV['AI_SERVICE_HOST'] = 'custom-host'
-      ENV['AI_SERVICE_PORT'] = '8080'
+      client = described_class.new(:create)
 
-      # Need to reload the constant
-      Object.send(:remove_const, :AiApiClient) if defined?(AiApiClient)
-      load 'app/services/ai_api_client.rb'
-
-      expect(AiApiClient::AI_SERVICE_URL).to include('custom-host:8080')
-
-      # Clean up
-      ENV.delete('AI_SERVICE_HOST')
-      ENV.delete('AI_SERVICE_PORT')
+      expect(client.instance_variable_get(:@timeout)).to eq(60)
+      expect(client.instance_variable_get(:@max_retries)).to eq(2)
     end
   end
 
@@ -302,7 +414,7 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
       expect(Rails.logger).to receive(:info).with(/AI API response status: 200/)
       expect(Rails.logger).to receive(:debug).with(/AI API response body:/)
 
-      client.generate_routine(test_prompt)
+      client.create_routine(test_prompt)
     end
 
     it 'logs errors appropriately' do
@@ -314,7 +426,7 @@ RSpec.describe AiApiClient, skip: "AI functionality not finished" do
 
       expect(Rails.logger).to receive(:error).with(/AI API Timeout/)
 
-      expect { client.generate_routine(test_prompt) }.to raise_error(AiApiClient::TimeoutError)
+      expect { client.create_routine(test_prompt) }.to raise_error(AiApiClient::TimeoutError)
     end
   end
 end

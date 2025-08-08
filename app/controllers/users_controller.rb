@@ -403,6 +403,51 @@ class UsersController < ApplicationController
       end
     end
 
+    # GET /users/privacy-settings - Get current user's privacy settings
+    def privacy_settings
+      settings = current_user.privacy_settings
+      
+      render json: {
+        success: true,
+        data: {
+          show_name: settings.show_name,
+          show_profile_picture: settings.show_profile_picture,
+          show_workout_count: settings.show_workout_count,
+          show_join_date: settings.show_join_date,
+          show_personal_records: settings.show_personal_records,
+          show_favorite_exercises: settings.show_favorite_exercises,
+          is_profile_public: settings.is_profile_public
+        }
+      }, status: :ok
+    end
+
+    # PUT /users/privacy-settings - Update current user's privacy settings
+    def update_privacy_settings
+      settings = current_user.privacy_settings
+      
+      if settings.update(privacy_settings_params)
+        render json: {
+          success: true,
+          message: "Configuración de privacidad actualizada exitosamente",
+          data: {
+            show_name: settings.show_name,
+            show_profile_picture: settings.show_profile_picture,
+            show_workout_count: settings.show_workout_count,
+            show_join_date: settings.show_join_date,
+            show_personal_records: settings.show_personal_records,
+            show_favorite_exercises: settings.show_favorite_exercises,
+            is_profile_public: settings.is_profile_public
+          }
+        }, status: :ok
+      else
+        render json: {
+          success: false,
+          error: "Error al actualizar configuración de privacidad",
+          details: settings.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    end
+
     # DELETE /admin/coaches/:id - Admin only: deactivate/delete coach
     def deactivate_coach
       coach = User.coach.find(params[:id])
@@ -608,6 +653,18 @@ class UsersController < ApplicationController
         :password,
         :password_confirmation,
         :role
+      )
+    end
+
+    def privacy_settings_params
+      params.require(:privacy_settings).permit(
+        :show_name,
+        :show_profile_picture,
+        :show_workout_count,
+        :show_join_date,
+        :show_personal_records,
+        :show_favorite_exercises,
+        :is_profile_public
       )
     end
 end

@@ -27,6 +27,14 @@ Rails.application.routes.draw do
   get "/profile", to: "users#profile"
   post "/users/profile-picture", to: "users#update_profile_picture"
   get "/users/:id/profile-picture", to: "users#get_profile_picture"
+  
+  # Privacy settings routes (authenticated)
+  get "/users/privacy-settings", to: "users#privacy_settings"
+  put "/users/privacy-settings", to: "users#update_privacy_settings"
+  
+  # Public profile routes (no authentication required)
+  get "/users/public-profiles", to: "public_profiles#index"
+  get "/users/:id/public-profile", to: "public_profiles#show"
 
   # Admin routes - Admin only endpoints
   scope :admin do

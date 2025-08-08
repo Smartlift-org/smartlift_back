@@ -15,6 +15,7 @@ class User < ApplicationRecord
     has_many :coaches, through: :user_coaches
 
     has_one :user_stat, dependent: :destroy
+    has_one :user_privacy_setting, dependent: :destroy
     has_many :routines, dependent: :destroy
     has_many :workouts, dependent: :destroy
 
@@ -42,6 +43,74 @@ class User < ApplicationRecord
       else
         profile_picture_url # Fallback to the old URL field
       end
+    end
+
+    # Public profile methods
+    def privacy_settings
+      user_privacy_setting || UserPrivacySetting.create_default_for_user(self)
+    end
+
+    def profile_is_public?
+      privacy_settings.is_profile_public?
+    end
+
+    def completed_workouts_count
+      workouts.joins(:workout_exercises)
+              .where(status: 'completed')
+              .distinct
+              .count
+    end
+
+    def get_favorite_exercises
+      workouts.joins(workout_exercises: :exercise)
+              .where(status: 'completed')
+              .group('exercises.name')
+              .order(Arel.sql('COUNT(*) DESC'))
+              .limit(3)
+              .pluck('exercises.name')
+    end
+
+    def get_recent_personal_records(limit = 3)
+      WorkoutSet.joins(exercise: :workout)
+                .where(workouts: { user_id: id })
+                .where(is_personal_record: true, completed: true)
+                .includes(exercise: [:exercise, :workout])
+                .order(created_at: :desc)
+                .limit(limit)
+    end
+
+    def public_profile_data
+      return nil unless profile_is_public?
+      
+      settings = privacy_settings
+      data = { id: id }
+      
+      data[:name] = "#{first_name} #{last_name}" if settings.show_name?
+      data[:profile_picture_url] = profile_picture_url_with_fallback if settings.show_profile_picture?
+      data[:completed_workouts_count] = completed_workouts_count if settings.show_workout_count?
+      data[:join_date] = created_at.strftime('%B %Y') if settings.show_join_date?
+      data[:favorite_exercises] = get_favorite_exercises if settings.show_favorite_exercises?
+      
+      if settings.show_personal_records?
+        recent_prs = get_recent_personal_records
+        data[:personal_records] = {
+          recent: recent_prs.map do |pr|
+            {
+              exercise_name: pr.exercise.exercise.name,
+              weight: pr.weight,
+              reps: pr.reps,
+              pr_type: pr.pr_type,
+              achieved_at: pr.created_at.strftime('%d/%m/%Y')
+            }
+          end,
+          total_count: WorkoutSet.joins(exercise: :workout)
+                                 .where(workouts: { user_id: id })
+                                 .where(is_personal_record: true)
+                                 .count
+        }
+      end
+      
+      data
     end
 
     private

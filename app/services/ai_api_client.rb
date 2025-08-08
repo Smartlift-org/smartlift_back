@@ -11,28 +11,16 @@ class AiApiClient
 
   # AI service endpoint configuration
 
-  # TheAnswer.ai service configuration - REQUIRES ENVIRONMENT VARIABLES
-  AI_SERVICE_URL = ENV["AI_SERVICE_URL"]
-  AI_API_KEY = ENV["AI_API_KEY"]
-  REQUEST_TIMEOUT = (ENV["AI_REQUEST_TIMEOUT"] || 60).to_i # 60 seconds timeout
-  MAX_RETRIES = (ENV["AI_MAX_RETRIES"] || 2).to_i
-
-  def initialize
-    # Validate environment variables are present
-    if AI_SERVICE_URL.blank?
-      raise ServiceError, "AI_SERVICE_URL environment variable is required but not set"
-    end
-
-    if AI_API_KEY.blank?
-      raise ServiceError, "AI_API_KEY environment variable is required but not set"
-    end
-
-    @uri = URI(AI_SERVICE_URL)
-    Rails.logger.info "AI Service URL configured as: #{AI_SERVICE_URL}"
+  def initialize(agent_type = :create)
+    @agent_type = agent_type
+    configure_agent
+    validate_configuration
+    @uri = URI(@service_url)
+    Rails.logger.info "AI Service URL configured as: #{@service_url} for agent: #{@agent_type}"
   end
 
   # Send prompt to AI service and return the response
-  def generate_routine(prompt)
+  def create_routine(prompt)
     retries = 0
 
     begin
@@ -48,13 +36,13 @@ class AiApiClient
       Rails.logger.error "AI API Network Error: #{e.message}"
 
       retries += 1
-      if retries <= MAX_RETRIES
-        Rails.logger.info "Retrying AI API request (attempt #{retries + 1}/#{MAX_RETRIES + 1})"
+      if retries <= @max_retries
+        Rails.logger.info "Retrying AI API request (attempt #{retries + 1}/#{@max_retries + 1})"
         sleep(2 ** retries) # Exponential backoff: 2s, 4s
         retry
       end
 
-      raise NetworkError, "Unable to connect to AI service after #{MAX_RETRIES + 1} attempts"
+      raise NetworkError, "Unable to connect to AI service after #{@max_retries + 1} attempts"
 
     rescue JSON::ParserError => e
       Rails.logger.error "AI API JSON Parse Error: #{e.message}"
@@ -68,10 +56,37 @@ class AiApiClient
 
   private
 
+  def configure_agent
+    case @agent_type
+    when :create
+      @service_url = ENV["AI_SERVICE_URL"]
+      @api_key = ENV["AI_API_KEY"]
+      @timeout = (ENV["AI_REQUEST_TIMEOUT"] || 60).to_i
+      @max_retries = (ENV["AI_MAX_RETRIES"] || 2).to_i
+    when :modify
+      @service_url = ENV["AI_MODIFY_SERVICE_URL"]
+      @api_key = ENV["AI_MODIFY_API_KEY"]
+      @timeout = (ENV["AI_MODIFY_REQUEST_TIMEOUT"] || 60).to_i
+      @max_retries = (ENV["AI_MODIFY_MAX_RETRIES"] || 2).to_i
+    else
+      raise ServiceError, "Unknown agent_type: #{@agent_type}. Use :create or :modify"
+    end
+  end
+
+  def validate_configuration
+    if @service_url.blank?
+      raise ServiceError, "AI service URL for #{@agent_type} agent is required but not set"
+    end
+
+    if @api_key.blank?
+      raise ServiceError, "AI API key for #{@agent_type} agent is required but not set"
+    end
+  end
+
   def make_request(prompt)
     http = Net::HTTP.new(@uri.host, @uri.port)
-    http.read_timeout = REQUEST_TIMEOUT
-    http.open_timeout = REQUEST_TIMEOUT
+    http.read_timeout = @timeout
+    http.open_timeout = @timeout
 
     # Configure SSL for HTTPS URLs
     if @uri.scheme == "https"
@@ -85,9 +100,9 @@ class AiApiClient
     request["Accept"] = "application/json"
     request["User-Agent"] = "Ruby/Rails SmartLift API Client"
 
-    # Add Authorization header for TheAnswer.ai
-    if AI_API_KEY.present?
-      request["Authorization"] = "Bearer #{AI_API_KEY}"
+    # Add Authorization header
+    if @api_key.present?
+      request["Authorization"] = "Bearer #{@api_key}"
     end
 
     # Set the request body
@@ -102,8 +117,8 @@ class AiApiClient
     response = http.request(request)
 
     Rails.logger.info "AI API response status: #{response.code}"
-    Rails.logger.info "AI API response headers: #{response.to_hash}"
-    Rails.logger.error "AI API response body: #{response.body}" # Always log for debugging
+    Rails.logger.debug "AI API response headers: #{response.to_hash}" if Rails.env.development?
+    Rails.logger.debug "AI API response body: #{response.body}" if Rails.env.development?
 
     response
   end

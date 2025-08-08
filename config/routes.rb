@@ -106,7 +106,11 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # AI-powered workout routine generation
-      resources :ai_workout_routines, only: [ :create ], path: "ai/workout_routines"
+      resources :ai_workout_routines, only: [ :create ], path: "ai/workout_routines" do
+        collection do
+          post :modify
+        end
+      end
 
       # Routine Validations (Trainer only)
       resources :routine_validations, only: [ :index, :show ] do

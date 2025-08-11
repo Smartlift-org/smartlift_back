@@ -198,7 +198,7 @@ class Api::V1::RoutineValidationsController < ApplicationController
   end
 
   def ensure_trainer
-    unless current_user&.role == "trainer"
+    unless current_user&.role == "coach"
       render json: {
         success: false,
         error: "Acceso denegado. Solo los entrenadores pueden validar rutinas."

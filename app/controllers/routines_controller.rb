@@ -59,6 +59,13 @@ class RoutinesController < ApplicationController
       :description,
       :difficulty,
       :duration,
+      # AI validation fields
+      :source_type,
+      :validation_status,
+      :ai_generated,
+      :validated_by_id,
+      :validation_notes,
+      :ai_prompt_data,
       routine_exercises_attributes: [
         :id,
         :exercise_id,

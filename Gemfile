@@ -44,6 +44,7 @@ gem "rack-cors"
 gem "jwt"
 gem "active_model_serializers", "~> 0.10.12"
 gem "whenever", require: false
+gem "httparty"
 
 # Rate limiting and security
 gem "rack-attack"

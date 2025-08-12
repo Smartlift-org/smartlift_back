@@ -19,6 +19,11 @@ class User < ApplicationRecord
     has_many :routines, dependent: :destroy
     has_many :workouts, dependent: :destroy
 
+    # Chat relationships
+    has_many :sent_messages, class_name: 'Message', foreign_key: 'sender_id', dependent: :destroy
+    has_many :conversations_as_user, class_name: 'Conversation', foreign_key: 'user_id', dependent: :destroy
+    has_many :conversations_as_coach, class_name: 'Conversation', foreign_key: 'coach_id', dependent: :destroy
+
     # Activity tracking scopes
     scope :inactive_since, ->(days) {
       where("last_activity_at < ? OR last_activity_at IS NULL", days.days.ago)
@@ -111,6 +116,48 @@ class User < ApplicationRecord
       end
       
       data
+    end
+
+    # Chat methods
+    def conversations
+      case role
+      when 'user'
+        conversations_as_user
+      when 'coach'
+        conversations_as_coach
+      else
+        Conversation.none
+      end
+    end
+    
+    def conversation_with(other_user)
+      return nil unless other_user
+      
+      if role == 'user' && other_user.coach?
+        conversations_as_user.find_by(coach: other_user)
+      elsif role == 'coach' && other_user.user?
+        conversations_as_coach.find_by(user: other_user)
+      end
+    end
+    
+    def can_chat_with?(other_user)
+      return false unless other_user
+      
+      if role == 'user' && other_user.coach?
+        # Usuario puede chatear con su entrenador asignado
+        coaches.include?(other_user)
+      elsif role == 'coach' && other_user.user?
+        # Entrenador puede chatear con sus usuarios asignados
+        users.include?(other_user)
+      else
+        false
+      end
+    end
+    
+    def unread_messages_count
+      conversations.joins(:messages)
+                  .where(messages: { sender_id: conversations.select(:user_id, :coach_id).where.not(sender_id: id), read_at: nil })
+                  .count
     end
 
     private

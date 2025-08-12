@@ -36,6 +36,23 @@ Rails.application.routes.draw do
   get "/users/public-profiles", to: "public_profiles#index"
   get "/users/:id/public-profile", to: "public_profiles#show"
 
+  # Chat routes (authenticated users only)
+  resources :conversations, only: [:index, :show, :create] do
+    member do
+      patch :mark_as_read
+    end
+    resources :messages, only: [:create] do
+      member do
+        patch :mark_as_read
+      end
+    end
+  end
+  
+  # Push notification token management
+  patch "/push-token", to: "push_tokens#update"
+  delete "/push-token", to: "push_tokens#destroy"
+  patch "/push-notifications/toggle", to: "push_tokens#toggle_notifications"
+
   # Admin routes - Admin only endpoints
   scope :admin do
     get "/coaches", to: "users#index_coaches"
@@ -154,4 +171,7 @@ Rails.application.routes.draw do
       end
     end
   end
+  
+  # Action Cable WebSocket endpoint
+  mount ActionCable.server => '/cable'
 end

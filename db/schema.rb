@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_05_041711) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_12_200600) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -52,6 +52,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_041711) do
     t.index ["user_id"], name: "index_coach_users_on_user_id"
   end
 
+  create_table "conversations", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "coach_id", null: false
+    t.string "status", default: "active"
+    t.datetime "last_message_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["coach_id"], name: "index_conversations_on_coach_id"
+    t.index ["last_message_at"], name: "index_conversations_on_last_message_at"
+    t.index ["user_id", "coach_id"], name: "index_conversations_on_user_id_and_coach_id", unique: true
+    t.index ["user_id"], name: "index_conversations_on_user_id"
+  end
+
   create_table "exercises", force: :cascade do |t|
     t.string "name"
     t.text "instructions"
@@ -62,6 +75,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_041711) do
     t.datetime "updated_at", null: false
     t.index ["images"], name: "index_exercises_on_images", using: :gin
     t.index ["level"], name: "index_exercises_on_level"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.bigint "conversation_id", null: false
+    t.bigint "sender_id", null: false
+    t.text "content", null: false
+    t.string "message_type", default: "text"
+    t.datetime "read_at"
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id", "created_at"], name: "index_messages_on_conversation_id_and_created_at"
+    t.index ["conversation_id"], name: "index_messages_on_conversation_id"
+    t.index ["sender_id", "created_at"], name: "index_messages_on_sender_id_and_created_at"
+    t.index ["sender_id"], name: "index_messages_on_sender_id"
   end
 
   create_table "routine_exercises", force: :cascade do |t|
@@ -105,6 +133,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_041711) do
     t.index ["validation_status"], name: "index_routines_on_validation_status"
   end
 
+  create_table "user_privacy_settings", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.boolean "show_name", default: true, null: false
+    t.boolean "show_profile_picture", default: true, null: false
+    t.boolean "show_workout_count", default: true, null: false
+    t.boolean "show_join_date", default: false, null: false
+    t.boolean "show_personal_records", default: false, null: false
+    t.boolean "show_favorite_exercises", default: false, null: false
+    t.boolean "is_profile_public", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_profile_public"], name: "index_user_privacy_settings_on_is_profile_public"
+    t.index ["user_id"], name: "index_user_privacy_settings_on_user_id", unique: true
+  end
+
   create_table "user_stats", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.decimal "height", precision: 5, scale: 2
@@ -134,6 +177,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_041711) do
     t.datetime "password_reset_sent_at"
     t.string "profile_picture_url"
     t.datetime "last_activity_at"
+    t.string "expo_push_token"
+    t.boolean "push_notifications_enabled", default: true
+    t.index ["expo_push_token"], name: "index_users_on_expo_push_token"
     t.index ["last_activity_at"], name: "index_users_on_last_activity_at"
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
   end
@@ -223,10 +269,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_041711) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "coach_users", "users"
   add_foreign_key "coach_users", "users", column: "coach_id"
+  add_foreign_key "conversations", "users"
+  add_foreign_key "conversations", "users", column: "coach_id"
+  add_foreign_key "messages", "conversations"
+  add_foreign_key "messages", "users", column: "sender_id"
   add_foreign_key "routine_exercises", "exercises"
   add_foreign_key "routine_exercises", "routines"
   add_foreign_key "routines", "users"
   add_foreign_key "routines", "users", column: "validated_by_id"
+  add_foreign_key "user_privacy_settings", "users"
   add_foreign_key "user_stats", "users"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "routine_exercises"

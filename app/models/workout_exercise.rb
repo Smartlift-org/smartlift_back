@@ -49,9 +49,8 @@ class WorkoutExercise < ApplicationRecord
   end
 
   def average_rpe
-    completed = sets.completed
-    return nil if completed.empty?
-    completed.average(:rpe)
+    # RPE functionality removed during optimization
+    nil
   end
 
   def completed_as_prescribed?

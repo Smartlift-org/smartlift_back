@@ -190,7 +190,7 @@ class Workout < ApplicationRecord
     self.total_volume = exercises.sum(&:total_volume)
     self.total_sets_completed = exercises.sum(&:completed_sets_count)
     self.total_exercises_completed = exercises.count(&:completed?)
-    self.average_rpe = exercises.map(&:average_rpe).compact.sum / [ exercises.count, 1 ].max
+    self.average_rpe = 0  # RPE functionality removed during optimization
   end
 
   def check_personal_records!

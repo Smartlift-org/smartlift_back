@@ -38,7 +38,8 @@ class WorkoutSerializer < ActiveModel::Serializer
   end
 
   def average_rpe
-    object.average_rpe || 0
+    # RPE functionality removed during optimization
+    0
   end
 
   def display_name

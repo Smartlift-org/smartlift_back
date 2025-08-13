@@ -131,36 +131,14 @@ class UserStatsService
 
   # Analytics calculation methods
   def calculate_intensity_distribution
-    return {} unless has_workout_data?
-
-    recent_sets = get_recent_workout_sets(30.days.ago)
-
-    distribution = {
-      light: 0,      # RPE 1-3
-      moderate: 0,   # RPE 4-6
-      heavy: 0,      # RPE 7-8
-      maximal: 0     # RPE 9-10
+    # RPE functionality removed during optimization
+    # Return empty distribution as RPE data is no longer available
+    {
+      light: 0,      # RPE 1-3 (no longer tracked)
+      moderate: 0,   # RPE 4-6 (no longer tracked)
+      heavy: 0,      # RPE 7-8 (no longer tracked)
+      maximal: 0     # RPE 9-10 (no longer tracked)
     }
-
-    recent_sets.each do |set|
-      next unless set.rpe
-
-      case set.rpe
-      when 1..3
-        distribution[:light] += 1
-      when 4..6
-        distribution[:moderate] += 1
-      when 7..8
-        distribution[:heavy] += 1
-      when 9..10
-        distribution[:maximal] += 1
-      end
-    end
-
-    total = distribution.values.sum
-    return distribution if total == 0
-
-    distribution.transform_values { |count| ((count.to_f / total) * 100).round(1) }
   end
 
   def calculate_volume_trends

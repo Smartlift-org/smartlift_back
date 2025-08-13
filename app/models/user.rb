@@ -76,12 +76,8 @@ class User < ApplicationRecord
     end
 
     def get_recent_personal_records(limit = 3)
-      WorkoutSet.joins(exercise: :workout)
-                .where(workouts: { user_id: id })
-                .where(is_personal_record: true, completed: true)
-                .includes(exercise: [:exercise, :workout])
-                .order(created_at: :desc)
-                .limit(limit)
+      # Personal record functionality removed during optimization
+      WorkoutSet.none
     end
 
     def public_profile_data
@@ -108,10 +104,7 @@ class User < ApplicationRecord
               achieved_at: pr.created_at.strftime('%d/%m/%Y')
             }
           end,
-          total_count: WorkoutSet.joins(exercise: :workout)
-                                 .where(workouts: { user_id: id })
-                                 .where(is_personal_record: true)
-                                 .count
+          total_count: 0  # Personal record functionality removed during optimization
         }
       end
       

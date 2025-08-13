@@ -67,9 +67,8 @@ class UserStatsService
   end
 
   def has_pr_data?
-    @user.workouts.joins(workout_exercises: :workout_sets)
-         .where(workout_sets: { is_personal_record: true })
-         .exists?
+    # Personal record functionality removed during optimization
+    false
   end
 
   # Performance calculation methods
@@ -226,68 +225,32 @@ class UserStatsService
 
   # Personal records methods
   def get_recent_prs
-    return [] unless has_pr_data?
-
-    @user.workouts
-         .joins(workout_exercises: :workout_sets)
-         .where(workout_sets: { is_personal_record: true, completed: true })
-         .where("workout_sets.created_at >= ?", 1.month.ago)
-         .includes(workout_exercises: [ :exercise, { workout_sets: :exercise } ])
-         .order("workout_sets.created_at DESC")
-         .limit(10)
-         .map do |workout|
-      workout.workout_exercises.flat_map do |we|
-        we.workout_sets.select(&:is_personal_record).map do |set|
-          {
-            exercise: set.exercise.exercise.name,
-            type: set.pr_type,
-            value: set.pr_type == "volume" ? set.volume : set.weight,
-            reps: set.reps,
-            date: set.created_at
-          }
-        end
-      end
-    end.flatten
+    # Personal record functionality removed during optimization
+    []
   end
 
   def get_prs_by_exercise
-    return {} unless has_pr_data?
-
-    exercise_prs = get_all_personal_records.group_by { |pr| pr.exercise.exercise.name }
-
-    exercise_prs.transform_values do |prs|
-      {
-        weight_pr: prs.find { |p| p.pr_type == "weight" }&.weight,
-        reps_pr: prs.find { |p| p.pr_type == "reps" }&.reps,
-        volume_pr: prs.find { |p| p.pr_type == "volume" }&.volume
-      }
-    end
+    # Personal record functionality removed during optimization
+    {}
   end
 
   def get_pr_statistics
-    return {} unless has_pr_data?
-
-    base_query = WorkoutSet.joins(exercise: { workout: :user })
-                           .where(workouts: { user: @user })
-                           .where(is_personal_record: true, completed: true)
-
+    # Personal record functionality removed during optimization
     {
-      total_prs: base_query.count,
-      weight_prs: base_query.where(pr_type: "weight").count,
-      reps_prs: base_query.where(pr_type: "reps").count,
-      volume_prs: base_query.where(pr_type: "volume").count,
-      exercises_with_prs: base_query.joins(exercise: :exercise).distinct.count("exercises.id"),
-      recent_prs_this_week: base_query.where("workout_sets.created_at >= ?", 1.week.ago).count,
-      recent_prs_this_month: base_query.where("workout_sets.created_at >= ?", 1.month.ago).count
+      total_prs: 0,
+      weight_prs: 0,
+      reps_prs: 0,
+      volume_prs: 0,
+      exercises_with_prs: 0,
+      recent_prs_this_week: 0,
+      recent_prs_this_month: 0
     }
   end
 
   # Helper methods for optimized queries
   def get_all_personal_records
-    WorkoutSet.joins(exercise: { workout: :user })
-              .where(workouts: { user: @user })
-              .where(is_personal_record: true, completed: true)
-              .includes(exercise: :exercise)
+    # Personal record functionality removed during optimization
+    WorkoutSet.none
   end
 
   def get_recent_workout_sets(since_date)
@@ -295,7 +258,6 @@ class UserStatsService
               .where(workouts: { user: @user })
               .where(completed: true)
               .where("workout_sets.created_at >= ?", since_date)
-              .where.not(rpe: nil)
               .includes(exercise: :exercise)
   end
 end

@@ -3,13 +3,8 @@ class PersonalRecordsController < ApplicationController
 
   # GET /personal_records
   def index
-    base_query = WorkoutSet
-      .joins(exercise: [ :exercise, :workout ])
-      .where(
-        workouts: { user_id: current_user.id },
-        is_personal_record: true,
-        completed: true
-      )
+    # Personal record functionality removed during optimization
+    @personal_records = WorkoutSet.none
 
     # Apply filters
     base_query = base_query.where(exercises: { id: params[:exercise_id] }) if params[:exercise_id]

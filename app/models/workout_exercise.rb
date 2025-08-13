@@ -96,7 +96,7 @@ class WorkoutExercise < ApplicationRecord
   end
 
   # Record a new set for this exercise
-  def record_set(weight:, reps:, rpe: nil, set_type: "normal", drop_set_weight: nil, drop_set_reps: nil)
+  def record_set(weight:, reps:, set_type: "normal")
     # Validate workout is still active
     unless workout.active?
       raise ActiveRecord::RecordInvalid.new(self).tap do |error|
@@ -107,10 +107,7 @@ class WorkoutExercise < ApplicationRecord
     sets.create!(
       weight: weight,
       reps: reps,
-      rpe: rpe,
       set_type: set_type || "normal",
-      drop_set_weight: drop_set_weight,
-      drop_set_reps: drop_set_reps,
       completed: true,
       completed_at: Time.current
     )

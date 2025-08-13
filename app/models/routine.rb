@@ -106,11 +106,12 @@ class Routine < ApplicationRecord
   end
 
   def validate_routine!(trainer, notes = nil)
-    update!(
+    update_columns(
       validation_status: "approved",
-      validated_by: trainer,
+      validated_by_id: trainer.id,
       validated_at: Time.current,
-      validation_notes: notes
+      validation_notes: notes,
+      updated_at: Time.current
     )
   end
 

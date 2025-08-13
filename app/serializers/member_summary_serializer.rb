@@ -143,11 +143,8 @@ class MemberSummarySerializer
   end
 
   def count_personal_records
-    # Count distinct personal records from workout sets
-    @user.workouts
-         .joins(workout_exercises: :workout_sets)
-         .where(workout_sets: { is_personal_record: true })
-         .count
+    # Personal record functionality removed during optimization
+    0
   end
 
   def get_favorite_exercises

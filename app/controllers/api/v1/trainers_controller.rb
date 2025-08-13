@@ -508,11 +508,7 @@ class Api::V1::TrainersController < ApplicationController
       month_start = i.months.ago.beginning_of_month
       month_end = i.months.ago.end_of_month
 
-      pr_count = Workout.joins(:user, workout_exercises: :workout_sets)
-                       .where(user: members)
-                       .where(workouts: { created_at: month_start..month_end })
-                       .where(workout_sets: { is_personal_record: true })
-                       .count
+      pr_count = 0  # Personal record functionality removed during optimization
 
       pr_trend << {
         month: month_start.strftime("%Y-%m"),
@@ -595,13 +591,7 @@ class Api::V1::TrainersController < ApplicationController
                                .limit(5)
                                .includes(:user_stat)
 
-    pr_leaders = members.joins(workouts: { workout_exercises: :workout_sets })
-                       .where(workout_sets: { is_personal_record: true })
-                       .where(workouts: { created_at: 90.days.ago.. })
-                       .group("users.id")
-                       .order(Arel.sql("COUNT(workout_sets.id) DESC"))
-                       .limit(5)
-                       .includes(:user_stat)
+    pr_leaders = User.none  # Personal record functionality removed during optimization
 
     {
       consistency_leaders: consistency_leaders.map { |member| top_performer_info(member) },
@@ -663,10 +653,7 @@ class Api::V1::TrainersController < ApplicationController
                                .where.not(workout_rating: nil)
                                .average(:workout_rating)
 
-    total_personal_records = Workout.joins(:user, workout_exercises: :workout_sets)
-                                   .where(user: members)
-                                   .where(workout_sets: { is_personal_record: true })
-                                   .count
+    total_personal_records = 0  # Personal record functionality removed during optimization
 
     {
       total_volume_lifted: total_volume || 0,
@@ -689,11 +676,7 @@ class Api::V1::TrainersController < ApplicationController
 
   def top_performer_info(member)
     workouts_30_days = member.workouts.where(created_at: 30.days.ago..).count
-    recent_prs = member.workouts
-                      .joins(workout_exercises: :workout_sets)
-                      .where(workout_sets: { is_personal_record: true })
-                      .where(created_at: 90.days.ago..)
-                      .count
+    recent_prs = 0  # Personal record functionality removed during optimization
 
     {
       id: member.id,

@@ -1,9 +1,9 @@
 class Workout::SetsController < Workout::BaseController
   before_action :set_workout
   before_action :set_workout_exercise
-  before_action :set_workout_set, only: [ :show, :update, :destroy, :complete, :start, :mark_as_completed ]
-  before_action :ensure_workout_active, only: [ :create, :update, :complete, :start ]
-  before_action :ensure_set_not_completed, only: [ :update, :start ]
+  before_action :set_workout_set, only: [ :show, :update, :destroy, :complete, :mark_as_completed ]
+  before_action :ensure_workout_active, only: [ :create, :update, :complete ]
+  before_action :ensure_set_not_completed, only: [ :update ]
 
   # POST /workout/exercises/:exercise_id/sets
   def create
@@ -98,19 +98,7 @@ class Workout::SetsController < Workout::BaseController
     end
   end
 
-  # PUT /workout/exercises/:exercise_id/sets/:id/start
-  def start
-    if @workout_set.started_at.present?
-      render json: { error: "Set has already been started" }, status: :bad_request
-      return
-    end
 
-    if @workout_set.start!
-      render json: @workout_set
-    else
-      render json: @workout_set.errors, status: :unprocessable_entity
-    end
-  end
 
   private
 
@@ -151,22 +139,17 @@ class Workout::SetsController < Workout::BaseController
       :set_number,
       :set_type,
       :weight,
-      :reps,
-      :rpe,
-      :rest_time_seconds,
-      :notes,
-      :drop_set_weight,
-      :drop_set_reps
+      :reps
     )
   end
 
   def completion_set_params
     # Support both nested and direct parameter formats for backward compatibility
     if params[:set].present?
-      params.require(:set).permit(:weight, :reps, :actual_weight, :actual_reps, :rpe, :drop_set_weight, :drop_set_reps)
+      params.require(:set).permit(:weight, :reps, :actual_weight, :actual_reps)
     else
       # Fallback to direct params for backward compatibility
-      params.permit(:weight, :reps, :actual_weight, :actual_reps, :rpe, :drop_set_weight, :drop_set_reps)
+      params.permit(:weight, :reps, :actual_weight, :actual_reps)
     end
   end
 end

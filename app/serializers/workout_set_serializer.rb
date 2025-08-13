@@ -5,16 +5,8 @@ class WorkoutSetSerializer < ActiveModel::Serializer
              :set_type,
              :weight,
              :reps,
-             :rpe,
-             :rest_time_seconds,
              :completed,
-             :started_at,
              :completed_at,
-             :notes,
-             :drop_set_weight,
-             :drop_set_reps,
-             :is_personal_record,
-             :pr_type,
              :created_at,
              :updated_at
 
@@ -23,9 +15,5 @@ class WorkoutSetSerializer < ActiveModel::Serializer
     object.volume
   end
 
-  def duration
-    object.duration
-  end
-
-  attributes :volume, :duration
+  attributes :volume
 end

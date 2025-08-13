@@ -5,10 +5,7 @@ FactoryBot.define do
     set_type { 'normal' }
     weight { 50.0 }
     reps { 10 }
-    rpe { 7.0 }
-    rest_time_seconds { 90 }
     completed { false }
-    notes { 'Test set notes' }
 
     trait :warm_up do
       set_type { 'warm_up' }
@@ -22,12 +19,11 @@ FactoryBot.define do
 
     trait :failure do
       set_type { 'failure' }
-      rpe { 10 }
     end
 
-    trait :drop_set do
-      set_type { 'drop_set' }
-      drop_set_weight { 40.0 }
+    trait :completed do
+      completed { true }
+      completed_at { Time.current }
       drop_set_reps { 8 }
     end
 

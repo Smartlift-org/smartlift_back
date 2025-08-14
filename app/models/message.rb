@@ -53,8 +53,8 @@ class Message < ApplicationRecord
   end
   
   def broadcast_message
-    ActionCable.server.broadcast(
-      "conversation_#{conversation.id}",
+    ChatChannel.broadcast_to(
+      conversation,
       {
         type: 'new_message',
         message: MessageSerializer.new(self).as_json

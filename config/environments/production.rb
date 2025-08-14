@@ -88,6 +88,29 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
+  # Action Cable (WebSockets) configuration for production
+  # URL where clients connect (must be wss in production)
+  config.action_cable.url = ENV["ACTION_CABLE_URL"]
+
+  # Allowed request origins (frontend origins that can open WS). Set comma-separated in env FRONTEND_ORIGINS
+  # Example: https://app.example.com,https://staging.example.com,exp://*,http://localhost:19006
+  if ENV["FRONTEND_ORIGINS"].present?
+    origins = ENV["FRONTEND_ORIGINS"].split(/\s*,\s*/)
+    config.action_cable.allowed_request_origins = origins
+  else
+    # Fallback to app host if provided
+    app_host = ENV["APP_HOST"]
+    if app_host.present?
+      config.action_cable.allowed_request_origins = [
+        /https?:\/\/#{Regexp.escape(app_host)}/
+      ]
+    end
+  end
+
+  # If your clients connect cross-origin and you don't use session cookies, you may disable forgery protection
+  # since we're authenticating via JWT in the query params.
+  config.action_cable.disable_request_forgery_protection = true
+
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com

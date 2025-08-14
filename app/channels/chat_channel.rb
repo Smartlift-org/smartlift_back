@@ -3,7 +3,7 @@ class ChatChannel < ApplicationCable::Channel
     conversation = find_conversation
     return reject unless conversation
     
-    stream_from "conversation_#{conversation.id}"
+    stream_for conversation
     Rails.logger.info "User #{current_user.id} subscribed to conversation #{conversation.id}"
   end
   
@@ -15,8 +15,8 @@ class ChatChannel < ApplicationCable::Channel
     conversation = find_conversation
     return unless conversation
     
-    ActionCable.server.broadcast(
-      "conversation_#{conversation.id}",
+    ChatChannel.broadcast_to(
+      conversation,
       {
         type: 'typing',
         user: UserBasicSerializer.new(current_user).as_json,
@@ -29,8 +29,8 @@ class ChatChannel < ApplicationCable::Channel
     conversation = find_conversation
     return unless conversation
     
-    ActionCable.server.broadcast(
-      "conversation_#{conversation.id}",
+    ChatChannel.broadcast_to(
+      conversation,
       {
         type: 'stop_typing',
         user: UserBasicSerializer.new(current_user).as_json,

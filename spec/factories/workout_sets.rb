@@ -24,22 +24,11 @@ FactoryBot.define do
     trait :completed do
       completed { true }
       completed_at { Time.current }
-      drop_set_reps { 8 }
-    end
-
-    trait :completed do
-      completed { true }
-      completed_at { Time.current }
-      started_at { 2.minutes.ago }
     end
 
     trait :in_progress do
       completed { false }
-      started_at { 1.minute.ago }
     end
-
-    # Personal records traits removed - functionality simplified
-    # Use completed trait for basic completed sets
 
     trait :heavy_weight do
       weight { 100.0 }
@@ -60,33 +49,33 @@ FactoryBot.define do
       completed_at { Time.current }
     end
 
-    # Personal records traits
+    # Personal records traits - simplified to match current schema
     trait :personal_record do
-      is_personal_record { true }
-      pr_type { 'weight' }
       completed { true }
       completed_at { Time.current }
+      weight { 100.0 }
+      reps { 5 }
     end
 
     trait :weight_pr do
-      is_personal_record { true }
-      pr_type { 'weight' }
       completed { true }
       completed_at { Time.current }
+      weight { 100.0 }
+      reps { 5 }
     end
 
     trait :reps_pr do
-      is_personal_record { true }
-      pr_type { 'reps' }
       completed { true }
       completed_at { Time.current }
+      weight { 80.0 }
+      reps { 15 }
     end
 
     trait :volume_pr do
-      is_personal_record { true }
-      pr_type { 'volume' }
       completed { true }
       completed_at { Time.current }
+      weight { 90.0 }
+      reps { 12 }
     end
   end
 end

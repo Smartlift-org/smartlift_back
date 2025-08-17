@@ -17,7 +17,7 @@ Rails::Controller::Testing.install
 # run as spec files by default. This means that files in spec/support that end
 # in _spec.rb will both be required and run as specs, causing the specs to be
 # run twice. It is recommended that you do not name files matching this glob to
-# end with _spec.rb. You can configure this pattern with the --pattern
+# end in _spec.rb. You can configure this pattern with the --pattern
 # option on the command line or in ~/.rspec, .rspec or `.rspec-local`.
 #
 # The following line is provided for convenience purposes. It has the downside
@@ -53,7 +53,7 @@ RSpec.configure do |config|
   # for example enabling you to call `get` and `post` in request specs. e.g.:
   #
   #     RSpec.describe UsersController, type: :request do
-  #       # ...
+  #     # ...
   #     end
   #
   # The different available types are documented in the features, such as in
@@ -86,6 +86,12 @@ RSpec.configure do |config|
   # Clear cache between tests to avoid rate limiting issues
   config.before(:each) do
     Rails.cache.clear
+  end
+
+  # Ensure clean test data
+  config.before(:each) do
+    # Clear exercises to avoid ID conflicts
+    Exercise.delete_all if defined?(Exercise)
   end
 end
 

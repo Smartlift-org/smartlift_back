@@ -1,7 +1,7 @@
 class ExercisesController < ApplicationController
   # Authentication required for all operations for security
   before_action :set_exercise, only: [ :show, :update, :destroy ]
-  before_action :ensure_coach_or_admin, only: [ :create, :update, :destroy ]
+  before_action :ensure_coach_or_admin, only: [ :create, :update, :destroy, :update_video_url ]
 
   # GET /exercises
   def index
@@ -49,6 +49,25 @@ class ExercisesController < ApplicationController
     head :no_content
   end
 
+  # PUT /exercises/:id/video_url
+  def update_video_url
+    @exercise = Exercise.find(params[:id])
+    
+    if @exercise.update(video_url: params[:video_url])
+      render json: {
+        message: "Video URL updated successfully",
+        exercise: @exercise.as_json(methods: [:difficulty_level])
+      }, status: :ok
+    else
+      render json: { 
+        error: "Failed to update video URL",
+        details: @exercise.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Exercise not found" }, status: :not_found
+  end
+
   private
 
   def set_exercise
@@ -62,6 +81,7 @@ class ExercisesController < ApplicationController
       :name,
       :level,
       :instructions,
+      :video_url,
       primary_muscles: [],
       images: []
     )

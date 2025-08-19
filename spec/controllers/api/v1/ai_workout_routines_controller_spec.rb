@@ -232,70 +232,52 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller do
   describe 'POST #modify' do
     let(:valid_modify_params) do
       {
-        routine: {
-          name: 'Upper Body Strength',
-          description: 'Focus on chest, shoulders and triceps',
-          difficulty: 'intermediate',
-          duration: 45,
-          routine_exercises_attributes: [
-            {
-              exercise_id: 900,
-              sets: 4,
-              reps: 10,
-              rest_time: 60,
-              order: 1,
-              needs_modification: true
-            },
-            {
-              exercise_id: 901,
-              sets: 3,
-              reps: 12,
-              rest_time: 45,
-              order: 2,
-              needs_modification: false
-            }
-          ]
-        },
-        modification_message: 'Change the first exercise to a back exercise'
+        user_message: 'Change the first exercise to a back exercise',
+        exercises: [
+          {
+            exercise_id: 900,
+            sets: 4,
+            reps: 10,
+            rest_time: 60,
+            order: 1
+          },
+          {
+            exercise_id: 901,
+            sets: 3,
+            reps: 12,
+            rest_time: 45,
+            order: 2
+          }
+        ]
       }
     end
 
     let(:mock_modify_response) do
       {
-        routines: [
+        exercises: [
           {
-            routine: {
-              name: 'Upper Body Strength - Modified',
-              description: 'Modified routine with back exercise',
-              difficulty: 'intermediate',
-              duration: 45,
-              routine_exercises_attributes: [
-                {
-                  exercise_id: 125,
-                  sets: 4,
-                  reps: 10,
-                  rest_time: 60,
-                  order: 1
-                },
-                {
-                  exercise_id: 901,
-                  sets: 3,
-                  reps: 12,
-                  rest_time: 45,
-                  order: 2
-                }
-              ]
-            }
+            exercise_id: 125,
+            sets: 4,
+            reps: 10,
+            rest_time: 60,
+            order: 1
+          },
+          {
+            exercise_id: 901,
+            sets: 3,
+            reps: 12,
+            rest_time: 45,
+            order: 2
           }
         ]
       }
     end
 
     context 'with valid parameters' do
-      it 'returns modified routine successfully' do
+      it 'returns modified exercises successfully' do
         mock_service = instance_double(AiWorkoutRoutineService)
         allow(AiWorkoutRoutineService).to receive(:new).with({}, :modify).and_return(mock_service)
-        allow(mock_service).to receive(:modify_routine).and_return(mock_modify_response)
+        allow(mock_service).to receive(:modify_exercises).and_return(mock_modify_response)
 
         post :modify, params: valid_modify_params
 
@@ -303,14 +285,16 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller do
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be true
-        expect(json_response['data']['routines']).to be_present
+        expect(json_response['data']['exercises']).to be_present
         expect(json_response['data']['generated_at']).to be_present
+        expect(json_response['data']['exercises'].length).to eq(2)
+        expect(json_response['data']['exercises'][0]['exercise_id']).to eq(125)
       end
     end
 
-    context 'with missing routine parameter' do
+    context 'with missing user_message parameter' do
       it 'returns validation error' do
-        params = valid_modify_params.except(:routine)
+        params = valid_modify_params.except(:user_message)
         
         post :modify, params: params
 
@@ -319,13 +303,13 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller do
         
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('Validation failed')
-        expect(json_response['details']['routine']).to include('is required')
+        expect(json_response['details']['user_message']).to include('is required')
       end
     end
 
-    context 'with missing modification_message parameter' do
+    context 'with missing exercises parameter' do
       it 'returns validation error' do
-        params = valid_modify_params.except(:modification_message)
+        params = valid_modify_params.except(:exercises)
         
         post :modify, params: params
 
@@ -334,16 +318,14 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller do
         
         expect(json_response['success']).to be false
         expect(json_response['error']).to eq('Validation failed')
-        expect(json_response['details']['modification_message']).to include('is required')
+        expect(json_response['details']['exercises']).to include('is required')
       end
     end
 
-    context 'with no exercises marked for modification' do
+    context 'with empty exercises array' do
       it 'returns validation error' do
-        params = valid_modify_params.deep_dup
-        params[:routine][:routine_exercises_attributes].each do |exercise|
-          exercise[:needs_modification] = false
-        end
+        params = valid_modify_params.dup
+        params[:exercises] = []
         
         post :modify, params: params
 
@@ -351,41 +333,84 @@ RSpec.describe Api::V1::AiWorkoutRoutinesController, type: :controller do
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be false
-        expect(json_response['details']['routine']).to include('must have at least one exercise marked for modification')
+        expect(json_response['error']).to eq('Validation failed')
+        expect(json_response['details']['exercises']).to include('cannot be empty')
       end
     end
 
-    context 'when AI service returns invalid response' do
-      it 'handles InvalidResponseError' do
-        mock_service = instance_double(AiWorkoutRoutineService)
-        allow(AiWorkoutRoutineService).to receive(:new).and_return(mock_service)
-        allow(mock_service).to receive(:modify_routine)
-          .and_raise(AiWorkoutRoutineService::InvalidResponseError, 'Invalid response')
+    context 'with invalid exercise structure' do
+      it 'returns validation error for missing exercise_id' do
+        params = valid_modify_params.dup
+        params[:exercises][0].delete(:exercise_id)
+        
+        post :modify, params: params
 
-        post :modify, params: valid_modify_params
-
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be false
-        expect(json_response['error']).to eq('AI service returned invalid response')
+        expect(json_response['error']).to eq('Validation failed')
+        expect(json_response['details']['exercises']).to include('Exercise 1: exercise_id is required')
+      end
+
+      it 'returns validation error for sets out of range' do
+        params = valid_modify_params.dup
+        params[:exercises][0][:sets] = 25
+        
+        post :modify, params: params
+
+        expect(response).to have_http_status(:bad_request)
+        json_response = JSON.parse(response.body)
+        
+        expect(json_response['success']).to be false
+        expect(json_response['error']).to eq('Validation failed')
+        expect(json_response['details']['exercises']).to include('Exercise 1: sets must be between 1 and 20')
+      end
+
+      it 'returns validation error for reps out of range' do
+        params = valid_modify_params.dup
+        params[:exercises][0][:reps] = 150
+        
+        post :modify, params: params
+
+        expect(response).to have_http_status(:bad_request)
+        json_response = JSON.parse(response.body)
+        
+        expect(json_response['success']).to be false
+        expect(json_response['error']).to eq('Validation failed')
+        expect(json_response['details']['exercises']).to include('Exercise 1: reps must be between 1 and 100')
       end
     end
 
-    context 'when AI service is unavailable' do
-      it 'handles ServiceUnavailableError' do
-        mock_service = instance_double(AiWorkoutRoutineService)
-        allow(AiWorkoutRoutineService).to receive(:new).and_return(mock_service)
-        allow(mock_service).to receive(:modify_routine)
-          .and_raise(AiWorkoutRoutineService::ServiceUnavailableError, 'Service unavailable')
+    context 'with short user_message' do
+      it 'returns validation error for message too short' do
+        params = valid_modify_params.dup
+        params[:user_message] = 'Hi'
+        
+        post :modify, params: params
 
-        post :modify, params: valid_modify_params
-
-        expect(response).to have_http_status(:service_unavailable)
+        expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
         
         expect(json_response['success']).to be false
-        expect(json_response['error']).to eq('AI service temporarily unavailable')
+        expect(json_response['error']).to eq('Validation failed')
+        expect(json_response['details']['user_message']).to include('must be at least 3 characters long')
+      end
+    end
+
+    context 'with long user_message' do
+      it 'returns validation error for message too long' do
+        params = valid_modify_params.dup
+        params[:user_message] = 'A' * 1001
+        
+        post :modify, params: params
+
+        expect(response).to have_http_status(:bad_request)
+        json_response = JSON.parse(response.body)
+        
+        expect(json_response['success']).to be false
+        expect(json_response['error']).to eq('Validation failed')
+        expect(json_response['details']['user_message']).to include('must be less than 1000 characters')
       end
     end
   end

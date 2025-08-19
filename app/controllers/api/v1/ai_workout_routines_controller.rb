@@ -72,14 +72,14 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       # Initialize the AI workout routine service for modification
       service = AiWorkoutRoutineService.new({}, :modify)
 
-      # Modify the routine using AI
-      result = service.modify_routine(params[:routine], params[:modification_message])
+      # Modify the exercises using AI
+      result = service.modify_exercises(params[:exercises], params[:user_message])
 
       # Return successful response
       render json: {
         success: true,
         data: {
-          routines: result[:routines],
+          exercises: result[:exercises],
           generated_at: Time.current.iso8601
         }
       }, status: :ok
@@ -99,13 +99,13 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       }, status: :service_unavailable
 
     rescue StandardError => e
-      Rails.logger.error "AI Workout Routine Modification Error: #{e.message}"
+      Rails.logger.error "AI Workout Exercises Modification Error: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
 
       render json: {
         success: false,
         error: "Internal server error",
-        details: "An unexpected error occurred while modifying the routine"
+        details: "An unexpected error occurred while modifying the exercises"
       }, status: :internal_server_error
     end
   end
@@ -214,43 +214,74 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
   def validate_modification_params
     errors = {}
 
-    # Routine validation
-    routine = params[:routine]
-    if routine.blank?
-      errors[:routine] = [ "is required" ]
-    elsif !routine.respond_to?(:key?) && !routine.respond_to?(:[])
-      errors[:routine] = [ "must be a valid routine object" ]
+    # User message validation
+    user_message = params[:user_message]
+    if user_message.blank?
+      errors[:user_message] = [ "is required" ]
+    elsif user_message.to_s.length < 3
+      errors[:user_message] = [ "must be at least 3 characters long" ]
+    elsif user_message.to_s.length > 1000
+      errors[:user_message] = [ "must be less than 1000 characters" ]
+    end
+
+    # Exercises validation
+    exercises = params[:exercises]
+    if exercises.blank?
+      errors[:exercises] = [ "is required" ]
+    elsif !exercises.is_a?(Array)
+      errors[:exercises] = [ "must be an array" ]
+    elsif exercises.empty?
+      errors[:exercises] = [ "cannot be empty" ]
     else
-      # Validate routine structure (Rails uses string keys for nested parameters)
-      exercises_key = routine.key?(:routine_exercises_attributes) ? :routine_exercises_attributes : 'routine_exercises_attributes'
-      exercises = routine[exercises_key]
-      
-      unless exercises.is_a?(Array)
-        errors[:routine] = [ "must contain routine_exercises_attributes array" ]
-      else
-        # Check if at least one exercise needs modification
-        needs_modification = exercises.any? do |ex|
-          # Check both symbol and string keys
-          needs_mod_value = ex[:needs_modification] || ex['needs_modification']
-          # Handle both boolean true and string "true"
-          [true, 'true', 'True', '1', 1].include?(needs_mod_value)
-        end
-        unless needs_modification
-          errors[:routine] = [ "must have at least one exercise marked for modification" ]
-        end
+      # Validate each exercise structure
+      exercises.each_with_index do |exercise, index|
+        exercise_errors = validate_exercise_structure(exercise, index)
+        errors[:exercises] ||= []
+        errors[:exercises].concat(exercise_errors) if exercise_errors.any?
       end
     end
 
-    # Modification message validation
-    message = params[:modification_message]
-    if message.blank?
-      errors[:modification_message] = [ "is required" ]
-    elsif message.to_s.length < 3
-      errors[:modification_message] = [ "must be at least 3 characters long" ]
-    elsif message.to_s.length > 1000
-      errors[:modification_message] = [ "must be less than 1000 characters" ]
-    end
+    errors
+  end
 
+  def validate_exercise_structure(exercise, index)
+    errors = []
+    
+    # Validate exercise_id
+    unless exercise[:exercise_id].present?
+      errors << "Exercise #{index + 1}: exercise_id is required"
+    elsif !exercise[:exercise_id].is_a?(Integer) || exercise[:exercise_id] <= 0
+      errors << "Exercise #{index + 1}: exercise_id must be a positive integer"
+    end
+    
+    # Validate sets
+    unless exercise[:sets].present?
+      errors << "Exercise #{index + 1}: sets is required"
+    elsif !exercise[:sets].is_a?(Integer) || !exercise[:sets].between?(1, 20)
+      errors << "Exercise #{index + 1}: sets must be between 1 and 20"
+    end
+    
+    # Validate reps
+    unless exercise[:reps].present?
+      errors << "Exercise #{index + 1}: reps is required"
+    elsif !exercise[:reps].is_a?(Integer) || !exercise[:reps].between?(1, 100)
+      errors << "Exercise #{index + 1}: reps must be between 1 and 100"
+    end
+    
+    # Validate rest_time if present
+    if exercise[:rest_time].present?
+      unless exercise[:rest_time].is_a?(Integer) && exercise[:rest_time].between?(0, 600)
+        errors << "Exercise #{index + 1}: rest_time must be between 0 and 600 seconds"
+      end
+    end
+    
+    # Validate order if present
+    if exercise[:order].present?
+      unless exercise[:order].is_a?(Integer) && exercise[:order] > 0
+        errors << "Exercise #{index + 1}: order must be a positive integer"
+      end
+    end
+    
     errors
   end
 end

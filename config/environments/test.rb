@@ -50,4 +50,11 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # AI Service configuration for tests
+  config.after_initialize do
+    ENV['AI_SERVICE_URL'] ||= 'https://test-api.example.com'
+    ENV['AI_MODIFY_SERVICE_URL'] ||= 'https://test-modify-api.example.com'
+    ENV['AI_API_KEY'] ||= 'test-api-key'
+  end
 end

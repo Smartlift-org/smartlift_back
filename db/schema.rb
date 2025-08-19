@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_12_200600) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_13_184300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -215,22 +215,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_12_200600) do
     t.string "set_type", default: "normal", null: false
     t.decimal "weight", precision: 8, scale: 2
     t.integer "reps"
-    t.decimal "rpe", precision: 3, scale: 1
-    t.integer "rest_time_seconds"
     t.boolean "completed", default: false
-    t.datetime "started_at"
     t.datetime "completed_at"
-    t.text "notes"
-    t.decimal "drop_set_weight", precision: 8, scale: 2
-    t.integer "drop_set_reps"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "is_personal_record", default: false
-    t.string "pr_type"
     t.index ["completed"], name: "index_workout_sets_on_completed"
     t.index ["created_at"], name: "idx_workout_sets_created_at"
-    t.index ["is_personal_record", "pr_type"], name: "index_workout_sets_on_is_personal_record_and_pr_type", where: "(is_personal_record = true)"
-    t.index ["is_personal_record"], name: "index_workout_sets_on_is_personal_record"
     t.index ["set_type", "completed"], name: "idx_workout_sets_type_completed"
     t.index ["weight", "workout_exercise_id"], name: "idx_workout_sets_weight_exercise", where: "((completed = true) AND ((set_type)::text = 'normal'::text))"
     t.index ["workout_exercise_id", "completed"], name: "idx_workout_sets_exercise_completed"

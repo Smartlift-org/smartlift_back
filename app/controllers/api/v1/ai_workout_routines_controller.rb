@@ -248,21 +248,21 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     errors = []
     
     # Validate exercise_id
-    unless exercise[:exercise_id].present?
+    if !exercise[:exercise_id].present?
       errors << "Exercise #{index + 1}: exercise_id is required"
     elsif !exercise[:exercise_id].is_a?(Integer) || exercise[:exercise_id] <= 0
       errors << "Exercise #{index + 1}: exercise_id must be a positive integer"
     end
     
     # Validate sets
-    unless exercise[:sets].present?
+    if !exercise[:sets].present?
       errors << "Exercise #{index + 1}: sets is required"
     elsif !exercise[:sets].is_a?(Integer) || !exercise[:sets].between?(1, 20)
       errors << "Exercise #{index + 1}: sets must be between 1 and 20"
     end
     
     # Validate reps
-    unless exercise[:reps].present?
+    if !exercise[:reps].present?
       errors << "Exercise #{index + 1}: reps is required"
     elsif !exercise[:reps].is_a?(Integer) || !exercise[:reps].between?(1, 100)
       errors << "Exercise #{index + 1}: reps must be between 1 and 100"

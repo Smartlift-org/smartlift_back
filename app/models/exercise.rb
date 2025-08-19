@@ -2,6 +2,7 @@ class Exercise < ApplicationRecord
     # Validaciones actualizadas para el import de free-exercise-db
     validates :name, presence: true, uniqueness: true
     validates :level, inclusion: { in: %w[beginner intermediate expert] }, allow_nil: true
+    validates :video_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, allow_blank: true
     # Removemos la validación de id numérico ya que el JSON usa strings como identificadores
 
     # Scopes para búsquedas comunes

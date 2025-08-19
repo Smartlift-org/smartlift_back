@@ -74,6 +74,7 @@ Rails.application.routes.draw do
   post "/exercises", to: "exercises#create"
   patch "/exercises/:id", to: "exercises#update"
   delete "/exercises/:id", to: "exercises#destroy"
+  put "/exercises/:id/video_url", to: "exercises#update_video_url"
 
   # User Stats
   get "/user_stats", to: "user_stats#index"
@@ -142,6 +143,7 @@ Rails.application.routes.draw do
         member do
           post :approve
           post :reject
+          put :edit
         end
       end
 

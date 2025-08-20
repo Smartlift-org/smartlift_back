@@ -246,12 +246,12 @@ class AiWorkoutRoutineService
       raise InvalidResponseError, "AI response routine must be a hash"
     end
 
-    unless routine[:name].present? && routine[:routine_exercises_attributes].is_a?(Array)
-      raise InvalidResponseError, "Routine missing required fields: name and routine_exercises_attributes"
+    unless routine[:name].present? && routine[:exercises].is_a?(Array)
+      raise InvalidResponseError, "Routine missing required fields: name and exercises"
     end
 
     # Validate exercises basic structure
-    routine[:routine_exercises_attributes].each_with_index do |exercise, ex_index|
+    routine[:exercises].each_with_index do |exercise, ex_index|
       unless exercise.is_a?(Hash) &&
              exercise[:sets].present? &&
              exercise[:reps].present?
@@ -327,6 +327,7 @@ class AiWorkoutRoutineService
     end
   end
 
+
   def validate_routine_structure(routine_data)
     # Check for required top-level structure
     unless routine_data.is_a?(Hash) && routine_data[:routines].is_a?(Array)
@@ -340,12 +341,12 @@ class AiWorkoutRoutineService
       end
 
       routine = routine_item[:routine]
-      unless routine[:name].present? && routine[:routine_exercises_attributes].is_a?(Array)
+      unless routine[:name].present? && routine[:exercises].is_a?(Array)
         raise InvalidResponseError, "Routine #{index + 1} missing required fields"
       end
 
       # Validate exercises basic structure
-      routine[:routine_exercises_attributes].each_with_index do |exercise, ex_index|
+      routine[:exercises].each_with_index do |exercise, ex_index|
         unless exercise.is_a?(Hash) &&
                exercise[:sets].present? &&
                exercise[:reps].present?

@@ -19,12 +19,12 @@ class AiApiClient
     Rails.logger.info "AI Service URL configured as: #{@service_url} for agent: #{@agent_type}"
   end
 
-  # Send prompt to AI service and return the response
-  def create_routine(prompt)
+  # Send payload to AI service and return the response
+  def create_routine(payload)
     retries = 0
 
     begin
-      response = make_request(prompt)
+      response = make_request(payload)
       validate_response(response)
       response.body
 
@@ -83,7 +83,7 @@ class AiApiClient
     end
   end
 
-  def make_request(prompt)
+  def make_request(payload)
     http = Net::HTTP.new(@uri.host, @uri.port)
     http.read_timeout = @timeout
     http.open_timeout = @timeout
@@ -105,10 +105,8 @@ class AiApiClient
       request["Authorization"] = "Bearer #{@api_key}"
     end
 
-    # Set the request body
-    request.body = {
-      question: prompt
-    }.to_json
+    # Set the request body - send the structured payload as JSON
+    request.body = payload.to_json
 
     Rails.logger.info "Sending AI API request to #{@uri}"
     Rails.logger.debug "Request body: #{request.body}" if Rails.env.development?

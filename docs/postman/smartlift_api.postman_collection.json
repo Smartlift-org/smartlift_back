@@ -2,10 +2,22 @@
 	"info": {
 		"_postman_id": "f39deff2-2639-4186-9846-7759f8822ed9",
 		"name": "SmartLift API",
-		"description": "# 🚀 SmartLift API Collection\n\nThis collection contains all the endpoints for the SmartLift API, including user management, exercises, routines, workouts, personal records, AI workout generation, trainer management, admin functions, and health monitoring.\n\n## 🔖 **How to use this collection**\n\n1. Set up your environment variables:\n   - `base_url`: Your API base URL (default: http://127.0.0.1:3000)\n\n2. Start with the authentication flow:\n   - Register a new user\n   - Login to get your JWT token\n\n3. The token will be automatically set and used for all subsequent requests\n\n## 💪 Features\n\n- **JWT Authentication** (login, token validation, password reset)\n- **User Management** (registration, profile management, profile pictures)\n- **Admin Panel** (user and coach management, assignments)\n- **Exercise Management** (CRUD operations, exercise database)\n- **Routine Management** (create, update, delete routines with exercises)\n- **User Stats Tracking** (comprehensive fitness metrics)\n- **Workout Tracking** (routine-based & free-style workouts)\n- **Personal Records Tracking** (automatic PR detection and statistics)\n- **Real-time Set Recording** (detailed workout logging)\n- **Workout Pauses & Resume** (flexible workout management)\n- **AI Workout Generation** (personalized routine creation)\n- **Trainer Dashboard** (coach management and member oversight)\n- **Routine Validation** (trainer approval system)\n- **Health Monitoring** (system health checks)\n\n## 📋 Response Formats\n\n### Routine Response Format\n\nWhen fetching or creating a routine, the response will include the following structure:\n\n```json\n{\n    \"id\": 187,                    // Routine ID\n    \"name\": \"Test workout\",      // Routine name\n    \"description\": \"...\",        // Routine description\n    \"difficulty\": \"intermediate\", // Difficulty level\n    \"duration\": 60,               // Duration in minutes\n    \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n    \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n    \"routine_exercises\": [        // Array of exercises in the routine\n        {\n            \"id\": 58,            // RoutineExercise ID (for CRUD operations)\n            \"routine_id\": 187,    // Reference to the routine\n            \"exercise_id\": 98,    // Reference to the exercise\n            \"sets\": 3,           // Number of sets\n            \"reps\": 12,          // Number of repetitions\n            \"rest_time\": 60,     // Rest time in seconds\n            \"order\": 1,          // Exercise order in the routine\n            \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n            \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n            \"exercise\": {        // Full exercise details\n                \"id\": 98,\n                \"name\": \"3/4 Sit-Up\",\n                \"equipment\": \"body only\",\n                \"category\": \"strength\",\n                \"level\": \"beginner\",\n                \"primary_muscles\": [\"abdominals\"],\n                \"secondary_muscles\": [],\n                \"image_urls\": [\"...\"],\n                \"difficulty_level\": 1,    // Computed property\n                \"has_equipment\": false    // Computed property\n            }\n        }\n    ]\n}\n```\n\n### Workout Response Format\n\n```json\n{\n    \"id\": 1,\n    \"routine_id\": 123,           // null for free-style workouts\n    \"workout_type\": \"routine_based\", // or \"free_style\"\n    \"name\": \"Full Body Workout\",\n    \"status\": \"in_progress\",     // \"in_progress\", \"paused\", \"completed\", \"abandoned\"\n    \"started_at\": \"2025-01-01T10:00:00Z\",\n    \"completed_at\": null,\n    \"total_duration_seconds\": 3600,\n    \"total_volume\": 2500.0,      // Total weight lifted\n    \"total_sets_completed\": 15,\n    \"total_exercises_completed\": 5,\n    \"average_rpe\": 7.5,\n    \"workout_rating\": 8,\n    \"notes\": \"Excellent session!\",\n    \"exercises\": [               // WorkoutExercises with sets\n        {\n            \"id\": 1,\n            \"exercise_id\": 98,\n            \"order\": 1,\n            \"group_type\": \"regular\", // \"regular\", \"superset\", \"circuit\"\n            \"group_order\": null,\n            \"target_sets\": 3,\n            \"target_reps\": 12,\n            \"suggested_weight\": 80.0,\n            \"notes\": \"\",\n            \"exercise\": { /* exercise details */ },\n            \"sets\": [           // Individual sets performed\n                {\n                    \"id\": 1,\n                    \"set_number\": 1,\n                    \"set_type\": \"normal\", // \"normal\", \"warmup\", \"drop\", \"failure\"\n                    \"weight\": 80.0,\n                    \"reps\": 12,\n                    \"rpe\": 7,\n                    \"completed\": true,\n                    \"completed_at\": \"2025-01-01T10:05:00Z\",\n                    \"is_personal_record\": false,\n                    \"pr_type\": null\n                }\n            ]\n        }\n    ],\n    \"pauses\": [                 // Workout pauses\n        {\n            \"id\": 1,\n            \"reason\": \"rest\",\n            \"paused_at\": \"2025-01-01T10:30:00Z\",\n            \"resumed_at\": \"2025-01-01T10:35:00Z\",\n            \"duration_seconds\": 300\n        }\n    ]\n}\n```\n\n## 📋 **Parameter Structure**\n\nAll POST/PATCH requests follow Rails Strong Parameters conventions with nested objects:\n\n```json\n// User Registration/Update\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", ... } }\n\n// Exercise Creation\n{ \"exercise\": { \"name\": \"Bench Press\", \"level\": \"intermediate\", ... } }\n\n// Routine Creation/Update\n{ \"routine\": { \"name\": \"Push Day\", \"difficulty\": \"intermediate\", ... } }\n\n// User Stats\n{ \"user_stat\": { \"height\": 180, \"weight\": 75, ... } }\n\n// Workout Actions\n{ \"workout_rating\": 8, \"notes\": \"Great workout!\" }\n{ \"pause\": { \"reason\": \"rest break\" } }\n\n// Workout Exercise Management\n{ \"workout_exercise\": { \"exercise_id\": 98, \"target_sets\": 3, ... } }\n{ \"routine_exercise\": { \"exercise_id\": 98, \"sets\": 3, ... } }\n\n// Set Recording\n{ \"set\": { \"weight\": 80, \"reps\": 12, \"rpe\": 7, ... } }\n{ \"workout_set\": { \"weight\": 85, \"reps\": 10, \"rpe\": 8 } }\n\n// Workout Pauses\n{ \"pause\": { \"reason\": \"bathroom break\" } }\n\n// AI Workout Generation\n{ \"user_request\": \"Create a full body workout\", \"preferences\": { \"duration_minutes\": 45, \"difficulty\": \"beginner\" } }\n\n// Trainer Member Assignment\n{ \"user_id\": 123 }\n\n// Admin User Creation\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", \"email\": \"john@example.com\", \"role\": \"user\" } }\n\n// Password Reset\n{ \"token\": \"reset_token\", \"password\": \"newpassword\", \"password_confirmation\": \"newpassword\" }\n```\n\n## 🔐 **Authentication & Authorization**\n\n### User Roles\n- **user**: Regular users who can create workouts and track progress\n- **coach**: Trainers who can manage members and validate routines\n- **admin**: Administrators with full system access\n\n### Protected Endpoints\nMost endpoints require JWT authentication via the `Authorization` header with format: `Bearer <token>`\n\n### Role-Based Access\n- Admin endpoints (`/admin/*`) require admin role\n- Trainer endpoints (`/api/v1/trainers/*`) require coach role\n- User data is scoped to the authenticated user unless admin/coach access is granted\n\nNotes:\n- Workout types: `routine_based` (follows a predefined routine) or `free_style` (exercises added during workout)\n- The `routine_exercise.id` is used for updating/deleting specific exercises in a routine\n- The `exercise_id` is kept for reference and validation\n- Full exercise details are included to avoid additional API calls\n- Timestamps are formatted for better readability\n- Computed properties (`difficulty_level` and `has_equipment`) are included for frontend logic\n- **Login endpoint is the only exception** - parameters are sent at root level (`email`, `password`)",
+		"description": "# 🚀 SmartLift API Collection\n\nThis collection contains all the endpoints for the SmartLift API, including user management, exercises, routines, workouts, personal records, AI workout generation, trainer management, admin functions, and health monitoring.\n\n## 🔖 **How to use this collection**\n\n1. Set up your environment variables:\n   - `base_url`: Your API base URL (default: http://127.0.0.1:3000)\n\n2. Start with the authentication flow:\n   - Register a new user\n   - Login to get your JWT token\n\n3. The token will be automatically set and used for all subsequent requests\n\n## 💪 Features\n\n- **JWT Authentication** (login, token validation, password reset)\n- **User Management** (registration, profile management, profile pictures)\n- **Admin Panel** (user and coach management, assignments)\n- **Exercise Management** (CRUD operations, exercise database)\n- **Routine Management** (create, update, delete routines with exercises)\n- **User Stats Tracking** (comprehensive fitness metrics)\n- **Workout Tracking** (routine-based & free-style workouts)\n- **Personal Records Tracking** (automatic PR detection and statistics)\n- **Real-time Set Recording** (detailed workout logging)\n- **Workout Pauses & Resume** (flexible workout management)\n- **AI Workout Generation** (personalized routine creation)\n- **Trainer Dashboard** (coach management and member oversight)\n- **Routine Validation** (trainer approval system)\n- **Health Monitoring** (system health checks)\n\n## 📋 Response Formats\n\n### Routine Response Format\n\nWhen fetching or creating a routine, the response will include the following structure:\n\n```json\n{\n    \"id\": 187,                    // Routine ID\n    \"name\": \"Test workout\",      // Routine name\n    \"description\": \"...\",        // Routine description\n    \"difficulty\": \"intermediate\", // Difficulty level\n    \"duration\": 60,               // Duration in minutes\n    \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n    \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n    \"routine_exercises\": [        // Array of exercises in the routine\n        {\n            \"id\": 58,            // RoutineExercise ID (for CRUD operations)\n            \"routine_id\": 187,    // Reference to the routine\n            \"exercise_id\": 98,    // Reference to the exercise\n            \"sets\": 3,           // Number of sets\n            \"reps\": 12,          // Number of repetitions\n            \"rest_time\": 60,     // Rest time in seconds\n            \"order\": 1,          // Exercise order in the routine\n            \"formatted_created_at\": \"2025-06-11 03:33:39\", // Human-readable creation date\n            \"formatted_updated_at\": \"2025-06-11 03:33:39\", // Human-readable update date\n            \"exercise\": {        // Full exercise details\n                \"id\": 98,\n                \"name\": \"3/4 Sit-Up\",\n                \"equipment\": \"body only\",\n                \"category\": \"strength\",\n                \"level\": \"beginner\",\n                \"primary_muscles\": [\"abdominals\"],\n                \"secondary_muscles\": [],\n                \"image_urls\": [\"...\"],\n                \"difficulty_level\": 1,    // Computed property\n                \"has_equipment\": false    // Computed property\n            }\n        }\n    ]\n}\n```\n\n### Workout Response Format\n\n```json\n{\n    \"id\": 1,\n    \"routine_id\": 123,           // null for free-style workouts\n    \"workout_type\": \"routine_based\", // or \"free_style\"\n    \"name\": \"Full Body Workout\",\n    \"status\": \"in_progress\",     // \"in_progress\", \"paused\", \"completed\", \"abandoned\"\n    \"started_at\": \"2025-01-01T10:00:00Z\",\n    \"completed_at\": null,\n    \"total_duration_seconds\": 3600,\n    \"total_volume\": 2500.0,      // Total weight lifted\n    \"total_sets_completed\": 15,\n    \"total_exercises_completed\": 5,\n    \"average_rpe\": 7.5,\n    \"workout_rating\": 8,\n    \"notes\": \"Excellent session!\",\n    \"exercises\": [               // WorkoutExercises with sets\n        {\n            \"id\": 1,\n            \"exercise_id\": 98,\n            \"order\": 1,\n            \"group_type\": \"regular\", // \"regular\", \"superset\", \"circuit\"\n            \"group_order\": null,\n            \"target_sets\": 3,\n            \"target_reps\": 12,\n            \"suggested_weight\": 80.0,\n            \"notes\": \"\",\n            \"exercise\": { /* exercise details */ },\n            \"sets\": [           // Individual sets performed\n                {\n                    \"id\": 1,\n                    \"set_number\": 1,\n                    \"set_type\": \"normal\", // \"normal\", \"warmup\", \"drop\", \"failure\"\n                    \"weight\": 80.0,\n                    \"reps\": 12,\n                    \"rpe\": 7,\n                    \"completed\": true,\n                    \"completed_at\": \"2025-01-01T10:05:00Z\",\n                    \"is_personal_record\": false,\n                    \"pr_type\": null\n                }\n            ]\n        }\n    ],\n    \"pauses\": [                 // Workout pauses\n        {\n            \"id\": 1,\n            \"reason\": \"rest\",\n            \"paused_at\": \"2025-01-01T10:30:00Z\",\n            \"resumed_at\": \"2025-01-01T10:35:00Z\",\n            \"duration_seconds\": 300\n        }\n    ]\n}\n```\n\n### AI Workout Response Format\n\n```json\n{\n    \"success\": true,\n    \"data\": {\n        \"routines\": [             // Array of generated routines\n            {\n                \"routine\": {\n                    \"name\": \"Upper Body Strength\",\n                    \"description\": \"Focus on chest, shoulders and triceps\",\n                    \"difficulty\": \"intermediate\",\n                    \"duration\": 45,\n                    \"exercises\": [       // Array of exercises in routine\n                        {\n                            \"exercise_id\": 900,\n                            \"name\": \"Bench Press\",\n                            \"sets\": 4,\n                            \"reps\": 10,\n                            \"rest_time\": 60,\n                            \"order\": 1\n                        }\n                    ]\n                }\n            }\n        ],\n        \"generated_at\": \"2025-08-24T18:30:00Z\"\n    }\n}\n```\n\n### AI Exercise Modification Response Format\n\n```json\n{\n    \"success\": true,\n    \"data\": {\n        \"exercises\": [            // Modified exercises array\n            {\n                \"exercise_id\": 125,\n                \"sets\": 4,\n                \"reps\": 10,\n                \"rest_time\": 60,\n                \"order\": 1\n            }\n        ],\n        \"generated_at\": \"2025-08-24T18:30:00Z\"\n    }\n}\n```\n\n## 📋 **Parameter Structure**\n\nAll POST/PATCH requests follow Rails Strong Parameters conventions with nested objects:\n\n```json\n// User Registration/Update\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", ... } }\n\n// Exercise Creation\n{ \"exercise\": { \"name\": \"Bench Press\", \"level\": \"intermediate\", ... } }\n\n// Routine Creation/Update\n{ \"routine\": { \"name\": \"Push Day\", \"difficulty\": \"intermediate\", ... } }\n\n// User Stats\n{ \"user_stat\": { \"height\": 180, \"weight\": 75, ... } }\n\n// Workout Actions\n{ \"workout_rating\": 8, \"notes\": \"Great workout!\" }\n{ \"pause\": { \"reason\": \"rest break\" } }\n\n// Workout Exercise Management\n{ \"workout_exercise\": { \"exercise_id\": 98, \"target_sets\": 3, ... } }\n{ \"routine_exercise\": { \"exercise_id\": 98, \"sets\": 3, ... } }\n\n// Set Recording\n{ \"set\": { \"weight\": 80, \"reps\": 12, \"rpe\": 7, ... } }\n{ \"workout_set\": { \"weight\": 85, \"reps\": 10, \"rpe\": 8 } }\n\n// Workout Pauses\n{ \"pause\": { \"reason\": \"bathroom break\" } }\n\n// AI Workout Generation\n{ \"age\": 30, \"gender\": \"male\", \"weight\": 80, \"height\": 175, \"experience_level\": \"intermediate\", \"preferences\": \"No cardio, solo tren superior\", \"frequency_per_week\": 3, \"time_per_session\": 45, \"goal\": \"ganar masa muscular\" }\n\n// AI Workout Exercise Modification\n{ \"user_message\": \"Change the first exercise to a back exercise\", \"exercises\": [{\"exercise_id\": 900, \"sets\": 4, \"reps\": 10, \"rest_time\": 60, \"order\": 1}] }\n\n// Trainer Member Assignment\n{ \"user_id\": 123 }\n\n// Admin User Creation\n{ \"user\": { \"first_name\": \"John\", \"last_name\": \"Doe\", \"email\": \"john@example.com\", \"role\": \"user\" } }\n\n// Password Reset\n{ \"token\": \"reset_token\", \"password\": \"newpassword\", \"password_confirmation\": \"newpassword\" }\n```\n\n## 🔐 **Authentication & Authorization**\n\n### User Roles\n- **user**: Regular users who can create workouts and track progress\n- **coach**: Trainers who can manage members and validate routines\n- **admin**: Administrators with full system access\n\n### Protected Endpoints\nMost endpoints require JWT authentication via the `Authorization` header with format: `Bearer <token>`\n\n### Role-Based Access\n- Admin endpoints (`/admin/*`) require admin role\n- Trainer endpoints (`/api/v1/trainers/*`) require coach role\n- User data is scoped to the authenticated user unless admin/coach access is granted\n\nNotes:\n- Workout types: `routine_based` (follows a predefined routine) or `free_style` (exercises added during workout)\n- The `routine_exercise.id` is used for updating/deleting specific exercises in a routine\n- The `exercise_id` is kept for reference and validation\n- Full exercise details are included to avoid additional API calls\n- Timestamps are formatted for better readability\n- Computed properties (`difficulty_level` and `has_equipment`) are included for frontend logic\n- **Login endpoint is the only exception** - parameters are sent at root level (`email`, `password`)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "27249468"
 	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3002",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
 	"item": [
 		{
 			"name": "users",
@@ -37,6 +49,14 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "User-Agent",
+								"value": "SmartLift Mobile App v1.0.0"
 							}
 						],
 						"body": {
@@ -76,6 +96,14 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "User-Agent",
+								"value": "SmartLift Mobile App v1.0.0"
 							}
 						],
 						"body": {
@@ -1879,12 +1907,21 @@
 									"script": {
 										"exec": [
 											"pm.test(\"Generate AI workout routine\", function () {",
-											"    pm.response.to.have.status(201);",
+											"    pm.response.to.have.status(200);",
 											"    const response = pm.response.json();",
-											"    pm.expect(response).to.have.property('routine');",
-											"    pm.expect(response.routine).to.have.property('id');",
-											"    pm.expect(response.routine).to.have.property('name');",
-											"    pm.expect(response.routine).to.have.property('routine_exercises');",
+											"    pm.expect(response).to.have.property('success', true);",
+											"    pm.expect(response.data).to.have.property('routines');",
+											"    pm.expect(response.data.routines).to.be.an('array');",
+											"    pm.expect(response.data).to.have.property('generated_at');",
+											"});",
+											"",
+											"pm.test(\"Handle validation errors\", function () {",
+											"    if (pm.response.code === 400) {",
+											"        const response = pm.response.json();",
+											"        pm.expect(response).to.have.property('success', false);",
+											"        pm.expect(response).to.have.property('error');",
+											"        pm.expect(response).to.have.property('details');",
+											"    }",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1901,13 +1938,69 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"user_request\": \"Create a full body workout for a beginner with dumbbells\",\n  \"preferences\": {\n    \"duration_minutes\": 45,\n    \"difficulty\": \"beginner\",\n    \"equipment\": [\"dumbbells\"],\n    \"muscle_groups\": [\"chest\", \"back\", \"legs\"]\n  }\n}"
+									"raw": "{\n  \"age\": 30,\n  \"gender\": \"male\",\n  \"weight\": 80,\n  \"height\": 175,\n  \"experience_level\": \"intermediate\",\n  \"preferences\": \"No cardio, solo tren superior\",\n  \"frequency_per_week\": 3,\n  \"time_per_session\": 45,\n  \"goal\": \"ganar masa muscular\"\n}"
 								},
 								"url": "{{base_url}}/api/v1/ai/workout_routines"
+							}
+						},
+						{
+							"name": "modify ai workout exercises",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Modify AI workout exercises\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('success', true);",
+											"    pm.expect(response.data).to.have.property('exercises');",
+											"    pm.expect(response.data.exercises).to.be.an('array');",
+											"    pm.expect(response.data).to.have.property('generated_at');",
+											"});",
+											"",
+											"pm.test(\"Handle modification errors\", function () {",
+											"    if (pm.response.code === 400) {",
+											"        const response = pm.response.json();",
+											"        pm.expect(response).to.have.property('success', false);",
+											"        pm.expect(response).to.have.property('error');",
+											"        pm.expect(response).to.have.property('details');",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"user_message\": \"Change the first exercise to a back exercise\",\n  \"exercises\": [\n    {\n      \"exercise_id\": 900,\n      \"sets\": 4,\n      \"reps\": 10,\n      \"rest_time\": 60,\n      \"order\": 1\n    },\n    {\n      \"exercise_id\": 901,\n      \"sets\": 3,\n      \"reps\": 12,\n      \"rest_time\": 45,\n      \"order\": 2\n    }\n  ]\n}"
+								},
+								"url": "{{base_url}}/api/v1/ai/workout_routines/modify"
 							}
 						}
 					]

@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_13_184300) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_24_235500) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
   enable_extension "plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -73,8 +74,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_13_184300) do
     t.string "images", default: [], array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "video_url"
     t.index ["images"], name: "index_exercises_on_images", using: :gin
     t.index ["level"], name: "index_exercises_on_level"
+    t.index ["video_url"], name: "index_exercises_on_video_url"
   end
 
   create_table "messages", force: :cascade do |t|

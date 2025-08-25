@@ -2,7 +2,7 @@ class UsersController < ApplicationController
     skip_before_action :authorize_request, only: [ :create ]
     before_action :set_user, only: [ :update ]
     before_action :ensure_admin, only: [ :index_coaches, :index_users, :create_by_admin, :show_coach, :show_user, :update_coach, :update_user, :available_users, :assign_users, :unassign_user, :deactivate_coach ]
-    before_action :check_registration_rate_limit, only: [ :create ]
+    before_action :check_registration_rate_limit, only: [ :create ], if: -> { Rails.env.production? }
     rescue_from ActiveRecord::RecordNotFound, with: :not_found
 
     # GET /profile
@@ -15,7 +15,7 @@ class UsersController < ApplicationController
     # POST /users
     def create
       # Additional security validations
-      return unless validate_registration_security
+      return unless validate_registration_security if Rails.env.production?
 
       # Sanitize and validate email
       email = sanitize_email(params[:user][:email])

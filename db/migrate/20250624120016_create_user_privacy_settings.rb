@@ -1,6 +1,6 @@
 class CreateUserPrivacySettings < ActiveRecord::Migration[7.1]
   def change
-    create_table :user_privacy_settings do |t|
+    create_table :user_privacy_settings, if_not_exists: true do |t|
       t.references :user, null: false, foreign_key: true, index: { unique: true }
       t.boolean :show_name, default: true, null: false
       t.boolean :show_profile_picture, default: true, null: false

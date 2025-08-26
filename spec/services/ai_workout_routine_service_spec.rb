@@ -555,6 +555,118 @@ RSpec.describe AiWorkoutRoutineService do
         )
       end
     end
+
+    context 'when AI response has exercises with names only (no exercise_id)' do
+      let(:ai_response_with_names_only) do
+        {
+          exercises: [
+            {
+              name: 'Test Bench Press 1',  # Matches exercise1.name
+              sets: 4,
+              reps: 10,
+              rest_time: 60,
+              order: 1
+            },
+            {
+              name: 'Test Squat 1',        # Matches exercise2.name
+              sets: 3,
+              reps: 12,
+              rest_time: 45,
+              order: 2
+            },
+            {
+              name: 'Test Pull-up 1',      # Matches exercise3.name
+              sets: 5,
+              reps: 8,
+              rest_time: 90,
+              order: 3
+            }
+          ]
+        }.to_json
+      end
+
+      it 'assigns exercise_id automatically using fuzzy search algorithm' do
+        mock_client = instance_double(AiApiClient)
+        allow(AiApiClient).to receive(:new).with(:modify).and_return(mock_client)
+        allow(mock_client).to receive(:create_routine).and_return(ai_response_with_names_only)
+
+        result = modify_service.modify_exercises(sample_exercises, user_message)
+
+        expect(result).to have_key(:exercises)
+        expect(result[:exercises]).to be_an(Array)
+        expect(result[:exercises].length).to eq(3)
+
+        # Verify all exercises have been assigned exercise_id
+        result[:exercises].each_with_index do |exercise, index|
+          expect(exercise).to have_key(:exercise_id)
+          expect(exercise[:exercise_id]).to be_present
+          expect(exercise[:exercise_id]).to be_a(Integer)
+          
+          expect(exercise).to have_key(:name)
+          expect(exercise[:name]).to be_present
+        end
+
+        # Verify specific exercise assignments
+        bench_press = result[:exercises].find { |ex| ex[:name] == 'Test Bench Press 1' }
+        expect(bench_press).to be_present
+        expect(bench_press[:exercise_id]).to eq(exercise1.id)
+        expect(bench_press[:sets]).to eq(4)
+        expect(bench_press[:reps]).to eq(10)
+
+        squat = result[:exercises].find { |ex| ex[:name] == 'Test Squat 1' }
+        expect(squat).to be_present
+        expect(squat[:exercise_id]).to eq(exercise2.id)
+        expect(squat[:sets]).to eq(3)
+        expect(squat[:reps]).to eq(12)
+
+        pull_up = result[:exercises].find { |ex| ex[:name] == 'Test Pull-up 1' }
+        expect(pull_up).to be_present
+        expect(pull_up[:exercise_id]).to eq(exercise3.id)
+        expect(pull_up[:sets]).to eq(5)
+        expect(pull_up[:reps]).to eq(8)
+      end
+
+      it 'preserves all other exercise attributes after ID assignment' do
+        mock_client = instance_double(AiApiClient)
+        allow(AiApiClient).to receive(:new).with(:modify).and_return(mock_client)
+        allow(mock_client).to receive(:create_routine).and_return(ai_response_with_names_only)
+
+        result = modify_service.modify_exercises(sample_exercises, user_message)
+
+        result[:exercises].each do |exercise|
+          expect(exercise[:sets]).to be_present
+          expect(exercise[:reps]).to be_present
+          expect(exercise[:rest_time]).to be_present
+          expect(exercise[:order]).to be_present
+        end
+      end
+
+      it 'handles partial name matches using fuzzy search' do
+        # Create an exercise with a similar name
+        similar_exercise = create(:exercise, name: 'Incline Test Bench Press 1')
+        
+        ai_response_with_partial_match = {
+          exercises: [
+            {
+              name: 'Bench Press',  # Partial match for similar_exercise
+              sets: 4,
+              reps: 10,
+              rest_time: 60,
+              order: 1
+            }
+          ]
+        }.to_json
+
+        mock_client = instance_double(AiApiClient)
+        allow(AiApiClient).to receive(:new).with(:modify).and_return(mock_client)
+        allow(mock_client).to receive(:create_routine).and_return(ai_response_with_partial_match)
+
+        result = modify_service.modify_exercises(sample_exercises, user_message)
+
+        expect(result[:exercises].first[:exercise_id]).to be_present
+        expect(result[:exercises].first[:name]).to be_present
+      end
+    end
   end
 
   describe '#modify_routine_prompt' do

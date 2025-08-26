@@ -215,7 +215,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     errors = {}
 
     # User message validation
-    user_message = params[:user_message]
+    user_message = params["user_message"]
     if user_message.blank?
       errors[:user_message] = [ "is required" ]
     elsif user_message.to_s.length < 3
@@ -225,7 +225,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     end
 
     # Exercises validation
-    exercises = params[:exercises]
+    exercises = params["exercises"]
     if exercises.blank?
       errors[:exercises] = [ "is required" ]
     elsif !exercises.is_a?(Array)
@@ -248,46 +248,46 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     errors = []
     
     # Validate exercise_id
-    if !exercise[:exercise_id].present?
+    if !exercise["exercise_id"].present?
       errors << "Exercise #{index + 1}: exercise_id is required"
     else
-      exercise_id = exercise[:exercise_id].to_i
+      exercise_id = exercise["exercise_id"].to_i
       if exercise_id <= 0
         errors << "Exercise #{index + 1}: exercise_id must be a positive integer"
       end
     end
     
     # Validate sets
-    if !exercise[:sets].present?
+    if !exercise["sets"].present?
       errors << "Exercise #{index + 1}: sets is required"
     else
-      sets = exercise[:sets].to_i
+      sets = exercise["sets"].to_i
       if !sets.between?(1, 20)
         errors << "Exercise #{index + 1}: sets must be between 1 and 20"
       end
     end
     
     # Validate reps
-    if !exercise[:reps].present?
+    if !exercise["reps"].present?
       errors << "Exercise #{index + 1}: reps is required"
     else
-      reps = exercise[:reps].to_i
+      reps = exercise["reps"].to_i
       if !reps.between?(1, 100)
         errors << "Exercise #{index + 1}: reps must be between 1 and 100"
       end
     end
     
     # Validate rest_time if present
-    if exercise[:rest_time].present?
-      rest_time = exercise[:rest_time].to_i
+    if exercise["rest_time"].present?
+      rest_time = exercise["rest_time"].to_i
       unless rest_time.between?(0, 600)
         errors << "Exercise #{index + 1}: rest_time must be between 0 and 600 seconds"
       end
     end
     
     # Validate order if present
-    if exercise[:order].present?
-      order = exercise[:order].to_i
+    if exercise["order"].present?
+      order = exercise["order"].to_i
       unless order > 0
         errors << "Exercise #{index + 1}: order must be a positive integer"
       end

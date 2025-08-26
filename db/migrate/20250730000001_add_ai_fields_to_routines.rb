@@ -12,9 +12,9 @@ class AddAiFieldsToRoutines < ActiveRecord::Migration[7.1]
     add_foreign_key :routines, :users, column: :validated_by_id
 
     # Add indexes for performance
-    add_index :routines, :source_type
-    add_index :routines, :ai_generated
-    add_index :routines, :validation_status
-    add_index :routines, :validated_by_id
+    add_index :routines, :source_type, if_not_exists: true
+    add_index :routines, :ai_generated, if_not_exists: true
+    add_index :routines, :validation_status, if_not_exists: true
+    add_index :routines, :validated_by_id, if_not_exists: true
   end
 end

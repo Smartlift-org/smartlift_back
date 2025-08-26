@@ -13,6 +13,6 @@ class CreateUserPrivacySettings < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :user_privacy_settings, :is_profile_public
+    add_index :user_privacy_settings, :is_profile_public, if_not_exists: true
   end
 end

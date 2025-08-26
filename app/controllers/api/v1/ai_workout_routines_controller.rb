@@ -250,34 +250,45 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     # Validate exercise_id
     if !exercise[:exercise_id].present?
       errors << "Exercise #{index + 1}: exercise_id is required"
-    elsif !exercise[:exercise_id].is_a?(Integer) || exercise[:exercise_id] <= 0
-      errors << "Exercise #{index + 1}: exercise_id must be a positive integer"
+    else
+      exercise_id = exercise[:exercise_id].to_i
+      if exercise_id <= 0
+        errors << "Exercise #{index + 1}: exercise_id must be a positive integer"
+      end
     end
     
     # Validate sets
     if !exercise[:sets].present?
       errors << "Exercise #{index + 1}: sets is required"
-    elsif !exercise[:sets].is_a?(Integer) || !exercise[:sets].between?(1, 20)
-      errors << "Exercise #{index + 1}: sets must be between 1 and 20"
+    else
+      sets = exercise[:sets].to_i
+      if !sets.between?(1, 20)
+        errors << "Exercise #{index + 1}: sets must be between 1 and 20"
+      end
     end
     
     # Validate reps
     if !exercise[:reps].present?
       errors << "Exercise #{index + 1}: reps is required"
-    elsif !exercise[:reps].is_a?(Integer) || !exercise[:reps].between?(1, 100)
-      errors << "Exercise #{index + 1}: reps must be between 1 and 100"
+    else
+      reps = exercise[:reps].to_i
+      if !reps.between?(1, 100)
+        errors << "Exercise #{index + 1}: reps must be between 1 and 100"
+      end
     end
     
     # Validate rest_time if present
     if exercise[:rest_time].present?
-      unless exercise[:rest_time].is_a?(Integer) && exercise[:rest_time].between?(0, 600)
+      rest_time = exercise[:rest_time].to_i
+      unless rest_time.between?(0, 600)
         errors << "Exercise #{index + 1}: rest_time must be between 0 and 600 seconds"
       end
     end
     
     # Validate order if present
     if exercise[:order].present?
-      unless exercise[:order].is_a?(Integer) && exercise[:order] > 0
+      order = exercise[:order].to_i
+      unless order > 0
         errors << "Exercise #{index + 1}: order must be a positive integer"
       end
     end

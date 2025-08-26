@@ -125,17 +125,20 @@ class AiWorkoutRoutineService
       # Parse and validate the response
       parsed_response = parse_exercises_response(response)
 
-      # Validate exercises existence and ranges
-      validate_exercises_existence(parsed_response[:exercises])
-      validate_exercise_ranges(parsed_response[:exercises])
+      # Assign exercise IDs by name using advanced search (same logic as create_routine)
+      fixed_response = assign_exercise_ids_by_name_for_modification(parsed_response)
+
+      # Validate exercises existence and ranges AFTER ID assignment
+      validate_exercises_existence(fixed_response[:exercises])
+      validate_exercise_ranges(fixed_response[:exercises])
 
       # Set default values and normalize order
-      set_default_values(parsed_response[:exercises])
-      normalize_exercise_order(parsed_response[:exercises])
+      set_default_values(fixed_response[:exercises])
+      normalize_exercise_order(fixed_response[:exercises])
 
       # Return the structured response
       {
-        exercises: parsed_response[:exercises]
+        exercises: fixed_response[:exercises]
       }
 
     rescue AiApiClient::TimeoutError => e
@@ -266,17 +269,26 @@ class AiWorkoutRoutineService
     end
 
     # Check if response has the nested 'json' field or direct exercises
-    exercises_data = if ai_response[:json].present? && ai_response[:json][:exercises].present?
-      ai_response[:json]  # TheAnswer.ai nested format
+    exercises_data = if ai_response[:json].present?
+      # For modifications, the json field contains the exercises array directly
+      if ai_response[:json].is_a?(Array)
+        { exercises: ai_response[:json] }  # Direct array format
+      elsif ai_response[:json][:exercises].present?
+        ai_response[:json]  # Nested format with exercises key
+      else
+        Rails.logger.error "AI response json field is not an array or doesn't contain exercises: #{ai_response[:json]}"
+        raise InvalidResponseError, "AI response json field must contain exercises array"
+      end
     elsif ai_response[:exercises].present?
       ai_response  # Direct exercises format
     else
-      Rails.logger.error "AI response missing 'json.exercises' or 'exercises' field: #{ai_response}"
-      raise InvalidResponseError, "AI response must contain 'exercises' field"
+      Rails.logger.error "AI response missing 'json' or 'exercises' field: #{ai_response}"
+      raise InvalidResponseError, "AI response must contain 'json' or 'exercises' field"
     end
 
-    # Validate the exercises structure (require exercise_id for modifications)
-    validate_exercises_structure(exercises_data[:exercises], require_exercise_id: true)
+    # Validate the exercises structure (don't require exercise_id initially for modifications)
+    # exercise_id will be assigned later using the fuzzy search algorithm
+    validate_exercises_structure(exercises_data[:exercises], require_exercise_id: false)
 
     {
       exercises: exercises_data[:exercises]
@@ -284,15 +296,29 @@ class AiWorkoutRoutineService
   end
 
   def build_modify_payload(user_message, exercises)
-    payload = {
-      user_message: user_message,
-      exercises: exercises
-    }
+    # Build a text prompt that includes the exercises JSON for better context
+    exercises_json = JSON.pretty_generate(exercises)
+    
+    prompt = <<~PROMPT.strip
+      Modify the following exercises based on the user's request:
+      
+      User Request: #{user_message}
+      
+      Current Exercises (JSON format):
+      ```
+      #{exercises_json}
+      ```
+      
+      Please modify these exercises according to the user's request and return them in the EXACT same JSON format, maintaining the same structure with name, sets, reps, rest_time, and order fields.
+      
+      Important: Return ONLY the JSON array of exercises, no additional text or formatting.
+    PROMPT
 
     Rails.logger.info "Generated AI payload for modifying exercises: #{user_message}"
-    Rails.logger.debug "Full payload: #{payload}" if Rails.env.development?
+    Rails.logger.debug "Full prompt: #{prompt}" if Rails.env.development?
 
-    payload.to_json
+    # Return the prompt as a hash with 'question' key, similar to create_routine_prompt
+    { question: prompt }
   end
 
   def validate_modification_routine_structure(routine)
@@ -582,6 +608,43 @@ class AiWorkoutRoutineService
     end
     
     Rails.logger.info "Completed exercise ID assignment process"
+    parsed_response
+  end
+
+  def assign_exercise_ids_by_name_for_modification(parsed_response)
+    return parsed_response unless parsed_response[:exercises].is_a?(Array)
+    
+    Rails.logger.info "Starting exercise ID assignment by name process for modification"
+    
+    parsed_response[:exercises].each_with_index do |exercise, exercise_index|
+      next unless exercise.is_a?(Hash)
+      
+      exercise_name = exercise[:name] || exercise[:exercise_name]
+      
+      if exercise_name.blank?
+        Rails.logger.error "Exercise #{exercise_index + 1} in modification: no name provided"
+        raise InvalidResponseError, "Exercise #{exercise_index + 1} in modification is missing name"
+      end
+      
+      # Use the search algorithm to find and assign exercise_id
+      found_exercise = find_exercise_by_name(exercise_name)
+      
+      # This should never happen since find_exercise_by_name has guaranteed fallback
+      if found_exercise.nil?
+        Rails.logger.error "❌ CRITICAL: find_exercise_by_name returned nil for '#{exercise_name}'"
+        raise InvalidResponseError, "Exercise '#{exercise_name}' not found in database and no fallback available"
+      end
+      
+      # Assign the found exercise data
+      exercise[:exercise_id] = found_exercise.id
+      exercise[:name] = found_exercise.name
+      exercise[:exercise_name] = found_exercise.name if exercise[:exercise_name].present?
+      
+      # Log the assignment
+      Rails.logger.info "✓ Assigned exercise #{exercise_index + 1} in modification: '#{exercise_name}' → ID #{found_exercise.id} (#{found_exercise.name})"
+    end
+    
+    Rails.logger.info "Completed exercise ID assignment process for modification"
     parsed_response
   end
 

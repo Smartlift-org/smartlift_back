@@ -59,9 +59,17 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
   # POST /api/v1/ai/workout_routines/modify
   def modify
     begin
+      Rails.logger.info "=== AI Workout Modify Request ==="
+      Rails.logger.info "User message: #{params[:user_message]}"
+      Rails.logger.info "Exercises count: #{params[:exercises]&.length || 0}"
+      Rails.logger.info "Exercises params: #{params[:exercises].inspect}"
+      
       # Validate input parameters
       validation_errors = validate_modification_params
+      Rails.logger.info "Validation errors: #{validation_errors.inspect}"
+      
       if validation_errors.any?
+        Rails.logger.error "Validation failed with errors: #{validation_errors}"
         return render json: {
           success: false,
           error: "Validation failed",
@@ -69,11 +77,17 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
         }, status: :bad_request
       end
 
+      Rails.logger.info "Validation passed, proceeding with AI service"
+
       # Initialize the AI workout routine service for modification
       service = AiWorkoutRoutineService.new({}, :modify)
 
       # Modify the exercises using AI
-      result = service.modify_exercises(params[:exercises], params[:user_message])
+      # Convert ActionController::Parameters to hash to avoid JSON serialization issues
+      exercises_hash = params[:exercises].map(&:to_unsafe_h)
+      result = service.modify_exercises(exercises_hash, params[:user_message])
+
+      Rails.logger.info "AI service completed successfully, returning result"
 
       # Return successful response
       render json: {
@@ -85,6 +99,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       }, status: :ok
 
     rescue AiWorkoutRoutineService::InvalidResponseError => e
+      Rails.logger.error "AI service InvalidResponseError: #{e.message}"
       render json: {
         success: false,
         error: "AI service returned invalid response",
@@ -92,6 +107,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       }, status: :unprocessable_entity
 
     rescue AiWorkoutRoutineService::ServiceUnavailableError => e
+      Rails.logger.error "AI service ServiceUnavailableError: #{e.message}"
       render json: {
         success: false,
         error: "AI service temporarily unavailable",
@@ -234,10 +250,15 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
       errors[:exercises] = [ "cannot be empty" ]
     else
       # Validate each exercise structure
+      exercise_errors = []
       exercises.each_with_index do |exercise, index|
-        exercise_errors = validate_exercise_structure(exercise, index)
-        errors[:exercises] ||= []
-        errors[:exercises].concat(exercise_errors) if exercise_errors.any?
+        exercise_structure_errors = validate_exercise_structure(exercise, index)
+        exercise_errors.concat(exercise_structure_errors) if exercise_structure_errors.any?
+      end
+      
+      # Only add exercise errors if there are any
+      if exercise_errors.any?
+        errors[:exercises] = exercise_errors
       end
     end
 
@@ -247,14 +268,20 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
   def validate_exercise_structure(exercise, index)
     errors = []
     
-    # Validate exercise_id
-    if !exercise["exercise_id"].present?
-      errors << "Exercise #{index + 1}: exercise_id is required"
-    else
+    # Validate exercise_id (now optional - will be assigned automatically by the service)
+    # The service will use the fuzzy search algorithm to find and assign exercise_id based on name
+    if exercise["exercise_id"].present?
       exercise_id = exercise["exercise_id"].to_i
       if exercise_id <= 0
-        errors << "Exercise #{index + 1}: exercise_id must be a positive integer"
+        errors << "Exercise #{index + 1}: exercise_id must be a positive integer if provided"
       end
+    end
+    
+    # Validate name (required for automatic ID assignment)
+    if !exercise["name"].present?
+      errors << "Exercise #{index + 1}: name is required for automatic exercise identification"
+    elsif exercise["name"].to_s.length < 2
+      errors << "Exercise #{index + 1}: name must be at least 2 characters long"
     end
     
     # Validate sets

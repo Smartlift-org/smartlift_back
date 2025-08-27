@@ -24,6 +24,10 @@ class User < ApplicationRecord
     has_many :conversations_as_user, class_name: 'Conversation', foreign_key: 'user_id', dependent: :destroy
     has_many :conversations_as_coach, class_name: 'Conversation', foreign_key: 'coach_id', dependent: :destroy
 
+    # Challenge relationships
+    has_many :challenges, foreign_key: :coach_id, dependent: :destroy
+    has_many :challenge_attempts, dependent: :destroy
+
     # Activity tracking scopes
     scope :inactive_since, ->(days) {
       where("last_activity_at < ? OR last_activity_at IS NULL", days.days.ago)

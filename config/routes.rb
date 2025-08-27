@@ -156,6 +156,22 @@ Rails.application.routes.draw do
         end
       end
 
+      # Challenges system
+      resources :challenges do
+        member do
+          get :leaderboard
+        end
+        collection do
+          get :my_challenges
+        end
+        resources :attempts, controller: "challenge_attempts", only: [:index, :show, :create] do
+          member do
+            put :complete
+            put :abandon
+          end
+        end
+      end
+
       # Trainer endpoints
       resources :trainers, only: [ :show ] do
         member do

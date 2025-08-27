@@ -30,8 +30,8 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
     begin
       render json: {
         success: true,
-        data: @attempt
-      }, serializer: ChallengeAttemptSerializer
+        data: ChallengeAttemptSerializer.new(@attempt)
+      }
 
     rescue => e
       Rails.logger.error "Error in challenge_attempts#show: #{e.message}"
@@ -64,9 +64,9 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
       if attempt.save
         render json: {
           success: true,
-          data: attempt,
+          data: ChallengeAttemptSerializer.new(attempt),
           message: "Intento iniciado exitosamente"
-        }, serializer: ChallengeAttemptSerializer, status: :created
+        }, status: :created
       else
         render json: {
           success: false,
@@ -117,11 +117,11 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
 
         render json: {
           success: true,
-          data: @attempt,
+          data: ChallengeAttemptSerializer.new(@attempt),
           message: "¡Desafío completado exitosamente!",
           leaderboard_position: position,
           is_new_personal_best: @attempt.is_best_attempt?
-        }, serializer: ChallengeAttemptSerializer
+        }
       else
         render json: {
           success: false,
@@ -151,9 +151,9 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
       if @attempt.update(status: 'abandoned')
         render json: {
           success: true,
-          data: @attempt,
+          data: ChallengeAttemptSerializer.new(@attempt),
           message: "Intento abandonado"
-        }, serializer: ChallengeAttemptSerializer
+        }
       else
         render json: {
           success: false,

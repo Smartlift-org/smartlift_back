@@ -85,9 +85,9 @@ class Api::V1::ChallengesController < ApplicationController
       if challenge.save
         render json: {
           success: true,
-          data: challenge,
+          data: ChallengeSerializer.new(challenge),
           message: "Desafío creado exitosamente"
-        }, serializer: ChallengeSerializer, status: :created
+        }, status: :created
       else
         render json: {
           success: false,

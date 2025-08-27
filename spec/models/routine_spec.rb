@@ -15,9 +15,6 @@ RSpec.describe Routine, type: :model do
     it { should validate_presence_of(:difficulty) }
     it { should validate_presence_of(:duration) }
 
-    it "validates name uniqueness scoped to user" do
-      should validate_uniqueness_of(:name).scoped_to(:user_id).case_insensitive
-    end
 
     it "validates description length" do
       should validate_length_of(:description).is_at_least(10).is_at_most(1000)

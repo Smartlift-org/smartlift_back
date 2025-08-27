@@ -440,23 +440,27 @@ class AiWorkoutRoutineService
       exercise_num = index + 1
       
       # Validate exercise_id
-      unless exercise[:exercise_id].is_a?(Integer) && exercise[:exercise_id] > 0
+      exercise_id = exercise[:exercise_id].to_i
+      unless exercise_id > 0
         raise InvalidResponseError, "Exercise #{exercise_num}: exercise_id must be a positive integer"
       end
       
       # Validate sets (1-20)
-      unless exercise[:sets].is_a?(Integer) && exercise[:sets].between?(1, 20)
+      sets = exercise[:sets].to_i
+      unless sets.between?(1, 20)
         raise InvalidResponseError, "Exercise #{exercise_num}: sets must be between 1 and 20"
       end
       
       # Validate reps (1-100)
-      unless exercise[:reps].is_a?(Integer) && exercise[:reps].between?(1, 100)
+      reps = exercise[:reps].to_i
+      unless reps.between?(1, 100)
         raise InvalidResponseError, "Exercise #{exercise_num}: reps must be between 1 and 100"
       end
       
       # Validate rest_time (0-600) if present
       if exercise[:rest_time].present?
-        unless exercise[:rest_time].is_a?(Integer) && exercise[:rest_time].between?(0, 600)
+        rest_time = exercise[:rest_time].to_i
+        unless rest_time.between?(0, 600)
           raise InvalidResponseError, "Exercise #{exercise_num}: rest_time must be between 0 and 600 seconds"
         end
       end

@@ -1,6 +1,6 @@
 class Api::V1::ChallengeAttemptsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_challenge
+  before_action :set_challenge, except: [:my_attempts]
   before_action :set_attempt, only: [:show, :update, :complete]
   before_action :validate_user_access, only: [:create]
 
@@ -166,6 +166,37 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
       render json: {
         success: false,
         message: "Error al abandonar el intento"
+      }, status: :internal_server_error
+    end
+  end
+
+  # GET /api/v1/my-attempts - Todos los intentos del usuario
+  def my_attempts
+    begin
+      # Verificar que el usuario tenga entrenador asignado
+      unless @current_user.user? && @current_user.coaches.any?
+        return render json: {
+          success: false,
+          message: "No tienes un entrenador asignado"
+        }, status: :not_found
+      end
+
+      attempts = ChallengeAttempt.joins(:challenge)
+                                 .where(user: @current_user)
+                                 .where(challenge: { coach: @current_user.coaches })
+                                 .includes(:challenge, :user)
+                                 .order(created_at: :desc)
+
+      render json: {
+        success: true,
+        data: attempts
+      }, each_serializer: ChallengeAttemptSerializer
+
+    rescue => e
+      Rails.logger.error "Error in challenge_attempts#my_attempts: #{e.message}"
+      render json: {
+        success: false,
+        message: "Error al obtener tus intentos"
       }, status: :internal_server_error
     end
   end

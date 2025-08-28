@@ -65,8 +65,8 @@ class Api::V1::ChallengesController < ApplicationController
     begin
       render json: {
         success: true,
-        data: @challenge
-      }, serializer: ChallengeSerializer
+        data: ChallengeSerializer.new(@challenge)
+      }
 
     rescue => e
       Rails.logger.error "Error in challenges#show: #{e.message}"

@@ -166,7 +166,7 @@ class Api::V1::ChallengesController < ApplicationController
   private
 
   def set_challenge
-    @challenge = Challenge.find(params[:id])
+    @challenge = Challenge.includes(:challenge_exercises, :exercises).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,

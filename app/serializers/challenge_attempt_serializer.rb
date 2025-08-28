@@ -4,7 +4,6 @@ class ChallengeAttemptSerializer < ActiveModel::Serializer
              :formatted_completion_time, :total_exercise_time
   
   belongs_to :user, serializer: UserBasicSerializer
-  belongs_to :challenge, serializer: ChallengeSerializer
 
   def formatted_completion_time
     object.formatted_completion_time

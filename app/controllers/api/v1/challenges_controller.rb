@@ -91,9 +91,9 @@ class Api::V1::ChallengesController < ApplicationController
       render json: {
         success: true,
         data: {
-          challenge: ChallengeSerializer.new(@challenge),
+          challenge: @challenge,
           leaderboard: leaderboard_data,
-          user_best_attempt: user_best_attempt ? ChallengeAttemptSerializer.new(user_best_attempt) : nil,
+          user_best_attempt: user_best_attempt,
           total_participants: @challenge.participants_count
         }
       }

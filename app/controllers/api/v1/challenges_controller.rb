@@ -9,65 +9,50 @@ class Api::V1::ChallengesController < ApplicationController
       if @current_user.coach?
         # Entrenadores ven sus propios desafíos
         challenges = @current_user.challenges.current_week.active
-                                .includes(:challenge_exercises, :exercises)
-                                .order(created_at: :desc)
+                            .includes(challenge_exercises: :exercise)
+                            .order(created_at: :desc)
       else
         # Usuarios ven desafíos de su entrenador
         coach = @current_user.coaches.first
         if coach.nil?
-          return render json: {
-            success: false,
-            message: "No tienes un entrenador asignado"
-          }, status: :not_found
+          return render json: { error: "No tienes un entrenador asignado" }, status: :not_found
         end
 
         challenges = coach.challenges.current_week.active
-                         .includes(:challenge_exercises, :exercises)
+                         .includes(challenge_exercises: :exercise)
                          .order(created_at: :desc)
       end
 
-      render json: {
-        success: true,
-        data: challenges
-      }, each_serializer: ChallengeSerializer
+      render json: challenges
 
     rescue => e
       Rails.logger.error "Error in challenges#index: #{e.message}"
-      render json: {
-        success: false,
-        message: "Error al obtener desafíos"
-      }, status: :internal_server_error
+      render json: { error: "Error al obtener desafíos" }, status: :internal_server_error
     end
   end
 
   # GET /api/v1/challenges/my_challenges - Desafíos creados por el entrenador
   def my_challenges
     begin
-      challenges = @current_user.challenges.includes(challenge_exercises: :exercise, participants: [])
+      challenges = @current_user.challenges.includes(challenge_exercises: :exercise)
                               .order(created_at: :desc)
 
       render json: challenges
 
     rescue => e
       Rails.logger.error "Error in challenges#my_challenges: #{e.message}"
-      render json: {
-        success: false,
-        message: "Error al obtener mis desafíos"
-      }, status: :internal_server_error
+      render json: { error: "Error al obtener mis desafíos" }, status: :internal_server_error
     end
   end
 
   # GET /api/v1/challenges/:id
   def show
     begin
-      render json: @challenge, include: { challenge_exercises: { include: :exercise } }
+      render json: @challenge
 
     rescue => e
       Rails.logger.error "Error in challenges#show: #{e.message}"
-      render json: {
-        success: false,
-        message: "Error al obtener el desafío"
-      }, status: :internal_server_error
+      render json: { error: "Error al obtener el desafío" }, status: :internal_server_error
     end
   end
 
@@ -77,24 +62,14 @@ class Api::V1::ChallengesController < ApplicationController
       challenge = @current_user.challenges.build(challenge_params)
       
       if challenge.save
-        render json: {
-          success: true,
-          data: ChallengeSerializer.new(challenge),
-          message: "Desafío creado exitosamente"
-        }, status: :created
+        render json: challenge, status: :created
       else
-        render json: {
-          success: false,
-          errors: challenge.errors.full_messages
-        }, status: :unprocessable_entity
+        render json: { errors: challenge.errors.full_messages }, status: :unprocessable_entity
       end
 
     rescue => e
       Rails.logger.error "Error in challenges#create: #{e.message}"
-      render json: {
-        success: false,
-        message: "Error al crear el desafío"
-      }, status: :internal_server_error
+      render json: { error: "Error al crear el desafío" }, status: :internal_server_error
     end
   end
 
@@ -136,24 +111,15 @@ class Api::V1::ChallengesController < ApplicationController
   def destroy
     begin
       if @challenge.coach != @current_user
-        return render json: {
-          success: false,
-          message: "No tienes permisos para eliminar este desafío"
-        }, status: :forbidden
+        return render json: { error: "No tienes permisos para eliminar este desafío" }, status: :forbidden
       end
 
       @challenge.destroy
-      render json: {
-        success: true,
-        message: "Desafío eliminado exitosamente"
-      }
+      head :no_content
 
     rescue => e
       Rails.logger.error "Error in challenges#destroy: #{e.message}"
-      render json: {
-        success: false,
-        message: "Error al eliminar el desafío"
-      }, status: :internal_server_error
+      render json: { error: "Error al eliminar el desafío" }, status: :internal_server_error
     end
   end
 
@@ -162,10 +128,7 @@ class Api::V1::ChallengesController < ApplicationController
   def set_challenge
     @challenge = Challenge.includes(challenge_exercises: :exercise).find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: {
-      success: false,
-      message: "Desafío no encontrado"
-    }, status: :not_found
+    render json: { error: "Desafío no encontrado" }, status: :not_found
   end
 
   def challenge_params

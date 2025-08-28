@@ -60,10 +60,7 @@ class Api::V1::ChallengesController < ApplicationController
   # GET /api/v1/challenges/:id
   def show
     begin
-      render json: {
-        success: true,
-        data: ChallengeSerializer.new(@challenge)
-      }
+      render json: @challenge
 
     rescue => e
       Rails.logger.error "Error in challenges#show: #{e.message}"
@@ -163,7 +160,7 @@ class Api::V1::ChallengesController < ApplicationController
   private
 
   def set_challenge
-    @challenge = Challenge.includes(:challenge_exercises, :exercises).find(params[:id])
+    @challenge = Challenge.includes(challenge_exercises: :exercise).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,

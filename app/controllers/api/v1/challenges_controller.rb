@@ -23,7 +23,7 @@ class Api::V1::ChallengesController < ApplicationController
                          .order(created_at: :desc)
       end
 
-      render json: challenges
+      render json: challenges, include: { challenge_exercises: { include: :exercise } }
 
     rescue => e
       Rails.logger.error "Error in challenges#index: #{e.message}"
@@ -37,7 +37,7 @@ class Api::V1::ChallengesController < ApplicationController
       challenges = @current_user.challenges.includes(challenge_exercises: :exercise)
                               .order(created_at: :desc)
 
-      render json: challenges
+      render json: challenges, include: { challenge_exercises: { include: :exercise } }
 
     rescue => e
       Rails.logger.error "Error in challenges#my_challenges: #{e.message}"
@@ -48,7 +48,7 @@ class Api::V1::ChallengesController < ApplicationController
   # GET /api/v1/challenges/:id
   def show
     begin
-      render json: @challenge
+      render json: @challenge, include: { challenge_exercises: { include: :exercise } }
 
     rescue => e
       Rails.logger.error "Error in challenges#show: #{e.message}"

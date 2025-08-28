@@ -46,10 +46,7 @@ class Api::V1::ChallengesController < ApplicationController
       challenges = @current_user.challenges.includes(challenge_exercises: :exercise, participants: true)
                               .order(created_at: :desc)
 
-      render json: {
-        success: true,
-        data: challenges
-      }, each_serializer: ChallengeSerializer
+      render json: challenges
 
     rescue => e
       Rails.logger.error "Error in challenges#my_challenges: #{e.message}"

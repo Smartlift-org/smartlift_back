@@ -31,7 +31,7 @@ class ChallengeAttempt < ApplicationRecord
 
   def user_belongs_to_coach
     return unless user && challenge&.coach
-    unless user.coach == challenge.coach
+    unless user.coaches.include?(challenge.coach)
       errors.add(:user, 'debe ser usuario del entrenador que creó el desafío')
     end
   end

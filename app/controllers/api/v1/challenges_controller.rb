@@ -48,7 +48,15 @@ class Api::V1::ChallengesController < ApplicationController
   # GET /api/v1/challenges/:id
   def show
     begin
-      render json: @challenge, include: { challenge_exercises: { include: :exercise } }
+      challenge_data = @challenge.as_json(include: { challenge_exercises: { include: :exercise } })
+      
+      # Add computed fields
+      challenge_data['participants_count'] = @challenge.participants_count
+      challenge_data['total_attempts'] = @challenge.total_attempts
+      challenge_data['completed_attempts'] = @challenge.completed_attempts
+      challenge_data['is_active_now'] = @challenge.is_active_now?
+      
+      render json: challenge_data
 
     rescue => e
       Rails.logger.error "Error in challenges#show: #{e.message}"

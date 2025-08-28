@@ -34,15 +34,15 @@ class Challenge < ApplicationRecord
   end
 
   def participants_count
-    participants.count
+    participants.count || 0
   end
 
   def total_attempts
-    challenge_attempts.count
+    challenge_attempts.count || 0
   end
 
   def completed_attempts
-    challenge_attempts.where(status: 'completed').count
+    challenge_attempts.where(status: 'completed').count || 0
   end
 
   private

@@ -43,7 +43,7 @@ class Api::V1::ChallengesController < ApplicationController
   # GET /api/v1/challenges/my_challenges - Desafíos creados por el entrenador
   def my_challenges
     begin
-      challenges = @current_user.challenges.includes(:challenge_exercises => :exercise, :participants)
+      challenges = @current_user.challenges.includes(challenge_exercises: :exercise, participants: true)
                               .order(created_at: :desc)
 
       render json: {

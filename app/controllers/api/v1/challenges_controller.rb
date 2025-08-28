@@ -60,7 +60,7 @@ class Api::V1::ChallengesController < ApplicationController
   # GET /api/v1/challenges/:id
   def show
     begin
-      render json: @challenge
+      render json: @challenge, include: { challenge_exercises: { include: :exercise } }
 
     rescue => e
       Rails.logger.error "Error in challenges#show: #{e.message}"

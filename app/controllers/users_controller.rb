@@ -9,6 +9,14 @@ class UsersController < ApplicationController
     def profile
       user_data = current_user.as_json(only: [ :id, :first_name, :last_name, :email, :role, :created_at ])
       user_data[:profile_picture_url] = current_user.profile_picture_url_with_fallback
+      
+      # Add coach information for users
+      if current_user.user?
+        assigned_coach = current_user.coaches.first
+        user_data[:coach_id] = assigned_coach&.id
+        user_data[:coach_name] = assigned_coach ? "#{assigned_coach.first_name} #{assigned_coach.last_name}" : nil
+      end
+      
       render json: user_data, status: :ok
     end
 

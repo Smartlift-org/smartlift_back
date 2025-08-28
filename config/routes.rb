@@ -173,7 +173,7 @@ Rails.application.routes.draw do
       end
 
       # User attempts across all challenges
-      get :my_attempts, controller: "challenge_attempts", action: "my_attempts"
+      get "my-attempts", to: "challenge_attempts#my_attempts"
 
       # Trainer endpoints
       resources :trainers, only: [ :show ] do

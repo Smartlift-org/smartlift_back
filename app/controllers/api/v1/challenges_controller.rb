@@ -11,9 +11,20 @@ class Api::V1::ChallengesController < ApplicationController
         challenges = @current_user.challenges.current_week.active
                             .includes(challenge_exercises: :exercise)
                             .order(created_at: :desc)
+
+        challenges_with_stats = challenges.map do |challenge|
+          challenge_data = challenge.as_json(include: { challenge_exercises: { include: :exercise } })
+          challenge_data['participants_count'] = challenge.participants_count
+          challenge_data['completed_attempts'] = challenge.completed_attempts
+          challenge_data['total_attempts'] = challenge.total_attempts
+          challenge_data['is_active_now'] = challenge.is_active_now?
+          challenge_data
+        end
+
+        render json: challenges_with_stats
       else
         # Usuarios ven desafíos de su entrenador
-        coach = @current_user.coach
+        coach = @current_user.coaches.first
         return render json: { error: "No tienes un entrenador asignado" }, status: :not_found unless coach
 
         challenges = coach.challenges.where(is_active: true)
@@ -43,7 +54,7 @@ class Api::V1::ChallengesController < ApplicationController
   # GET /api/v1/challenges/available - Desafíos disponibles para el usuario
   def available
     begin
-      coach = @current_user.coach
+      coach = @current_user.coaches.first
       return render json: { error: "No tienes un entrenador asignado" }, status: :not_found unless coach
 
       challenges = coach.challenges.where(is_active: true)

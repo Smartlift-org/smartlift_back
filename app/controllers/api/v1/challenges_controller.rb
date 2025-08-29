@@ -13,21 +13,58 @@ class Api::V1::ChallengesController < ApplicationController
                             .order(created_at: :desc)
       else
         # Usuarios ven desafíos de su entrenador
-        coach = @current_user.coaches.first
-        if coach.nil?
-          return render json: { error: "No tienes un entrenador asignado" }, status: :not_found
+        coach = @current_user.coach
+        return render json: { error: "No tienes un entrenador asignado" }, status: :not_found unless coach
+
+        challenges = coach.challenges.where(is_active: true)
+                                  .includes(challenge_exercises: :exercise)
+                                  .where('end_date > ?', Time.current)
+                                  .order(created_at: :desc)
+
+        challenges_with_stats = challenges.map do |challenge|
+          challenge_data = challenge.as_json(include: { challenge_exercises: { include: :exercise } })
+          challenge_data['participants_count'] = challenge.participants_count
+          challenge_data['completed_attempts'] = challenge.completed_attempts
+          challenge_data['total_attempts'] = challenge.total_attempts
+          challenge_data['is_active_now'] = challenge.is_active_now?
+          challenge_data
         end
 
-        challenges = coach.challenges.current_week.active
-                         .includes(challenge_exercises: :exercise)
-                         .order(created_at: :desc)
-      end
+        render json: challenges_with_stats
 
-      render json: challenges, include: { challenge_exercises: { include: :exercise } }
+      end
 
     rescue => e
       Rails.logger.error "Error in challenges#index: #{e.message}"
       render json: { error: "Error al obtener desafíos" }, status: :internal_server_error
+    end
+  end
+
+  # GET /api/v1/challenges/available - Desafíos disponibles para el usuario
+  def available
+    begin
+      coach = @current_user.coach
+      return render json: { error: "No tienes un entrenador asignado" }, status: :not_found unless coach
+
+      challenges = coach.challenges.where(is_active: true)
+                                  .includes(challenge_exercises: :exercise)
+                                  .where('end_date > ?', Time.current)
+                                  .order(created_at: :desc)
+
+      challenges_with_stats = challenges.map do |challenge|
+        challenge_data = challenge.as_json(include: { challenge_exercises: { include: :exercise } })
+        challenge_data['participants_count'] = challenge.participants_count
+        challenge_data['completed_attempts'] = challenge.completed_attempts
+        challenge_data['total_attempts'] = challenge.total_attempts
+        challenge_data['is_active_now'] = challenge.is_active_now?
+        challenge_data
+      end
+
+      render json: challenges_with_stats
+
+    rescue => e
+      Rails.logger.error "Error in challenges#available: #{e.message}"
+      render json: { error: "Error al obtener desafíos disponibles" }, status: :internal_server_error
     end
   end
 
@@ -102,7 +139,8 @@ class Api::V1::ChallengesController < ApplicationController
           challenge: @challenge,
           leaderboard: leaderboard_data,
           user_best_attempt: user_best_attempt,
-          total_participants: @challenge.participants_count
+          total_participants: @challenge.participants_count,
+          total_completed: @challenge.completed_attempts
         }
       }
 

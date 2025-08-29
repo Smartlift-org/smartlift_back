@@ -189,8 +189,13 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
 
       render json: {
         success: true,
-        data: attempts
-      }, each_serializer: ChallengeAttemptSerializer
+        data: attempts.as_json(
+          include: { 
+            challenge: { only: [:id, :name, :description, :difficulty_level] },
+            user: { only: [:id, :first_name, :last_name] }
+          }
+        )
+      }
 
     rescue => e
       Rails.logger.error "Error in challenge_attempts#my_attempts: #{e.message}"

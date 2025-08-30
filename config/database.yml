@@ -27,9 +27,11 @@ development:
   database: smartlift_api_development
   username: <%= ENV["DATABASE_USERNAME"] %>
   password: <%= ENV["DATABASE_PASSWORD"] %>
+  host: <%= ENV["DATABASE_HOST"] || "localhost" %>
+  port: <%= ENV["DATABASE_PORT"] || 5432 %>
 
   # The specified database role being used to connect to PostgreSQL.
-  # To create additional roles in PostgreSQL see `$ createuser --help`.
+  # To create additional roles in PostgreSQL see ⁠ $ createuser --help ⁠.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
   #username: smartlift_api
@@ -63,6 +65,8 @@ test:
   database: smartlift_api_test
   username: <%= ENV["DATABASE_USERNAME"] %>
   password: <%= ENV["DATABASE_PASSWORD"] %>
+  host: <%= ENV["DATABASE_HOST"] || "localhost" %>
+  port: <%= ENV["DATABASE_PORT"] || 5432 %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -78,7 +82,6 @@ test:
 # the values provided in this file. Alternatively, you can specify a connection
 # URL environment variable explicitly:
 #
-#   production:
 #     url: <%= ENV["MY_APP_DATABASE_URL"] %>
 #
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
@@ -87,12 +90,10 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: smartlift_api_production
-    username: smartlift_api
-    password: <%= ENV["SMARTLIFT_API_DATABASE_PASSWORD"] %>
+    url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *primary_production
-    database: smartlift_api_production_cache
+    url: <%= ENV["DATABASE_URL"] %>
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production

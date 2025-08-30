@@ -1,5 +1,6 @@
 class JsonWebToken
-    SECRET_KEY = Rails.application.secrets.secret_key_base.to_s
+    # Using `secret_key_base` directly (secrets API deprecated in Rails 7.2)
+    SECRET_KEY = Rails.application.secret_key_base
 
     def self.encode(payload, exp = 24.hours.from_now)
         payload[:exp] = exp.to_i
@@ -13,5 +14,3 @@ class JsonWebToken
         nil
     end
 end
-
-    

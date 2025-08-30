@@ -6,9 +6,32 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+# If we're starting the Rails server, run database setup first
+if [[ "$1" == "bundle" && "$2" == "exec" && "$3" == "puma" ]]; then
+    echo "🚀 Starting Rails application setup..."
+    
+    # Wait for database to be ready
+    echo "⏳ Waiting for database connection..."
+    bundle exec rails runner "ActiveRecord::Base.connection.execute('SELECT 1')"
+    echo "✅ Database connection established"
+    
+    # Run database migrations
+    echo "📊 Running database migrations..."
+    bundle exec rails db:migrate
+    echo "✅ Database migrations completed"
+    
+    # Import exercises
+    echo "🏋️ Importing exercises..."
+    bundle exec rails exercises:import
+    echo "✅ Exercise import completed"
+    
+    # Seed database
+    echo "🌱 Seeding database..."
+    bundle exec rails db:seed
+    echo "✅ Database seeding completed"
+    
+    echo "🎉 Rails application setup completed successfully!"
 fi
 
+# Execute the main command
 exec "${@}"

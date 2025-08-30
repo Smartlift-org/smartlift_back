@@ -1,9 +1,9 @@
-class Api::V1::TrainerMembersController < ApplicationController
+class TrainerMembersController < ApplicationController
   before_action :authorize_request
   before_action :ensure_trainer_role
   before_action :set_trainer
 
-  # GET /api/v1/trainers/:trainer_id/members/:id
+  # GET /trainers/:trainer_id/members/:id
   def show
     begin
       @member = @trainer.users.find(params[:id])
@@ -20,7 +20,7 @@ class Api::V1::TrainerMembersController < ApplicationController
     }
   end
 
-  # GET /api/v1/trainers/:trainer_id/members/:id/routines
+  # GET /trainers/:trainer_id/members/:id/routines
   def routines
     begin
       @member = @trainer.users.find(params[:id])

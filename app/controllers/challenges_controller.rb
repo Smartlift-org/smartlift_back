@@ -1,9 +1,9 @@
-class Api::V1::ChallengesController < ApplicationController
+class ChallengesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_challenge, only: [:show, :leaderboard, :destroy]
   before_action :ensure_coach, only: [:create, :destroy, :my_challenges]
 
-  # GET /api/v1/challenges - Desafíos disponibles para el usuario
+  # GET /challenges - Desafíos disponibles para el usuario
   def index
     begin
       if @current_user.coach?
@@ -51,7 +51,7 @@ class Api::V1::ChallengesController < ApplicationController
     end
   end
 
-  # GET /api/v1/challenges/available - Desafíos disponibles para el usuario
+  # GET /challenges/available - Desafíos disponibles para el usuario
   def available
     begin
       coach = @current_user.coaches.first
@@ -79,7 +79,7 @@ class Api::V1::ChallengesController < ApplicationController
     end
   end
 
-  # GET /api/v1/challenges/my_challenges - Desafíos creados por el entrenador
+  # GET /challenges/my_challenges - Desafíos creados por el entrenador
   def my_challenges
     begin
       challenges = @current_user.challenges.includes(challenge_exercises: :exercise)
@@ -93,7 +93,7 @@ class Api::V1::ChallengesController < ApplicationController
     end
   end
 
-  # GET /api/v1/challenges/:id
+  # GET /challenges/:id
   def show
     begin
       challenge_data = @challenge.as_json(include: { challenge_exercises: { include: :exercise } })
@@ -112,7 +112,7 @@ class Api::V1::ChallengesController < ApplicationController
     end
   end
 
-  # POST /api/v1/challenges
+  # POST /challenges
   def create
     begin
       challenge = @current_user.challenges.build(challenge_params)
@@ -129,7 +129,7 @@ class Api::V1::ChallengesController < ApplicationController
     end
   end
 
-  # GET /api/v1/challenges/:id/leaderboard
+  # GET /challenges/:id/leaderboard
   def leaderboard
     begin
       leaderboard_data = @challenge.leaderboard.map.with_index(1) do |attempt, position|
@@ -164,7 +164,7 @@ class Api::V1::ChallengesController < ApplicationController
     end
   end
 
-  # DELETE /api/v1/challenges/:id
+  # DELETE /challenges/:id
   def destroy
     begin
       if @challenge.coach != @current_user

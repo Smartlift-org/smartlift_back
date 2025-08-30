@@ -1,8 +1,8 @@
-class Api::V1::AiWorkoutRoutinesController < ApplicationController
+class AiWorkoutRoutinesController < ApplicationController
   # Authentication is required for this endpoint
   # Use JWT token in Authorization header: Bearer <token>
 
-  # POST /api/v1/ai/workout_routines
+  # POST /ai/workout_routines
   def create
     begin
       # Validate input parameters
@@ -56,7 +56,7 @@ class Api::V1::AiWorkoutRoutinesController < ApplicationController
     end
   end
 
-  # POST /api/v1/ai/workout_routines/modify
+  # POST /ai/workout_routines/modify
   def modify
     begin
       Rails.logger.info "=== AI Workout Modify Request ==="

@@ -1,9 +1,9 @@
-class Api::V1::RoutineValidationsController < ApplicationController
+class RoutineValidationsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_trainer
   before_action :find_routine, only: [ :show, :approve, :reject ]
 
-  # GET /api/v1/routine_validations
+  # GET /routine_validations
   # Lista rutinas pendientes de validación de los usuarios asignados al entrenador
   def index
     begin
@@ -54,7 +54,7 @@ class Api::V1::RoutineValidationsController < ApplicationController
     end
   end
 
-  # GET /api/v1/routine_validations/:id
+  # GET /routine_validations/:id
   # Obtiene detalles completos de una rutina para validación
   def show
     begin
@@ -82,7 +82,7 @@ class Api::V1::RoutineValidationsController < ApplicationController
     end
   end
 
-  # POST /api/v1/routine_validations/:id/approve
+  # POST /routine_validations/:id/approve
   # Aprueba una rutina generada por IA
   def approve
     begin
@@ -126,7 +126,7 @@ class Api::V1::RoutineValidationsController < ApplicationController
     end
   end
 
-  # PUT /api/v1/routine_validations/:id/edit
+  # PUT /routine_validations/:id/edit
   # Edita una rutina IA pendiente y opcionalmente la valida
   def edit
     begin
@@ -192,7 +192,7 @@ class Api::V1::RoutineValidationsController < ApplicationController
     end
   end
 
-  # POST /api/v1/routine_validations/:id/reject
+  # POST /routine_validations/:id/reject
   # Rechaza una rutina generada por IA
   def reject
     begin

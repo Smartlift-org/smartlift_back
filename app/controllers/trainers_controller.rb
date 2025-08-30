@@ -1,4 +1,4 @@
-class Api::V1::TrainersController < ApplicationController
+class TrainersController < ApplicationController
   before_action :authorize_request
   before_action :ensure_trainer_role
   before_action :set_trainer, only: [ :show, :members, :inactive_members, :assign_member, :unassign_member, :dashboard, :available_users, :list_routines, :assign_routine, :update_member_routine ]
@@ -308,25 +308,6 @@ class Api::V1::TrainersController < ApplicationController
       }
     }
   end
-
-  def assign_routine
-    authorize_trainer_access!(@trainer.id)
-    return if performed?
-
-    member = @trainer.users.find(params[:user_id])
-    routine = Routine.find(params[:routine_id])
-
-    new_routine = routine.deep_clone(include: :routine_exercises)
-    new_routine.user = member
-    new_routine.name = params[:custom_name].presence || "#{routine.name} (Asignada por #{@trainer.first_name})"
-
-    if new_routine.save
-      render json: new_routine, status: :created
-    else
-      render json: { errors: new_routine.errors.full_messages }, status: :unprocessable_entity
-    end
-  end
-
 
   def assign_routine
     authorize_trainer_access!(@trainer.id)

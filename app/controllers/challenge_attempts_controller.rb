@@ -1,10 +1,10 @@
-class Api::V1::ChallengeAttemptsController < ApplicationController
+class ChallengeAttemptsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_challenge, except: [:my_attempts]
   before_action :set_attempt, only: [:show, :update, :complete]
   before_action :validate_user_access, only: [:create]
 
-  # GET /api/v1/challenges/:challenge_id/attempts - Historial de intentos del usuario
+  # GET /challenges/:challenge_id/attempts - Historial de intentos del usuario
   def index
     begin
       attempts = @challenge.challenge_attempts.where(user: @current_user)
@@ -25,7 +25,7 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
     end
   end
 
-  # GET /api/v1/challenges/:challenge_id/attempts/:id - Detalle de un intento específico
+  # GET /challenges/:challenge_id/attempts/:id - Detalle de un intento específico
   def show
     begin
       render json: {
@@ -42,7 +42,7 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
     end
   end
 
-  # POST /api/v1/challenges/:challenge_id/attempts - Iniciar intento
+  # POST /challenges/:challenge_id/attempts - Iniciar intento
   def create
     begin
       # Verificar que no haya un intento activo
@@ -83,7 +83,7 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
     end
   end
 
-  # PUT /api/v1/challenges/:challenge_id/attempts/:id/complete - Completar intento
+  # PUT /challenges/:challenge_id/attempts/:id/complete - Completar intento
   def complete
     begin
       unless @attempt.in_progress?
@@ -138,7 +138,7 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
     end
   end
 
-  # PUT /api/v1/challenges/:challenge_id/attempts/:id/abandon - Abandonar intento
+  # PUT /challenges/:challenge_id/attempts/:id/abandon - Abandonar intento
   def abandon
     begin
       unless @attempt.in_progress?
@@ -170,7 +170,7 @@ class Api::V1::ChallengeAttemptsController < ApplicationController
     end
   end
 
-  # GET /api/v1/my-attempts - Todos los intentos del usuario
+  # GET /my-attempts - Todos los intentos del usuario
   def my_attempts
     begin
       # Verificar que el usuario tenga entrenador asignado

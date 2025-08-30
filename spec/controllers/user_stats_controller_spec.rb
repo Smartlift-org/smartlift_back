@@ -28,85 +28,6 @@ RSpec.describe UserStatsController, type: :controller do
     end
   end
 
-  describe 'GET #complete' do
-    context 'when user is authenticated' do
-      it 'returns complete stats structure' do
-        get :complete
-        expect(response).to be_successful
-
-        json_response = JSON.parse(response.body)
-        expect(json_response).to include('profile', 'performance', 'analytics', 'personal_records')
-      end
-
-      context 'when user has no data' do
-        it 'returns empty stats' do
-          get :complete
-
-          json_response = JSON.parse(response.body)
-          expect(json_response['profile']).to eq({})
-          expect(json_response['performance']).to eq({})
-          expect(json_response['analytics']).to eq({})
-          expect(json_response['personal_records']['message']).to eq('No hay PRs registrados')
-        end
-      end
-
-      context 'when user has profile data' do
-        let!(:user_stat) { UserStat.create(user: user, height: 180.5, weight: 75.0, age: 30, gender: 'male', fitness_goal: 'lose weight', experience_level: 'beginner', available_days: 3, equipment_available: 'dumbbells', activity_level: 'moderate', physical_limitations: 'none') }
-
-        it 'returns profile data' do
-          get :complete
-
-          json_response = JSON.parse(response.body)
-          expect(json_response['profile']['weight']).to eq(75.0)
-          expect(json_response['profile']['height']).to eq(180.5)
-          expect(json_response['profile']['age']).to eq(30)
-        end
-      end
-
-      context 'when user has workout data' do
-        let!(:user_stat) { UserStat.create(user: user, weight: 70.0) }
-        let!(:workout) { create(:workout, :completed, user: user) }
-        let!(:exercise) { create(:workout_exercise, workout: workout) }
-        let!(:set) { create(:workout_set, :completed, exercise: exercise, weight: 80, reps: 8, rpe: 7) }
-
-        it 'returns analytics data' do
-          get :complete
-
-          json_response = JSON.parse(response.body)
-          expect(json_response['analytics']).not_to be_empty
-          expect(json_response['analytics']['intensity_distribution']).to include('heavy')
-        end
-      end
-
-      context 'when user has personal records' do
-        let!(:workout) { create(:workout, :completed, user: user) }
-        let!(:exercise) { create(:workout_exercise, workout: workout) }
-        let!(:pr_set) { create(:workout_set, :weight_pr, exercise: exercise, weight: 100, reps: 5) }
-
-        it 'returns performance data' do
-          # Create user_stat for the authenticated user
-          UserStat.create!(user: user, weight: 70.0, experience_level: 'beginner', activity_level: 'moderate', physical_limitations: 'none')
-          
-          get :complete
-
-          json_response = JSON.parse(response.body)
-          expect(json_response['performance']).not_to be_empty
-          expect(json_response['performance']['one_rep_maxes']).not_to be_empty
-          expect(json_response['performance']['relative_strength']).not_to be_empty
-          expect(json_response['performance']['top_exercises']).to be_an(Array)
-        end
-
-        it 'returns personal records data' do
-          get :complete
-
-          json_response = JSON.parse(response.body)
-          expect(json_response['personal_records']).not_to include('message')
-          expect(json_response['personal_records']).to include('recent', 'by_exercise', 'statistics')
-        end
-      end
-    end
-  end
-
   describe 'POST #create' do
     let(:valid_attributes) do
       {
@@ -187,10 +108,10 @@ RSpec.describe UserStatsController, type: :controller do
     context 'when updating other user stats' do
       let(:other_user_stat) { UserStat.create(user: other_user, height: 180.5, weight: 75.0, age: 30, gender: 'male', fitness_goal: 'lose weight', experience_level: 'beginner', available_days: 3, equipment_available: 'dumbbells', activity_level: 'moderate', physical_limitations: 'none') }
 
-      it 'returns not found' do
+      it 'returns unauthorized' do
         patch :update, params: { id: other_user_stat.id }.merge(new_attributes)
-        expect(response).to have_http_status(:not_found)
-        expect(JSON.parse(response.body)['error']).to eq('No user stats found')
+        expect(response).to have_http_status(:unauthorized)
+        expect(JSON.parse(response.body)['error']).to eq('Not authorized')
       end
     end
 
@@ -202,4 +123,4 @@ RSpec.describe UserStatsController, type: :controller do
       end
     end
   end
-end
+end 

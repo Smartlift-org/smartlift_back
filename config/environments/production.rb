@@ -22,7 +22,7 @@ Rails.application.configure do
   # config.asset_host = "http://assets.example.com"
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :production
+  config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
@@ -35,10 +35,10 @@ Rails.application.configure do
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
-  config.logger   = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!)
-  config.log_level = ENV["RAILS_LOG_LEVEL"] || "info"
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
@@ -52,34 +52,21 @@ Rails.application.configure do
   # Replace the default in-process and non-durable queuing backend for Active Job.
   # config.active_job.queue_adapter = :resque
 
-  # Configure Action Mailer for production
-  config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.perform_caching = false
-  config.action_mailer.default_url_options = {
-    host: ENV["APP_HOST"] || "smartlift-api.com",
-    protocol: "https"
-  }
+  # Ignore bad email addresses and do not raise email delivery errors.
+  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
+  # config.action_mailer.raise_delivery_errors = false
 
-  # Configure Active Storage for production URLs
-  # This ensures that Active Storage generates correct URLs for uploaded files
-  Rails.application.routes.default_url_options = {
-    host: ENV["APP_HOST"] || "smartlift-api.com",
-    protocol: "https"
-  }
+  # Set host to be used by links generated in mailer templates.
+  config.action_mailer.default_url_options = { host: "example.com" }
 
-  # SMTP Configuration for production
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: ENV["SMTP_ADDRESS"],
-    port: (ENV["SMTP_PORT"] || 587).to_i,
-    domain: ENV["SMTP_DOMAIN"],
-    user_name: ENV["SMTP_USERNAME"],
-    password: ENV["SMTP_PASSWORD"],
-    authentication: ENV["SMTP_AUTHENTICATION"] || "plain",
-    enable_starttls_auto: ENV["SMTP_ENABLE_STARTTLS_AUTO"] != "false",
-    open_timeout: (ENV["SMTP_OPEN_TIMEOUT"] || 5).to_i,
-    read_timeout: (ENV["SMTP_READ_TIMEOUT"] || 5).to_i
-  }
+  # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
+  # config.action_mailer.smtp_settings = {
+  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
+  #   password: Rails.application.credentials.dig(:smtp, :password),
+  #   address: "smtp.example.com",
+  #   port: 587,
+  #   authentication: :plain
+  # }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -88,28 +75,8 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  # Action Cable (WebSockets) configuration for production
-  # URL where clients connect (must be wss in production)
-  config.action_cable.url = ENV["ACTION_CABLE_URL"]
-
-  # Allowed request origins (frontend origins that can open WS). Set comma-separated in env FRONTEND_ORIGINS
-  # Example: https://app.example.com,https://staging.example.com,exp://*,http://localhost:19006
-  if ENV["FRONTEND_ORIGINS"].present?
-    origins = ENV["FRONTEND_ORIGINS"].split(/\s*,\s*/)
-    config.action_cable.allowed_request_origins = origins
-  else
-    # Fallback to app host if provided
-    app_host = ENV["APP_HOST"]
-    if app_host.present?
-      config.action_cable.allowed_request_origins = [
-        /https?:\/\/#{Regexp.escape(app_host)}/
-      ]
-    end
-  end
-
-  # If your clients connect cross-origin and you don't use session cookies, you may disable forgery protection
-  # since we're authenticating via JWT in the query params.
-  config.action_cable.disable_request_forgery_protection = true
+  # Only use :id for inspections in production.
+  config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [

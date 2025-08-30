@@ -19,11 +19,11 @@
 
 # Learn more: http://github.com/javan/whenever
 
-set :environment, ENV["RAILS_ENV"] || "development"
+set :environment, ENV['RAILS_ENV'] || 'development' 
 
 set :output, "log/cron_log.log"
 
 # Import exercises daily at 2 AM
-every 1.day, at: "2:00 am" do
+every 1.day, at: '2:00 am' do
   rake "exercises:import"
 end

@@ -1,5 +1,6 @@
-FROM ruby:3.2.2-slim
+FROM ruby:3.4.3-slim
 
+# Install essential Linux packages
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
     build-essential \
@@ -12,33 +13,27 @@ RUN apt-get update -qq && \
     pkg-config \
     python-is-python3 \
     libyaml-dev \
-    gnupg2 \
-    cron \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g yarn
-
+# Set working directory
 WORKDIR /rails
 
+# Install bundler
 RUN gem install bundler
 
+# Copy Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
 
-RUN bundle config set --global force_ruby_platform true && \
-    bundle config set --global build.pg --with-pg-config=/usr/bin/pg_config && \
-    bundle install
+# Install gems
+RUN bundle install
 
+# Copy the rest of the application
 COPY . .
 
-COPY entrypoint.dev.sh /usr/bin/entrypoint.dev.sh
-COPY entrypoint.dev.bat /usr/bin/entrypoint.dev.bat
+# Add a script to be executed every time the container starts
+COPY entrypoint.dev.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.dev.sh
+ENTRYPOINT ["entrypoint.dev.sh"]
 
-ENTRYPOINT ["/bin/sh", "-c", "if [ -f /usr/bin/entrypoint.dev.sh ]; then /usr/bin/entrypoint.dev.sh \"$@\"; else /usr/bin/entrypoint.dev.bat \"$@\"; fi"]
-
-RUN chown -R root:root /rails && \
-    chmod -R 755 /rails
-
+# Start the main process
 CMD ["rails", "server", "-b", "0.0.0.0"] 

@@ -3,13 +3,25 @@
 one:
   name: MyString
   level: beginner
+  force: pull
+  mechanic: compound
+  equipment: body only
+  category: MyString
   instructions: MyText
   primary_muscles: []
+  secondary_muscles: []
+  instructions: []
   images: []
 
 two:
   name: MyString
   level: intermediate
+  force: push
+  mechanic: isolation
+  equipment: body only
+  category: MyString
   instructions: MyText
   primary_muscles: []
+  secondary_muscles: []
+  instructions: []
   images: []

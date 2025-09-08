@@ -60,17 +60,24 @@ class RoutineValidationsController < ApplicationController
     begin
       render json: {
         success: true,
-        data: {
-          routine: @routine.as_json.merge(
-            validation_info: {
-              source_type: @routine.source_type,
-              validation_status: @routine.validation_status,
-              ai_generated: @routine.ai_generated?,
-              ai_prompt_data: @routine.ai_prompt_data
+        data: @routine.as_json(
+          include: {
+            user: { only: [:id, :first_name, :last_name] },
+            routine_exercises: {
+              include: {
+                exercise: { only: [:id, :name, :primary_muscles] }
+              }
             }
-          )
-        }
-      }, status: :ok
+          }
+        ).merge(
+          validation_info: {
+            source_type: @routine.source_type,
+            validation_status: @routine.validation_status,
+            ai_generated: @routine.ai_generated?,
+            ai_prompt_data: @routine.ai_prompt_data
+          }
+        )
+      }, status: :ok
 
     rescue StandardError => e
       Rails.logger.error "Error fetching routine details: #{e.message}"
@@ -379,6 +386,7 @@ class RoutineValidationsController < ApplicationController
 
     # Buscar rutina que sea IA y pertenezca a un usuario asignado
     @routine = Routine.ai_generated
+                      .includes(:user, routine_exercises: :exercise)
                       .where(user_id: assigned_user_ids)
                       .find_by(id: params[:id])
 

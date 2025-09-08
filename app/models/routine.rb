@@ -139,8 +139,8 @@ class Routine < ApplicationRecord
   end
 
   def validator_must_be_trainer
-    unless validated_by&.role == "trainer"
-      errors.add(:validated_by, "must be a trainer")
+    unless validated_by&.role == "coach"
+      errors.add(:validated_by, "must be a coach")
     end
   end
 end

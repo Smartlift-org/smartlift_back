@@ -1,7 +1,7 @@
 class RoutineValidationsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_trainer
-  before_action :find_routine, only: [ :show, :approve, :reject ]
+  before_action :find_routine, only: [ :show, :approve, :reject, :edit ]
 
   # GET /routine_validations
   # Lista rutinas pendientes de validación de los usuarios asignados al entrenador

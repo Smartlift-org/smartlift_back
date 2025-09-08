@@ -58,26 +58,30 @@ class RoutineValidationsController < ApplicationController
   # Obtiene detalles completos de una rutina para validación
   def show
     begin
-      render json: {
-        success: true,
-        data: @routine.as_json(
-          include: {
-            user: { only: [:id, :first_name, :last_name] },
-            routine_exercises: {
-              include: {
-                exercise: { only: [:id, :name, :primary_muscles] }
-              }
+      routine_data = @routine.as_json(
+        include: {
+          user: { only: [:id, :first_name, :last_name] },
+          routine_exercises: {
+            include: {
+              exercise: { only: [:id, :name, :primary_muscles] }
             }
           }
-        ).merge(
-          validation_info: {
-            source_type: @routine.source_type,
-            validation_status: @routine.validation_status,
-            ai_generated: @routine.ai_generated?,
-            ai_prompt_data: @routine.ai_prompt_data
-          }
-        )
-      }, status: :ok
+        }
+      )
+      
+      routine_data.merge!(
+        validation_info: {
+          source_type: @routine.source_type,
+          validation_status: @routine.validation_status,
+          ai_generated: @routine.ai_generated?,
+          ai_prompt_data: @routine.ai_prompt_data
+        }
+      )
+
+      render json: {
+        success: true,
+        data: routine_data
+      }, status: :ok
 
     rescue StandardError => e
       Rails.logger.error "Error fetching routine details: #{e.message}"
